@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Leaderboard | DIS HACKATHON</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        :root {
+            --bg: #0d0f1a;
+            --surface: #161a2c;
+            --border: rgba(255, 255, 255, 0.08);
+            --primary: #6c8cff;
+            --accent: #ff8a4c;
+            --success: #4ade80;
+            --gold: #ffd700;
+            --silver: #b0b8cc;
+            --bronze: #cd7f32;
+            --grad-primary: linear-gradient(135deg, #6c8cff, #ff8a4c);
+        }
+
+        body {
+            background-color: var(--bg);
+            font-family: 'Inter', sans-serif;
+            color: white;
+            min-height: 100vh;
+            cursor: none;
+        }
+
+        .glass-panel {
+            background: linear-gradient(135deg, rgba(29, 34, 56, 0.6), rgba(22, 26, 44, 0.4));
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.6);
+        }
+
+        .text-grad {
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        #bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+        .grid-overlay {
+            position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.025;
+            background-image: linear-gradient(to right,#fff 1px,transparent 1px), linear-gradient(to bottom,#fff 1px,transparent 1px);
+            background-size: 52px 52px;
+        }
+
+        #cursor {
+            position: fixed; width: 10px; height: 10px; border-radius: 50%;
+            background: var(--primary); pointer-events: none; z-index: 100;
+            transform: translate(-50%,-50%); mix-blend-mode: screen;
+        }
+        #cursor-ring {
+            position: fixed; width: 34px; height: 34px; border-radius: 50%;
+            border: 1.5px solid rgba(108,140,255,0.45); pointer-events: none; z-index: 99;
+            transform: translate(-50%,-50%);
+        }
+
+        tr { transition: all 0.2s; border-bottom: 1px solid var(--border); }
+        tr:hover { background: rgba(255, 255, 255, 0.03); }
+        .progress-container { background: rgba(0,0,0,0.3); border: 1px solid var(--border); overflow: hidden; }
+
+        /* ══ PODIUM ══ */
+        .podium-section {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 48px;
+            padding: 0 8px;
+        }
+
+        .podium-card {
+            flex: 1;
+            max-width: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            animation: podiumRise 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+        }
+        .podium-card:nth-child(1) { animation-delay: 0.15s; } /* 2nd */
+        .podium-card:nth-child(2) { animation-delay: 0s;    } /* 1st */
+        .podium-card:nth-child(3) { animation-delay: 0.3s;  } /* 3rd */
+
+        @keyframes podiumRise {
+            from { opacity: 0; transform: translateY(32px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Avatar circle */
+        .podium-avatar {
+            width: 64px; height: 64px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 22px; font-weight: 800;
+            margin-bottom: 12px;
+            position: relative; z-index: 2;
+            flex-shrink: 0;
+        }
+        .podium-card-1st .podium-avatar {
+            width: 76px; height: 76px; font-size: 26px;
+            background: linear-gradient(135deg, rgba(255,215,0,0.25), rgba(255,165,0,0.1));
+            border: 2px solid rgba(255,215,0,0.6);
+            box-shadow: 0 0 32px rgba(255,215,0,0.35), 0 0 0 4px rgba(255,215,0,0.08);
+            animation: goldPulse 2.5s ease-in-out infinite;
+        }
+        @keyframes goldPulse {
+            0%,100% { box-shadow: 0 0 32px rgba(255,215,0,0.35), 0 0 0 4px rgba(255,215,0,0.08); }
+            50%      { box-shadow: 0 0 48px rgba(255,215,0,0.55), 0 0 0 8px rgba(255,215,0,0.12); }
+        }
+        .podium-card-2nd .podium-avatar {
+            background: linear-gradient(135deg, rgba(176,184,204,0.2), rgba(140,150,180,0.1));
+            border: 2px solid rgba(176,184,204,0.45);
+            box-shadow: 0 0 20px rgba(176,184,204,0.2);
+        }
+        .podium-card-3rd .podium-avatar {
+            background: linear-gradient(135deg, rgba(205,127,50,0.2), rgba(180,100,30,0.1));
+            border: 2px solid rgba(205,127,50,0.45);
+            box-shadow: 0 0 20px rgba(205,127,50,0.2);
+        }
+
+        /* Crown for 1st */
+        .crown {
+            position: absolute;
+            top: -20px; left: 50%; transform: translateX(-50%);
+            font-size: 22px;
+            filter: drop-shadow(0 2px 8px rgba(255,215,0,0.7));
+            animation: crownBob 3s ease-in-out infinite;
+            z-index: 3;
+        }
+        @keyframes crownBob {
+            0%,100% { transform: translateX(-50%) translateY(0) rotate(-5deg); }
+            50%      { transform: translateX(-50%) translateY(-4px) rotate(5deg); }
+        }
+
+        /* Rank badge */
+        .podium-rank-badge {
+            width: 26px; height: 26px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800;
+            position: absolute; bottom: -4px; right: -4px;
+            border: 2px solid var(--bg);
+            z-index: 3;
+        }
+        .podium-card-1st .podium-rank-badge { background: var(--gold); color: #0d0f1a; }
+        .podium-card-2nd .podium-rank-badge { background: var(--silver); color: #0d0f1a; }
+        .podium-card-3rd .podium-rank-badge { background: var(--bronze); color: #0d0f1a; }
+
+        /* Name + score */
+        .podium-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800; text-align: center;
+            text-transform: uppercase; letter-spacing: 0.04em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+        .podium-card-1st .podium-name { font-size: 16px; color: #fff; }
+        .podium-card-2nd .podium-name { font-size: 14px; color: rgba(255,255,255,0.85); }
+        .podium-card-3rd .podium-name { font-size: 14px; color: rgba(255,255,255,0.75); }
+
+        .podium-score {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700; margin-bottom: 14px;
+        }
+        .podium-card-1st .podium-score { font-size: 20px; color: var(--gold); }
+        .podium-card-2nd .podium-score { font-size: 16px; color: var(--silver); }
+        .podium-card-3rd .podium-score { font-size: 16px; color: var(--bronze); }
+
+        .podium-score .pts-label {
+            font-size: 10px; font-weight: 500;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            opacity: 0.6; margin-left: 2px;
+        }
+
+        /* Podium block / plinth */
+        .podium-plinth {
+            width: 100%;
+            border-radius: 14px 14px 0 0;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 28px; font-weight: 900;
+            padding-top: 12px;
+            border-top: 2px solid;
+            border-left: 1px solid;
+            border-right: 1px solid;
+        }
+        .podium-card-1st .podium-plinth {
+            height: 88px;
+            background: linear-gradient(to bottom, rgba(255,215,0,0.12), rgba(255,215,0,0.04));
+            border-color: rgba(255,215,0,0.4) rgba(255,215,0,0.15) transparent;
+            color: rgba(255,215,0,0.35);
+        }
+        .podium-card-2nd .podium-plinth {
+            height: 64px;
+            background: linear-gradient(to bottom, rgba(176,184,204,0.1), rgba(176,184,204,0.03));
+            border-color: rgba(176,184,204,0.35) rgba(176,184,204,0.12) transparent;
+            color: rgba(176,184,204,0.3);
+        }
+        .podium-card-3rd .podium-plinth {
+            height: 48px;
+            background: linear-gradient(to bottom, rgba(205,127,50,0.1), rgba(205,127,50,0.03));
+            border-color: rgba(205,127,50,0.35) rgba(205,127,50,0.12) transparent;
+            color: rgba(205,127,50,0.3);
+        }
+
+        /* empty podium state */
+        .podium-empty { opacity: 0.25; }
+        .podium-empty .podium-avatar {
+            background: rgba(255,255,255,0.04) !important;
+            border-color: rgba(255,255,255,0.1) !important;
+            box-shadow: none !important;
+            animation: none !important;
+            font-size: 28px;
+        }
+        .podium-empty .podium-name { color: rgba(255,255,255,0.3) !important; font-size: 13px !important; }
+        .podium-empty .podium-score { color: rgba(255,255,255,0.2) !important; font-size: 13px !important; }
+
+        /* Section label */
+        .section-label {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 16px;
+        }
+        .section-label-text {
+            font-size: 10px; font-weight: 700; letter-spacing: 0.18em;
+            text-transform: uppercase; color: rgba(255,255,255,0.3);
+        }
+        .section-label-line {
+            flex: 1; height: 1px;
+            background: linear-gradient(to right, rgba(255,255,255,0.08), transparent);
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="grid-overlay"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<header class="h-16 flex items-center justify-between px-8 border-b border-white/10 backdrop-blur-md sticky top-0 z-50" style="position:relative;z-index:50;">
+    <div class="flex items-center gap-8">
+        <div class="flex items-center gap-2 font-['Space_Grotesk'] font-bold text-lg">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="border: 1.5px solid rgba(108,140,255,0.5);">
+                <svg viewBox="0 0 22 22" fill="none" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+                    <polyline points="8,4 2,11 8,18" stroke="#5b8fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="14,4 20,11 14,18" stroke="#ff6b35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span>DIS <span class="text-grad"> HACKATHON</span></span>
+        </div>
+        <nav class="hidden md:flex gap-6">
+            <a href="/home/" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">Problems</a>
+            <a href="/leaderboard/" class="text-sm font-medium text-white transition-colors">Leaderboard</a>
+        </nav>
+    </div>
+</header>
+
+<main class="max-w-5xl mx-auto p-8" style="position:relative;z-index:10;">
+
+    <!-- Header row -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div>
+            <h1 class="text-4xl font-['Space_Grotesk'] font-extrabold mb-2">Live <span class="text-grad">Standings</span></h1>
+            <p class="text-slate-400">Real-time team performance and ranking.</p>
+        </div>
+        <div class="glass-panel rounded-2xl p-4 min-w-[280px]">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="material-symbols-outlined text-[var(--accent)]">timer</span>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Event Ends In</span>
+                <span id="timer-text" class="ml-auto font-mono font-bold text-[var(--accent)] text-lg">00:00:00</span>
+            </div>
+            <div class="progress-container h-1.5 rounded-full">
+                <div id="progress-bar" class="h-full bg-[var(--success)] transition-all duration-1000" style="width:100%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ PODIUM ══ -->
+    {% if teams %}
+    <div class="section-label">
+        <span class="section-label-text">Top Performers</span>
+        <div class="section-label-line"></div>
+    </div>
+
+    <div class="podium-section">
+
+        <!-- 2nd place (left) -->
+        <div class="podium-card podium-card-2nd {% if teams|length < 2 %}podium-empty{% endif %}">
+            <div style="position:relative; display:inline-block; margin-bottom: 0;">
+                <div class="podium-avatar">
+                    {% if teams|length >= 2 %}
+                        {{ teams.1.team__username|slice:":2"|upper }}
+                    {% else %}
+                        ?
+                    {% endif %}
+                </div>
+                <div class="podium-rank-badge">2</div>
+            </div>
+            <div class="podium-name" style="padding: 0 8px; margin-top: 10px;">
+                {% if teams|length >= 2 %}{{ teams.1.team__username }}{% else %}—{% endif %}
+            </div>
+            <div class="podium-score">
+                {% if teams|length >= 2 %}{{ teams.1.total_score|default:0 }}{% else %}0{% endif %}
+                <span class="pts-label">pts</span>
+            </div>
+            <div class="podium-plinth">2</div>
+        </div>
+
+        <!-- 1st place (centre, tallest) -->
+        <div class="podium-card podium-card-1st {% if teams|length < 1 %}podium-empty{% endif %}">
+            <div style="position:relative; display:inline-block;">
+                {% if teams|length >= 1 %}<div class="crown">👑</div>{% endif %}
+                <div class="podium-avatar">
+                    {% if teams|length >= 1 %}
+                        {{ teams.0.team__username|slice:":2"|upper }}
+                    {% else %}
+                        ?
+                    {% endif %}
+                </div>
+                <div class="podium-rank-badge">1</div>
+            </div>
+            <div class="podium-name" style="padding: 0 8px; margin-top: 10px;">
+                {% if teams|length >= 1 %}{{ teams.0.team__username }}{% else %}—{% endif %}
+            </div>
+            <div class="podium-score">
+                {% if teams|length >= 1 %}{{ teams.0.total_score|default:0 }}{% else %}0{% endif %}
+                <span class="pts-label">pts</span>
+            </div>
+            <div class="podium-plinth">1</div>
+        </div>
+
+        <!-- 3rd place (right) -->
+        <div class="podium-card podium-card-3rd {% if teams|length < 3 %}podium-empty{% endif %}">
+            <div style="position:relative; display:inline-block;">
+                <div class="podium-avatar">
+                    {% if teams|length >= 3 %}
+                        {{ teams.2.team__username|slice:":2"|upper }}
+                    {% else %}
+                        ?
+                    {% endif %}
+                </div>
+                <div class="podium-rank-badge">3</div>
+            </div>
+            <div class="podium-name" style="padding: 0 8px; margin-top: 10px;">
+                {% if teams|length >= 3 %}{{ teams.2.team__username }}{% else %}—{% endif %}
+            </div>
+            <div class="podium-score">
+                {% if teams|length >= 3 %}{{ teams.2.total_score|default:0 }}{% else %}0{% endif %}
+                <span class="pts-label">pts</span>
+            </div>
+            <div class="podium-plinth">3</div>
+        </div>
+
+    </div>
+    {% endif %}
+
+    <!-- ══ REST OF TABLE (rank 4+) ══ -->
+    {% if teams|length > 3 %}
+    <div class="section-label" style="margin-bottom: 16px;">
+        <span class="section-label-text">Rankings</span>
+        <div class="section-label-line"></div>
+    </div>
+
+    <div class="glass-panel rounded-[24px] overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-black/20 border-b border-white/5">
+                    <th class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-slate-500">Rank</th>
+                    <th class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-slate-500">Team Username</th>
+                    <th class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-slate-500 text-right">Total Score</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                {% for team in teams %}
+                {% if forloop.counter > 3 %}
+                <tr class="group">
+                    <td class="px-8 py-5">
+                        <span class="text-slate-500 font-mono text-sm ml-3">{{ forloop.counter }}</span>
+                    </td>
+                    <td class="px-8 py-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full bg-slate-600"></div>
+                            <span class="font-bold text-slate-300 group-hover:text-white transition-colors uppercase tracking-tight">{{ team.team__username }}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-5 text-right">
+                        <span class="font-['Space_Grotesk'] font-bold text-lg text-slate-300">
+                            {{ team.total_score|default:0 }} <span class="text-[10px] text-slate-500 uppercase ml-1">pts</span>
+                        </span>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% if not teams %}
+    <div class="glass-panel rounded-[24px] px-8 py-20 text-center text-slate-500 italic">
+        No submissions yet. The race is wide open!
+    </div>
+    {% endif %}
+
+    <footer class="mt-10 text-center text-slate-600 text-[10px] uppercase tracking-[0.2em]">
+        System Status: <span class="text-[var(--success)]">Operational</span> • Last Updated: <span id="last-update">Just now</span>
+    </footer>
+</main>
+
+<script>
+document.getElementById('last-update').innerText = new Date().toLocaleTimeString();
+
+// ── Canvas / Particles ──
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+const mouse = { x: -9999, y: -9999 };
+
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+const COUNT = 40;
+const particles = Array.from({ length: COUNT }, () => {
+    const bvx = (Math.random() - 0.5) * 0.35;
+    const bvy = (Math.random() - 0.5) * 0.35;
+    return { x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight, vx: bvx, vy: bvy, bvx, bvy, r: Math.random() * 1.6 + 0.7, hue: Math.random() > 0.5 ? 226 : 24 };
+});
+
+let ripples = [];
+document.addEventListener('click', e => { ripples.push({ x: e.clientX, y: e.clientY, r: 0, alpha: 0.7 }); });
+
+const cursorEl = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursor-ring');
+let ringX = -9999, ringY = -9999;
+
+document.addEventListener('mousemove', e => {
+    mouse.x = e.clientX; mouse.y = e.clientY;
+    cursorEl.style.left = e.clientX + 'px';
+    cursorEl.style.top = e.clientY + 'px';
+});
+
+function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    ringX += (mouse.x - ringX) * 0.1;
+    ringY += (mouse.y - ringY) * 0.1;
+    cursorRing.style.left = ringX + 'px';
+    cursorRing.style.top = ringY + 'px';
+
+    if (mouse.x > 0) {
+        const grd = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 220);
+        grd.addColorStop(0, 'rgba(108,140,255,0.07)');
+        grd.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, W, H);
+    }
+
+    ripples = ripples.filter(rp => rp.alpha > 0.02);
+    ripples.forEach(rp => {
+        rp.r += 5; rp.alpha *= 0.91;
+        ctx.beginPath(); ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(108,140,255,${rp.alpha})`; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.beginPath(); ctx.arc(rp.x, rp.y, rp.r * 0.6, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255,138,76,${rp.alpha * 0.5})`; ctx.lineWidth = 1; ctx.stroke();
+    });
+
+    particles.forEach(p => {
+        const dx = p.x - mouse.x, dy = p.y - mouse.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        const REPEL = 110;
+        if (dist < REPEL && dist > 0) { const force = (REPEL - dist) / REPEL; p.vx += (dx / dist) * force * 1.1; p.vy += (dy / dist) * force * 1.1; }
+        p.vx += (p.bvx - p.vx) * 0.035; p.vy += (p.bvy - p.vy) * 0.035;
+        const spd = Math.sqrt(p.vx*p.vx + p.vy*p.vy);
+        if (spd > 3.5) { p.vx = p.vx/spd*3.5; p.vy = p.vy/spd*3.5; }
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+        const nearMouse = dist < 200 ? Math.max(0, 1 - dist / 200) : 0;
+        const alpha = 0.45 + nearMouse * 0.55;
+        const radius = p.r + nearMouse * 2.5;
+        ctx.beginPath(); ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue},80%,70%,${alpha})`; ctx.fill();
+        if (nearMouse > 0.3) {
+            ctx.beginPath(); ctx.arc(p.x, p.y, radius * 3, 0, Math.PI * 2);
+            const hGrd = ctx.createRadialGradient(p.x, p.y, radius, p.x, p.y, radius*3);
+            hGrd.addColorStop(0, `hsla(${p.hue},80%,70%,${nearMouse * 0.15})`);
+            hGrd.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = hGrd; ctx.fill();
+        }
+    });
+
+    for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+            const a = particles[i], b = particles[j];
+            const dx = a.x - b.x, dy = a.y - b.y;
+            const d = Math.sqrt(dx*dx + dy*dy);
+            if (d < 90) {
+                const base = (1 - d/130) * 0.2;
+                const mda = Math.sqrt((a.x-mouse.x)**2+(a.y-mouse.y)**2);
+                const mdb = Math.sqrt((b.x-mouse.x)**2+(b.y-mouse.y)**2);
+                const boost = Math.max(0, 1 - Math.min(mda,mdb)/180) * 0.35;
+                ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+                ctx.strokeStyle = `rgba(108,140,255,${base + boost})`;
+                ctx.lineWidth = boost > 0.1 ? 1.2 : 0.6; ctx.stroke();
+            }
+        }
+    }
+    requestAnimationFrame(draw);
+}
+draw();
+
+// ── Timer ──
+const endTime = new Date("{{ end_time }}").getTime();
+const duration = 2 * 60 * 60 * 1000;
+
+function updateTimer() {
+    const now = Date.now();
+    const distance = endTime - now;
+    if (distance < 0) {
+        document.getElementById("timer-text").innerHTML = "EVENT FINISHED";
+        document.getElementById("progress-bar").style.width = "0%";
+        document.getElementById("progress-bar").style.background = "#444";
+        return;
+    }
+    const h = Math.floor(distance / 3600000);
+    const m = Math.floor((distance % 3600000) / 60000);
+    const s = Math.floor((distance % 60000) / 1000);
+    document.getElementById("timer-text").innerHTML = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    const pct = (distance / duration) * 100;
+    const bar = document.getElementById("progress-bar");
+    bar.style.width = pct + "%";
+    if (pct < 15) bar.style.background = "var(--accent)";
+}
+setInterval(updateTimer, 1000);
+updateTimer();
+
+// ── Status poll ──
+setInterval(async () => {
+    try {
+        const res = await fetch('/api/status/');
+        const data = await res.json();
+        if (data.is_finished) window.location.href = '/finished/';
+    } catch (e) {}
+}, 5000);
+</script>
+</body>
+</html>

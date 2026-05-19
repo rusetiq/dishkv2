@@ -1,0 +1,464 @@
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>{{ problem.title }} | DIS HACKATHON</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+
+    <style>
+        :root {
+            --bg: #0d0f1a;
+            --surface: #161a2c;
+            --border: rgba(255, 255, 255, 0.08);
+            --primary: #6c8cff;
+            --accent: #ff8a4c;
+            --success: #4ade80;
+            --grad-primary: linear-gradient(135deg, #6c8cff, #ff8a4c);
+        }
+
+        body {
+            background-color: var(--bg);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .glass-panel {
+            background: linear-gradient(135deg, rgba(29, 34, 56, 0.6), rgba(22, 26, 44, 0.4));
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.6);
+        }
+
+        .text-grad {
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Animated Blobs */
+        .blob { position: fixed; border-radius: 50%; filter: blur(120px); opacity: 0.2; z-index: -1; animation: float 16s ease-in-out infinite; }
+        .blob-1 { width: 400px; height: 400px; top: -100px; left: -100px; background: var(--primary); }
+        .blob-2 { width: 400px; height: 400px; bottom: -100px; right: -100px; background: var(--accent); }
+        @keyframes float { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(30px, -30px); } }
+
+        /* CodeMirror Customization */
+        .CodeMirror { height: 100% !important; background: transparent !important; font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+        .CodeMirror-gutters { background: transparent !important; border-right: 1px solid var(--border) !important; }
+        
+        .nav-btn {
+            background: rgba(29, 34, 56, 0.6);
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+        .nav-btn:hover { border-color: var(--primary); background: #1d2238; }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        .CodeMirror {
+    height: 100% !important;
+    overflow: auto !important;
+}
+.save-load-group {
+    display: flex;
+    gap: 4px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 3px;
+}
+
+.hdr-btn {
+    padding: 6px 14px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.hdr-btn:hover {
+    background: rgba(255,255,255,0.08);
+}
+.score-display {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+
+    padding: 6px 14px;
+    border-radius: 10px;
+
+    background: rgba(74,222,128,0.06);
+    border: 1px solid rgba(74,222,128,0.15);
+}
+
+.score-label-sm {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+}
+
+.score-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--success);
+    line-height: 1;
+}
+    </style>
+</head>
+
+<body class="text-white">
+
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <header class="h-16 flex items-center justify-between px-8 border-b border-white/10 backdrop-blur-md sticky top-0 z-50">
+        <div class="flex items-center gap-8">
+            <div class="flex items-center gap-2 font-['Space_Grotesk'] font-bold text-lg">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="border: 1.5px solid rgba(108,140,255,0.5);">
+    <svg viewBox="0 0 22 22" fill="none" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+        <polyline points="8,4 2,11 8,18" stroke="#5b8fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="14,4 20,11 14,18" stroke="#ff6b35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+</div>
+                <span>DIS<span class="text-grad"> HACKATHON</span></span>
+            </div>
+            <nav class="hidden md:flex gap-6">
+                <a href="/home/" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">Problems</a>
+                <a href="/leaderboard/" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">Leaderboard</a>
+            </nav>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="save-load-group">
+    <button onclick="saveCode()" class="hdr-btn">Save</button>
+    <button onclick="loadCode()" class="hdr-btn">Load</button>
+</div>
+            <div class="h-8 w-[1px] bg-white/10 mx-2"></div>
+
+<div class="score-display">
+    <div class="score-label-sm">Team Score</div>
+    <div class="score-value" id="nav-total-score">{{ total_score }} pts</div>
+</div>
+        </div>
+    </header>
+
+    <main class="h-[calc(100vh-64px)] p-6 grid grid-cols-12 gap-6">
+        
+        <section class="col-span-12 lg:col-span-4 flex flex-col gap-6 overflow-hidden">
+            <div class="glass-panel rounded-[24px] p-6 flex-1 overflow-y-auto">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] font-bold rounded-md uppercase border border-blue-500/20">
+                                {{ problem.difficulty|default:"Medium" }}
+                            </span>
+                            <span class="text-slate-500 text-xs font-mono">#{{ problem.id }}</span>
+                        </div>
+                        <h1 class="text-2xl font-['Space_Grotesk'] font-extrabold text-white">{{ problem.title }}</h1>
+                    </div>
+                </div>
+
+                <div class="prose prose-invert max-w-none text-slate-400 text-sm leading-relaxed">
+    <h3 class="text-white font-bold flex items-center gap-2 mb-4">
+        <span class="material-symbols-outlined text-blue-400">subject</span>
+        Problem Brief
+    </h3>
+
+    {{ problem.description|linebreaks }}
+
+    {% if problem.examples %}
+    <div class="mt-8">
+        <h3 class="text-white font-bold flex items-center gap-2 mb-4">
+            <span class="material-symbols-outlined text-orange-400">terminal</span>
+            Examples
+        </h3>
+
+        <div class="bg-black/30 border border-white/10 rounded-2xl p-4">
+            <pre class="text-sm text-slate-300 font-mono whitespace-pre-wrap leading-7">{{ problem.examples }}</pre>
+        </div>
+    </div>
+    {% endif %}
+</div>
+            </div>
+
+            <div class="glass-panel rounded-[24px] p-5 flex items-center justify-between border-l-4 border-l-[var(--accent)]">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-[var(--accent)]">
+                        <span class="material-symbols-outlined">timer</span>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Time Remaining</div>
+                        <div id="problem-timer" class="text-lg font-['Space_Grotesk'] font-bold text-white">00:00:00</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="col-span-12 lg:col-span-8 flex flex-col gap-6 min-h-0">
+            
+            <div class="glass-panel rounded-[24px] flex-[2] flex flex-col overflow-hidden">
+                <div class="h-12 flex justify-between items-center px-4 bg-black/20 border-b border-white/5">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm text-slate-500">code</span>
+                        <span class="text-xs font-mono font-bold text-slate-300">solution.py</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="runCode()" class="px-4 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold transition-all">RUN</button>
+                        <button onclick="submitCode()" 
+class="px-4 py-1 rounded-lg bg-white text-black hover:bg-blue-400 text-xs font-bold transition-all shadow-lg flex items-center gap-1">
+    
+    <span class="material-symbols-outlined text-sm">rocket_launch</span>
+    SUBMIT
+</button>
+                    </div>
+                </div>
+                
+                <div class="flex-1 flex overflow-hidden min-h-0">
+
+    <!-- Line Numbers -->
+    <div id="line-numbers"
+        class="w-12 bg-[#050505]/30 flex flex-col items-end pr-2 py-1 font-mono text-[14px] text-slate-600 select-none border-r border-white/5 overflow-hidden">
+    </div>
+
+    <!-- Editor -->
+    <div class="flex-1 relative min-h-0 overflow-hidden">
+        <textarea id="code-editor">{{ progress.current_code }}</textarea>
+    </div>
+
+</div>
+            </div>
+
+            <div class="glass-panel rounded-[24px] flex-1 flex flex-col overflow-hidden bg-black/40">
+                <div class="h-10 flex items-center px-4 border-b border-white/5">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-[var(--success)] shadow-[0_0_8px_var(--success)]"></div>
+                        Terminal Output
+                    </span>
+                    <span id="statusMsg" class="ml-auto text-[10px] font-mono text-slate-600"></span>
+                </div>
+                <div class="flex-1 p-4 font-mono text-sm overflow-y-auto" id="output">
+                    <span class="text-slate-600">Waiting for execution...</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/matchbrackets.min.js"></script>
+    <script>
+        const editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+    mode:"python",
+    theme:"dracula",
+    lineNumbers:false,
+    indentUnit:4,
+    tabSize:4,
+    lineWrapping:true,
+    extraKeys: {
+        "Tab": (cm) => cm.execCommand("indentMore"),
+        "Shift-Tab": (cm) => cm.execCommand("indentLess"),
+        "Enter": "newlineAndIndentContinueComment"
+    },
+    autoCloseBrackets: true,
+    matchBrackets: true,
+});
+        let lastLineCount = 0;
+
+        
+function updateLineNumbers() {
+    const count = editor.lineCount();
+    if (count === lastLineCount) return;
+
+    lastLineCount = count;
+
+    let linesHTML = "";
+    for (let i = 1; i <= count; i++) {
+        linesHTML += `<span>${i}</span>`;
+    }
+
+    document.getElementById("line-numbers").innerHTML = linesHTML;
+}
+
+// update on load
+updateLineNumbers();
+
+// update when typing
+editor.on("change", updateLineNumbers);
+const statusMsg = document.getElementById("statusMsg");
+const outputDiv = document.getElementById("output");
+const problemId = "{{ problem.id }}";
+editor.on("scroll", () => {
+    const info = editor.getScrollInfo();
+    document.getElementById("line-numbers").scrollTop = info.top;
+});
+// Disable copy/paste/cut
+editor.on("copy", (cm, e) => { e.preventDefault(); });
+editor.on("paste", (cm, e) => { e.preventDefault(); });
+editor.on("cut", (cm, e) => { e.preventDefault(); });
+
+// Block keyboard shortcuts too
+editor.on("keydown", (cm, e) => {
+    const isCtrl = e.ctrlKey || e.metaKey;
+    if (isCtrl && ['c', 'v', 'x'].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+    }
+});
+async function saveCode(){
+    statusMsg.innerText = "Saving...";
+
+    try {
+        let formData = new FormData();
+        formData.append("code", editor.getValue());
+        formData.append("problem_id", problemId);
+        formData.append("csrfmiddlewaretoken","{{ csrf_token }}");
+
+        const res = await fetch('/api/save/',{
+            method:'POST',
+            body:formData
+        });
+
+        if(res.ok){
+            statusMsg.innerText = "Saved ✓";
+        } else {
+            statusMsg.innerText = "Save failed ❌";
+        }
+
+    } catch (error){
+        statusMsg.innerText = "Network error ⚠️";
+    }
+}
+/* LOAD */
+async function loadCode(){
+    try {
+        const res = await fetch(`/api/load/${problemId}/`);
+
+        if (!res.ok) {
+            statusMsg.innerText = "Load failed ❌";
+            return;
+        }
+
+        const data = await res.json();
+
+        if (data.code !== undefined) {
+            editor.setValue(data.code);
+            statusMsg.innerText = "Team Code Loaded ✓";
+        } else {
+            statusMsg.innerText = "No saved code";
+        }
+
+    } catch (err) {
+        statusMsg.innerText = "Network error ⚠️";
+    }
+}
+/* RUN */
+function runCode(){
+
+    outputDiv.innerText = "Running...";
+    outputDiv.style.color = "#58a6ff";
+
+    fetch('/api/run-custom/',{
+        method:'POST',
+        headers:{
+            'Content-Type':'application/x-www-form-urlencoded',
+            'X-CSRFToken':'{{ csrf_token }}'
+        },
+        body:`code=${encodeURIComponent(editor.getValue())}`
+    })
+    .then(res=>res.json())
+    .then(data=>{
+
+        if(data.error){
+            outputDiv.style.color = "#ff7b72";
+            outputDiv.innerText = data.error;
+        }else{
+            outputDiv.style.color = "#7ee787";
+            outputDiv.innerText = data.output || "Executed successfully.";
+        }
+
+        statusMsg.innerText = "Run Complete";
+    });
+}
+
+/* SUBMIT */
+function submitCode(){
+
+    outputDiv.innerText = "Checking hidden test cases...";
+    outputDiv.style.color = "#f2cc60";
+ 
+    fetch('/api/submit/',{
+        method:'POST',
+        headers:{
+            'Content-Type':'application/x-www-form-urlencoded',
+            'X-CSRFToken':'{{ csrf_token }}'
+        },
+        body:`problem_id=${problemId}&code=${encodeURIComponent(editor.getValue())}`
+    })
+    .then(res=>res.json())
+    .then(data=>{
+
+        if(data.status === "Correct Answer!"){
+            outputDiv.style.color = "#7ee787";
+            outputDiv.innerText = "✅ Correct Answer!\nPoints awarded.";
+
+            document.getElementById("nav-total-score").innerText = data.new_total;
+        }else{
+            outputDiv.style.color = "#ff7b72";
+            outputDiv.innerText = "❌ " + data.status;
+        }
+
+        statusMsg.innerText = "Submission Complete";
+    });
+}
+const endTime = new Date("{{ end_time }}").getTime();
+const duration = 2 * 60 * 60 * 1000;
+
+function updateTimer() {
+    const now = new Date().getTime();
+    const distance = endTime - now;
+
+    if (distance < 0) {
+        document.getElementById("problem-timer").innerHTML = "TIME UP!";
+        return;
+    }
+
+    const hours = Math.floor(distance / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    document.getElementById("problem-timer").innerHTML =
+        `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+}
+
+setInterval(updateTimer, 1000);
+updateTimer();
+setInterval(async () => {
+    try {
+      const res = await fetch('/api/status/');
+      const data = await res.json();
+      if (data.is_finished) {
+        window.location.href = '/finished/';
+      }
+    } catch (e) {}
+  }, 5000);
+    </script>
+</body>
+</html>

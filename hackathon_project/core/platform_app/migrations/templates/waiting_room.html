@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Waiting Room</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0e0e0e; color: white; text-align: center; padding-top: 15vh; }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: #00e676; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <h1>Team Registered Successfully</h1>
+    <div class="spinner"></div>
+    <p id="status">Waiting for Admin to start the hackathon...</p>
+
+    <script>
+        // Check every 3 seconds if the hackathon is live
+        function checkStatus() {
+            fetch('/check-status/')  // We will create this URL in the next step
+                .then(response => response.json())
+                .then(data => {
+                    if (data.is_live) {
+                        window.location.href = "/problem/1/"; // Redirects to problem.html logic
+                    }
+                });
+        }
+        setInterval(checkStatus, 3000); 
+    </script>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hackathon | Waiting Room</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #080a10;
+            --surface: #0e1018;
+            --card: #11141f;
+            --border: rgba(255,255,255,0.06);
+            --border-bright: rgba(255,255,255,0.12);
+            --primary: #5b8fff;
+            --accent: #ff6b35;
+            --green: #3ddc84;
+            --text: #e8eaf0;
+            --muted: #5a5f72;
+            --grad: linear-gradient(135deg, #5b8fff 0%, #ff6b35 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        /* Cursor */
+        #cursor {
+            position: fixed; width: 8px; height: 8px; border-radius: 50%;
+            background: var(--primary); pointer-events: none; z-index: 999;
+            transform: translate(-50%,-50%); mix-blend-mode: screen;
+        }
+        #cursor-ring {
+            position: fixed; width: 30px; height: 30px; border-radius: 50%;
+            border: 1px solid rgba(91,143,255,0.4); pointer-events: none; z-index: 998;
+            transform: translate(-50%,-50%); transition: width 0.2s, height 0.2s;
+        }
+
+        /* Background */
+        #bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+        /* Scanlines overlay */
+        .scanlines {
+            position: fixed; inset: 0; z-index: 1; pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.08) 2px,
+                rgba(0,0,0,0.08) 4px
+            );
+        }
+
+        /* Main layout */
+        .wrapper {
+            position: relative; z-index: 10;
+            display: flex; flex-direction: column; align-items: center;
+            gap: 0; width: min(520px, 94vw);
+        }
+
+
+
+        /* Main card */
+        .card {
+            width: 100%;
+            background: var(--card);
+            border: 1px solid var(--border-bright);
+            border-radius: 14px;
+            padding: 40px 40px 36px;
+            display: flex; flex-direction: column; align-items: center;
+            position: relative; overflow: hidden;
+        }
+        .card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(to right, transparent, rgba(91,143,255,0.6), rgba(255,107,53,0.4), transparent);
+        }
+
+        /* Logo — clean wordmark style instead of emoji */
+        .logo-wrap {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 32px;
+        }
+        .logo-mark {
+            width: 42px; height: 42px;
+            border: 1.5px solid rgba(91,143,255,0.5);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .logo-mark svg {
+            width: 22px; height: 22px;
+        }
+        .logo-text {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px; font-weight: 600;
+            letter-spacing: 0.12em;
+            color: var(--text);
+        }
+        .logo-text span {
+            background: var(--grad);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+
+        /* Status badge */
+        .badge {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 5px 13px; border-radius: 6px;
+            border: 1px solid rgba(61,220,132,0.2);
+            background: rgba(61,220,132,0.06);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+            color: var(--green); margin-bottom: 24px;
+        }
+        .badge-dot {
+            width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+            box-shadow: 0 0 6px var(--green);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        h1 {
+            font-size: clamp(28px, 6vw, 40px);
+            font-weight: 800; line-height: 1.1;
+            text-align: center; margin-bottom: 10px;
+            letter-spacing: -0.02em;
+        }
+        h1 .grad {
+            background: var(--grad);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+
+        .subtitle {
+            text-align: center; color: var(--muted);
+            font-size: 14px; line-height: 1.6;
+            max-width: 300px; margin-bottom: 36px;
+            font-weight: 300;
+        }
+
+        /* Loading indicator — clean bar instead of orbit */
+        .loader-wrap {
+            width: 100%; margin-bottom: 28px;
+        }
+        .loader-label {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px;
+        }
+        .loader-label span {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px; color: var(--muted); letter-spacing: 0.08em;
+        }
+        .loader-label .loader-pct {
+            color: var(--primary);
+        }
+        .loader-track {
+            width: 100%; height: 3px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 999px; overflow: hidden;
+        }
+        .loader-fill {
+            height: 100%;
+            background: var(--grad);
+            border-radius: 999px;
+            animation: indeterminate 2.2s cubic-bezier(0.4,0,0.6,1) infinite;
+            transform-origin: left;
+        }
+        @keyframes indeterminate {
+            0%   { transform: scaleX(0) translateX(0); }
+            40%  { transform: scaleX(0.6) translateX(30%); }
+            100% { transform: scaleX(0) translateX(250%); }
+        }
+
+        /* Status line */
+        .status-line {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px; color: var(--muted);
+            margin-bottom: 32px; height: 16px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .status-line::before {
+            content: '>';
+            color: var(--primary); font-size: 12px;
+        }
+        #status-msg { transition: opacity 0.3s; }
+        .cursor-blink {
+            display: inline-block; width: 6px; height: 12px;
+            background: var(--primary); border-radius: 1px;
+            animation: blink 1s step-end infinite; margin-left: 2px;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+        /* Divider */
+        .divider {
+            width: 100%; height: 1px; margin-bottom: 24px;
+            background: linear-gradient(to right, transparent, var(--border-bright), transparent);
+        }
+
+        /* Info grid */
+        .info-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 8px; width: 100%;
+        }
+        .info-box {
+            padding: 14px 12px; border-radius: 10px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .info-box .lbl {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px; font-weight: 600;
+            letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+        }
+        .info-box .val {
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px; font-weight: 700; color: var(--text);
+        }
+        .info-box .val.blue  { color: var(--primary); }
+        .info-box .val.green { color: var(--green); }
+
+        /* Footer */
+        .footer {
+            margin-top: 20px; z-index: 10;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px; color: #1e2130; letter-spacing: 0.12em;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="scanlines"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<div class="wrapper">
+    <div class="card" id="card">
+        <div class="logo-wrap">
+            <div class="logo-mark">
+                <!-- Clean geometric logo: two angle brackets -->
+                <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polyline points="8,4 2,11 8,18" stroke="#5b8fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="14,4 20,11 14,18" stroke="#ff6b35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="logo-text">DIS <span>HACKATHON</span></div>
+        </div>
+
+        <span class="badge"><span class="badge-dot"></span>Authenticated</span>
+
+        <h1>Get Ready to<br><span class="grad">Code.</span></h1>
+        <p class="subtitle">Your session is active. The round begins when the admin fires the signal.</p>
+
+        <div class="loader-wrap">
+            <div class="loader-label">
+                <span>INITIALIZING</span>
+                <span class="loader-pct" id="pct-text">standby</span>
+            </div>
+            <div class="loader-track">
+                <div class="loader-fill"></div>
+            </div>
+        </div>
+
+        <div class="status-line">
+            <span id="status-msg">Waiting for admin to start</span>
+            <span class="cursor-blink"></span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="info-grid">
+            <div class="info-box">
+                <div class="lbl">Event</div>
+                <div class="val blue">Round 2</div>
+            </div>
+            <div class="info-box">
+                <div class="lbl">Duration</div>
+                <div class="val">2 Hours</div>
+            </div>
+            <div class="info-box">
+                <div class="lbl">Status</div>
+                <div class="val green" id="live-status">Standby</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="footer">DIS HACKATHON • ARENA • 2026</div>
+
+<script>
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+const mouse = { x: -9999, y: -9999 };
+
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+const COUNT = 40;
+const particles = Array.from({ length: COUNT }, () => {
+    const bvx = (Math.random() - 0.5) * 0.3;
+    const bvy = (Math.random() - 0.5) * 0.3;
+    return { x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight, vx: bvx, vy: bvy, bvx, bvy, r: Math.random() * 1.4 + 0.5, hue: Math.random() > 0.5 ? 220 : 20 };
+});
+
+let ripples = [];
+document.addEventListener('click', e => { ripples.push({ x: e.clientX, y: e.clientY, r: 0, alpha: 0.6 }); });
+
+const cursorEl = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursor-ring');
+let ringX = -9999, ringY = -9999;
+
+document.addEventListener('mousemove', e => {
+    mouse.x = e.clientX; mouse.y = e.clientY;
+    cursorEl.style.left = e.clientX + 'px';
+    cursorEl.style.top = e.clientY + 'px';
+});
+
+const card = document.getElementById('card').parentElement;
+document.addEventListener('mousemove', e => {
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX - cx) / (W / 2);
+    const dy = (e.clientY - cy) / (H / 2);
+    card.style.transform = `perspective(1200px) rotateY(${dx*4}deg) rotateX(${-dy*3}deg)`;
+});
+document.addEventListener('mouseleave', () => {
+    if (card) card.style.transform = '';
+    mouse.x = -9999; mouse.y = -9999;
+});
+
+function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    ringX += (mouse.x - ringX) * 0.1;
+    ringY += (mouse.y - ringY) * 0.1;
+    cursorRing.style.left = ringX + 'px';
+    cursorRing.style.top = ringY + 'px';
+
+    if (mouse.x > 0) {
+        const grd = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 200);
+        grd.addColorStop(0, 'rgba(91,143,255,0.05)');
+        grd.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, W, H);
+    }
+
+    ripples = ripples.filter(rp => rp.alpha > 0.02);
+    ripples.forEach(rp => {
+        rp.r += 4; rp.alpha *= 0.92;
+        ctx.beginPath(); ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(91,143,255,${rp.alpha})`; ctx.lineWidth = 1; ctx.stroke();
+    });
+
+    particles.forEach(p => {
+        const dx = p.x - mouse.x, dy = p.y - mouse.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 100 && dist > 0) { const force = (100 - dist) / 100; p.vx += (dx/dist)*force*0.9; p.vy += (dy/dist)*force*0.9; }
+        p.vx += (p.bvx - p.vx) * 0.03; p.vy += (p.bvy - p.vy) * 0.03;
+        const spd = Math.sqrt(p.vx*p.vx + p.vy*p.vy);
+        if (spd > 3) { p.vx = p.vx/spd*3; p.vy = p.vy/spd*3; }
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+        const near = dist < 180 ? Math.max(0, 1 - dist/180) : 0;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r + near*2, 0, Math.PI*2);
+        ctx.fillStyle = `hsla(${p.hue},70%,65%,${0.3 + near*0.5})`; ctx.fill();
+    });
+
+    for (let i = 0; i < particles.length; i++) {
+        for (let j = i+1; j < particles.length; j++) {
+            const a = particles[i], b = particles[j];
+            const dx = a.x-b.x, dy = a.y-b.y;
+            const d = Math.sqrt(dx*dx + dy*dy);
+            if (d < 90) {
+                ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+                ctx.strokeStyle = `rgba(91,143,255,${(1-d/90)*0.15})`;
+                ctx.lineWidth = 0.5; ctx.stroke();
+            }
+        }
+    }
+    requestAnimationFrame(draw);
+}
+draw();
+
+// Status messages
+const messages = [
+    'Waiting for admin to start',
+    'Loading problem set',
+    'Calibrating the judge',
+    'Systems nominal — standby',
+    'Almost time — stay sharp',
+];
+let msgIdx = 0;
+const msgEl = document.getElementById('status-msg');
+setInterval(() => {
+    msgIdx = (msgIdx + 1) % messages.length;
+    msgEl.style.opacity = '0';
+    setTimeout(() => { msgEl.textContent = messages[msgIdx]; msgEl.style.opacity = '1'; }, 300);
+}, 3500);
+
+// Poll
+function checkStatus() {
+    fetch('/check-status/')
+        .then(r => r.json())
+        .then(data => {
+            if (data.is_live) {
+                document.getElementById('live-status').textContent = 'LIVE!';
+                document.getElementById('pct-text').textContent = 'launching...';
+                setTimeout(() => { window.location.href = '/home/'; }, 600);
+            }
+        })
+        .catch(() => {});
+}
+setInterval(checkStatus, 5000);
+</script>
+</body>
+</html>

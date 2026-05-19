@@ -1,0 +1,449 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hackathon | Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #080a10;
+    --card: #0e1118;
+    --border: rgba(255,255,255,0.07);
+    --border-bright: rgba(255,255,255,0.13);
+    --primary: #5b8fff;
+    --accent: #ff6b35;
+    --text: #e8eaf0;
+    --muted: #4e536a;
+    --grad: linear-gradient(135deg, #5b8fff 0%, #ff6b35 100%);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: none;
+    position: relative;
+}
+
+#bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+.scanlines {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px
+    );
+}
+
+#cursor {
+    position: fixed; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--primary); pointer-events: none; z-index: 999;
+    transform: translate(-50%,-50%); mix-blend-mode: screen;
+}
+#cursor-ring {
+    position: fixed; width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid rgba(91,143,255,0.4); pointer-events: none; z-index: 998;
+    transform: translate(-50%,-50%);
+}
+
+/* Split layout */
+.page {
+    position: relative; z-index: 10;
+    display: flex;
+    width: min(880px, 96vw);
+    min-height: 480px;
+    border-radius: 20px;
+    border: 1px solid var(--border-bright);
+    overflow: hidden;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.7);
+    animation: riseIn 0.7s cubic-bezier(0.16,1,0.3,1) backwards;
+}
+@keyframes riseIn {
+    from { opacity: 0; transform: translateY(24px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Left panel — branding */
+.left-panel {
+    width: 44%;
+    background: linear-gradient(160deg, #0d1020 0%, #080a10 100%);
+    border-right: 1px solid var(--border);
+    padding: 32px 40px;
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    position: relative; overflow: hidden;
+}
+.left-panel::before {
+    content: '';
+    position: absolute; top: -80px; left: -80px;
+    width: 300px; height: 300px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(91,143,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+.left-panel::after {
+    content: '';
+    position: absolute; bottom: -60px; right: -60px;
+    width: 240px; height: 240px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,107,53,0.07) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.brand-top { position: relative; z-index: 1; }
+.logo-mark {
+    width: 44px; height: 44px;
+    border: 1.5px solid rgba(91,143,255,0.45);
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 12px;
+}
+.brand-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 12px;
+}
+.brand-headline {
+    font-size: clamp(26px, 3.5vw, 36px);
+    font-weight: 800; line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+.brand-headline .grad {
+    background: var(--grad);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.brand-sub {
+    margin-top: 8px;
+    font-size: 13px; color: var(--muted);
+    line-height: 1.65; font-weight: 300;
+    max-width: 220px;
+}
+
+.brand-bottom { position: relative; z-index: 1; }
+.event-pills { display: flex; flex-direction: column; gap: 8px; }
+.pill {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 9px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+}
+.pill-icon {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+    min-width: 52px;
+}
+.pill-val {
+    font-size: 13px; font-weight: 600; color: var(--text);
+}
+.pill-val.blue { color: var(--primary); }
+.pill-val.orange { color: var(--accent); }
+
+/* Right panel — form */
+.right-panel {
+    flex: 1;
+    background: var(--card);
+    padding: 48px 44px;
+    display: flex; flex-direction: column; justify-content: center;
+}
+
+.form-header { margin-bottom: 32px; }
+.form-header h2 {
+    font-size: 22px; font-weight: 800;
+    letter-spacing: -0.02em; margin-bottom: 6px;
+}
+.form-header p {
+    font-size: 13px; color: var(--muted); font-weight: 300;
+}
+
+form { width: 100%; }
+
+.input-group { margin-bottom: 20px; }
+label {
+    display: block; margin-bottom: 15px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted);
+}
+input {
+    width: 100%; padding: 11px 14px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border-bright);
+    color: var(--text); outline: none;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px; font-weight: 400;
+    transition: border-color 0.2s, background 0.2s;
+}
+input:focus {
+    border-color: rgba(91,143,255,0.6);
+    background: rgba(91,143,255,0.04);
+}
+input::placeholder { color: var(--muted); }
+
+.errorlist {
+    background: rgba(255,70,70,0.07);
+    border: 1px solid rgba(255,70,70,0.2);
+    color: #ff7070; padding: 10px 14px;
+    border-radius: 9px; font-size: 12px;
+    margin-bottom: 16px; text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.02em;
+}
+
+.submit-btn {
+    width: 100%; margin-top: 40px; padding: 13px;
+    border-radius: 11px; border: none;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700; font-size: 15px;
+    cursor: pointer; color: #080a10;
+    background: var(--grad);
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 6px 24px rgba(91,143,255,0.25);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 32px rgba(91,143,255,0.4);
+}
+.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.loader {
+    width: 15px; height: 15px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-top: 2px solid #080a10;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+}
+.hidden { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.form-footer {
+    margin-top: 20px; text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; color: #1e2235;
+    letter-spacing: 0.1em;
+}
+
+/* Mobile: stack */
+@media (max-width: 620px) {
+    .page { flex-direction: column; }
+    .left-panel { width: 100%; padding: 32px 28px; border-right: none; border-bottom: 1px solid var(--border); }
+    .brand-sub, .event-pills { display: none; }
+    .right-panel { padding: 32px 28px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="scanlines"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<div class="page" id="page">
+    <!-- Left branding panel -->
+    <div class="left-panel">
+        <div class="brand-top">
+            <div class="logo-mark">
+                <svg viewBox="0 0 22 22" fill="none" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+                    <polyline points="8,4 2,11 8,18" stroke="#5b8fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="14,4 20,11 14,18" stroke="#ff6b35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="brand-name">DIS Hackathon</div>
+            <h1 class="brand-headline">Code.<br><span class="grad">Compete.</span><br>Conquer.</h1>
+            <p class="brand-sub">One session. Fifteen problems. Two hours to prove what you're made of.</p>
+        </div>
+        <div class="brand-bottom">
+            <div class="event-pills">
+                <div class="pill">
+                    <span class="pill-icon">Event</span>
+                    <span class="pill-val blue">Round 2</span>
+                </div>
+                <div class="pill">
+                    <span class="pill-icon">Duration</span>
+                    <span class="pill-val">2 Hours</span>
+                </div>
+                <div class="pill">
+                    <span class="pill-icon">Format</span>
+                    <span class="pill-val orange">Live Judge</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right form panel -->
+    <div class="right-panel">
+        <div class="form-header">
+            <h2>Sign in to compete</h2>
+            <p>Use your team credentials to access the arena.</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% if form.errors %}
+                <div class="errorlist">Invalid team name or access code.</div>
+            {% endif %}
+
+            <div class="input-group">
+                <label>Team Name</label>
+                <input type="text" name="username" placeholder="Enter your team name" required autofocus>
+            </div>
+
+            <div class="input-group">
+                <label>Access Code</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="submit-btn" id="login-btn">
+                <span id="btn-text">Enter the Arena →</span>
+                <span id="btn-loader" class="loader hidden"></span>
+            </button>
+        </form>
+
+        <div class="form-footer">DIS HACKATHON • 2026</div>
+    </div>
+</div>
+
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector("form");
+    const btn = document.getElementById("login-btn");
+    const text = document.getElementById("btn-text");
+    const loader = document.getElementById("btn-loader");
+    if (!form || !btn) return;
+    form.addEventListener("submit", function () {
+        btn.disabled = true;
+        text.innerText = "Authenticating...";
+        loader.classList.remove("hidden");
+    });
+});
+
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+const mouse = { x: -9999, y: -9999 };
+
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+const COUNT = 40;
+const particles = Array.from({ length: COUNT }, () => {
+    const bvx = (Math.random() - 0.5) * 0.35;
+    const bvy = (Math.random() - 0.5) * 0.35;
+    return { x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight, vx: bvx, vy: bvy, bvx, bvy, r: Math.random() * 1.6 + 0.7, hue: Math.random() > 0.5 ? 226 : 24 };
+});
+
+let ripples = [];
+document.addEventListener('click', e => { ripples.push({ x: e.clientX, y: e.clientY, r: 0, alpha: 0.7 }); });
+
+const cursorEl = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursor-ring');
+let ringX = -9999, ringY = -9999;
+
+document.addEventListener('mousemove', e => {
+    mouse.x = e.clientX; mouse.y = e.clientY;
+    cursorEl.style.left = e.clientX + 'px';
+    cursorEl.style.top = e.clientY + 'px';
+});
+
+const page = document.getElementById('page');
+document.addEventListener('mousemove', e => {
+    const rect = page.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX - cx) / (W / 2);
+    const dy = (e.clientY - cy) / (H / 2);
+    page.style.transform = `perspective(1200px) rotateY(${dx * 3}deg) rotateX(${-dy * 2}deg)`;
+});
+document.addEventListener('mouseleave', () => {
+    page.style.transform = '';
+    mouse.x = -9999; mouse.y = -9999;
+});
+
+function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    ringX += (mouse.x - ringX) * 0.1;
+    ringY += (mouse.y - ringY) * 0.1;
+    cursorRing.style.left = ringX + 'px';
+    cursorRing.style.top = ringY + 'px';
+
+    if (mouse.x > 0) {
+        const grd = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 220);
+        grd.addColorStop(0, 'rgba(91,143,255,0.06)');
+        grd.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grd; ctx.fillRect(0, 0, W, H);
+    }
+
+    ripples = ripples.filter(rp => rp.alpha > 0.02);
+    ripples.forEach(rp => {
+        rp.r += 5; rp.alpha *= 0.91;
+        ctx.beginPath(); ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(91,143,255,${rp.alpha})`; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.beginPath(); ctx.arc(rp.x, rp.y, rp.r * 0.6, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255,107,53,${rp.alpha * 0.5})`; ctx.lineWidth = 1; ctx.stroke();
+    });
+
+    particles.forEach(p => {
+        const dx = p.x - mouse.x, dy = p.y - mouse.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        const REPEL = 110;
+        if (dist < REPEL && dist > 0) { const force = (REPEL - dist) / REPEL; p.vx += (dx / dist) * force * 1.1; p.vy += (dy / dist) * force * 1.1; }
+        p.vx += (p.bvx - p.vx) * 0.035; p.vy += (p.bvy - p.vy) * 0.035;
+        const spd = Math.sqrt(p.vx*p.vx + p.vy*p.vy);
+        if (spd > 3.5) { p.vx = p.vx/spd*3.5; p.vy = p.vy/spd*3.5; }
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+        const nearMouse = dist < 200 ? Math.max(0, 1 - dist / 200) : 0;
+        const alpha = 0.45 + nearMouse * 0.55;
+        const radius = p.r + nearMouse * 2.5;
+        ctx.beginPath(); ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue},80%,70%,${alpha})`; ctx.fill();
+        if (nearMouse > 0.3) {
+            ctx.beginPath(); ctx.arc(p.x, p.y, radius * 3, 0, Math.PI * 2);
+            const hGrd = ctx.createRadialGradient(p.x, p.y, radius, p.x, p.y, radius*3);
+            hGrd.addColorStop(0, `hsla(${p.hue},80%,70%,${nearMouse * 0.15})`);
+            hGrd.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = hGrd; ctx.fill();
+        }
+    });
+
+    for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+            const a = particles[i], b = particles[j];
+            const dx = a.x - b.x, dy = a.y - b.y;
+            const d = Math.sqrt(dx*dx + dy*dy);
+            if (d < 90) {
+                const base = (1 - d/130) * 0.2;
+                const mda = Math.sqrt((a.x-mouse.x)**2+(a.y-mouse.y)**2);
+                const mdb = Math.sqrt((b.x-mouse.x)**2+(b.y-mouse.y)**2);
+                const boost = Math.max(0, 1 - Math.min(mda,mdb)/180) * 0.35;
+                ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+                ctx.strokeStyle = `rgba(91,143,255,${base + boost})`;
+                ctx.lineWidth = boost > 0.1 ? 1.2 : 0.6; ctx.stroke();
+            }
+        }
+    }
+    requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>

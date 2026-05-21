@@ -1,8 +1,5 @@
 from django.contrib import admin
 from django.contrib import messages
-from django.shortcuts import redirect
-from django.urls import path
-from django.http import HttpResponseRedirect
 from django.utils import timezone
 from .models import Problem, TeamProgress, HackathonState, BonusQuestion, BonusSubmission
 
@@ -69,7 +66,6 @@ class ProgressAdmin(admin.ModelAdmin):
 class BonusAdmin(admin.ModelAdmin):
     list_display = ('title', 'is_active', 'appear_after_minutes', 'max_points', 'max_winners', 'duration_minutes')
     list_editable = ('is_active',)
-    readonly_fields = ()
     fieldsets = (
         ('Question', {'fields': ('title', 'description', 'starter_code', 'expected_output', 'input_type_hint')}),
         ('Timing', {'fields': ('appear_after_minutes', 'duration_minutes')}),

@@ -9,20 +9,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --ink: #0a0a0b;
-  --ink-1: #111114;
-  --ink-2: #1a1a1f;
-  --ink-3: #242428;
-  --wire: rgba(255,255,255,0.07);
-  --wire-bright: rgba(255,255,255,0.13);
-  --amber: #e8a000;
-  --amber-dim: rgba(232,160,0,0.1);
-  --lime: #c5f500;
-  --lime-dim: rgba(197,245,0,0.1);
-  --fog: #8a8a96;
-  --text: #dddde0;
-  --danger: #f05;
-  --success: #c5f500;
+  --ink: #07050b;
+  --ink-1: #0e0a16;
+  --ink-2: #161122;
+  --ink-3: #221a33;
+  --wire: rgba(179, 75, 244, 0.08);
+  --wire-bright: rgba(179, 75, 244, 0.18);
+  --amber: #b34bf4;
+  --amber-dim: rgba(179, 75, 244, 0.12);
+  --lime: #e1306c;
+  --lime-dim: rgba(225, 48, 108, 0.12);
+  --fog: #8b8599;
+  --text: #e2dfe6;
+  --danger: #ff5577;
+  --success: #3cd070;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { background:var(--ink); color:var(--text); min-height:100vh; }
@@ -37,8 +37,8 @@ body { font-family:'DM Mono',monospace; overflow-x:hidden; }
   position:fixed; z-index:0; pointer-events:none;
   border-radius:50%; filter:blur(110px);
 }
-.bg-bloom-a { width:500px; height:500px; top:-180px; left:-180px; background:rgba(232,160,0,0.05); }
-.bg-bloom-b { width:400px; height:400px; bottom:-140px; right:-140px; background:rgba(197,245,0,0.035); }
+.bg-bloom-a { width:500px; height:500px; top:-180px; left:-180px; background:rgba(179,75,244,0.06); }
+.bg-bloom-b { width:400px; height:400px; bottom:-140px; right:-140px; background:rgba(225,48,108,0.05); }
 
 nav {
   position:sticky; top:0; z-index:20;
@@ -54,7 +54,7 @@ nav {
   display:flex; align-items:center; gap:10px;
   text-decoration:none; color:inherit;
 }
-.nav-bracket { font-size:18px; color:var(--amber); }
+.nav-bracket { font-size:18px; color:#e1306c; }
 .nav-name { font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--fog); }
 .nav-links { display:flex; align-items:center; gap:4px; }
 .nav-link {
@@ -82,6 +82,10 @@ main {
 .page-title {
   font-family:'Bebas Neue',sans-serif;
   font-size:clamp(40px,5vw,60px); letter-spacing:0.03em; line-height:0.95;
+  background: linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
 }
 .page-sub { margin-top:8px; font-size:12px; color:var(--fog); }
 
@@ -105,7 +109,7 @@ main {
 }
 #progress-bar {
   height:100%; border-radius:999px;
-  background:linear-gradient(90deg, var(--amber), var(--lime));
+  background:linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00);
   transition:width 1s linear;
 }
 
@@ -146,14 +150,14 @@ main {
 }
 .podium-card-1st .podium-avatar {
   width:72px; height:72px; font-size:24px;
-  background:rgba(232,160,0,0.12);
-  border:1.5px solid rgba(232,160,0,0.5);
-  box-shadow:0 0 28px rgba(232,160,0,0.2), 0 0 0 4px rgba(232,160,0,0.06);
+  background:rgba(179,75,244,0.12);
+  border:1.5px solid rgba(179,75,244,0.5);
+  box-shadow:0 0 28px rgba(179,75,244,0.2), 0 0 0 4px rgba(179,75,244,0.06);
   animation:goldPulse 3s ease-in-out infinite;
 }
 @keyframes goldPulse {
-  0%,100%{box-shadow:0 0 28px rgba(232,160,0,0.2),0 0 0 4px rgba(232,160,0,0.06);}
-  50%{box-shadow:0 0 42px rgba(232,160,0,0.38),0 0 0 8px rgba(232,160,0,0.1);}
+  0%,100%{box-shadow:0 0 28px rgba(179,75,244,0.2),0 0 0 4px rgba(179,75,244,0.06);}
+  50%{box-shadow:0 0 42px rgba(179,75,244,0.38),0 0 0 8px rgba(179,75,244,0.1);}
 }
 .podium-card-2nd .podium-avatar {
   background:rgba(180,185,200,0.08);
@@ -167,7 +171,7 @@ main {
 .crown {
   position:absolute; top:-18px; left:50%; transform:translateX(-50%);
   font-size:18px;
-  filter:drop-shadow(0 2px 6px rgba(232,160,0,0.6));
+  filter:drop-shadow(0 2px 6px rgba(225,48,108,0.6));
   animation:crownBob 3s ease-in-out infinite;
   z-index:3;
 }
@@ -217,9 +221,9 @@ main {
 }
 .podium-card-1st .podium-plinth {
   height:80px;
-  background:linear-gradient(to bottom, rgba(232,160,0,0.1), rgba(232,160,0,0.02));
-  border-color:rgba(232,160,0,0.35) rgba(232,160,0,0.12) transparent;
-  color:rgba(232,160,0,0.25);
+  background:linear-gradient(to bottom, rgba(179,75,244,0.1), rgba(179,75,244,0.02));
+  border-color:rgba(179,75,244,0.35) rgba(179,75,244,0.12) transparent;
+  color:rgba(179,75,244,0.25);
 }
 .podium-card-2nd .podium-plinth {
   height:58px;

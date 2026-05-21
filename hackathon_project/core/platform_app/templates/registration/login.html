@@ -10,19 +10,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --ink: #0a0a0b;
-  --ink-1: #111114;
-  --ink-2: #1a1a1f;
-  --ink-3: #242428;
-  --wire: rgba(255,255,255,0.07);
-  --wire-bright: rgba(255,255,255,0.14);
-  --amber: #e8a000;
-  --amber-dim: rgba(232,160,0,0.12);
-  --amber-glow: rgba(232,160,0,0.25);
-  --lime: #c5f500;
-  --fog: #8a8a96;
-  --text: #dddde0;
-  --danger: #f05;
+  --ink: #07050b;
+  --ink-1: #0e0a16;
+  --ink-2: #161122;
+  --ink-3: #221a33;
+  --wire: rgba(179, 75, 244, 0.08);
+  --wire-bright: rgba(179, 75, 244, 0.18);
+  --amber: #b34bf4;
+  --amber-dim: rgba(179, 75, 244, 0.12);
+  --amber-glow: rgba(179, 75, 244, 0.25);
+  --lime: #e1306c;
+  --fog: #8b8599;
+  --text: #e2dfe6;
+  --danger: #ff5577;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body { height:100%; }
@@ -49,12 +49,12 @@ body {
 .bg-bloom-a {
   width: 480px; height: 480px;
   top: -160px; left: -160px;
-  background: rgba(232,160,0,0.07);
+  background: rgba(179,75,244,0.06);
 }
 .bg-bloom-b {
   width: 360px; height: 360px;
   bottom: -100px; right: -100px;
-  background: rgba(197,245,0,0.04);
+  background: rgba(225,48,108,0.05);
 }
 
 .shell {
@@ -84,7 +84,7 @@ body {
 .panel-left::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, var(--amber), transparent 60%);
+  background: linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00);
 }
 
 .logo-mark {
@@ -93,7 +93,7 @@ body {
 .logo-bracket {
   font-family: 'DM Mono', monospace;
   font-size: 22px; font-weight: 400;
-  color: var(--amber);
+  color: #e1306c;
   line-height: 1;
 }
 .logo-name {
@@ -109,7 +109,12 @@ body {
   letter-spacing: 0.02em;
   color: var(--text);
 }
-.brand-head .amber { color: var(--amber); }
+.brand-head .amber {
+  background: linear-gradient(90deg, #b34bf4 0%, #e1306c 60%, #ff7a00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
 
 .brand-sub {
   margin-top: 16px;
@@ -171,10 +176,10 @@ body {
   transition: border-color 0.2s, background 0.2s;
 }
 .field-input:focus {
-  border-color: var(--amber);
-  background: rgba(232,160,0,0.03);
+  border-color: #e1306c;
+  background: rgba(225,48,108,0.03);
 }
-.field-input::placeholder { color: var(--ink-3); }
+.field-input::placeholder { color: #32294d; }
 
 .errorlist {
   background: rgba(255,0,85,0.06);
@@ -188,20 +193,20 @@ body {
 .submit-btn {
   width: 100%; margin-top: 12px; padding: 14px;
   border-radius: 3px; border: none; cursor: pointer;
-  background: var(--amber);
-  color: var(--ink);
+  background: linear-gradient(135deg, #b34bf4, #e1306c);
+  color: #fff;
   font-family: 'Bebas Neue', sans-serif;
   font-size: 18px; letter-spacing: 0.12em;
   transition: opacity 0.2s, transform 0.15s;
   display: flex; align-items: center; justify-content: center; gap: 10px;
 }
-.submit-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.submit-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow:0 4px 14px rgba(225,48,108,0.25); }
 .submit-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
 .spinner {
   width: 14px; height: 14px;
   border: 2px solid rgba(0,0,0,0.2);
-  border-top-color: var(--ink);
+  border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   display: none;

@@ -9,18 +9,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --ink: #0a0a0b;
-  --ink-1: #111114;
-  --ink-2: #1a1a1f;
-  --ink-3: #242428;
-  --wire: rgba(255,255,255,0.07);
-  --wire-bright: rgba(255,255,255,0.13);
-  --amber: #e8a000;
-  --amber-dim: rgba(232,160,0,0.1);
-  --lime: #c5f500;
-  --lime-dim: rgba(197,245,0,0.1);
-  --fog: #8a8a96;
-  --text: #dddde0;
+  --ink: #07050b;
+  --ink-1: #0e0a16;
+  --ink-2: #161122;
+  --ink-3: #221a33;
+  --wire: rgba(179, 75, 244, 0.08);
+  --wire-bright: rgba(179, 75, 244, 0.18);
+  --amber: #b34bf4;
+  --amber-dim: rgba(179, 75, 244, 0.12);
+  --lime: #e1306c;
+  --lime-dim: rgba(225, 48, 108, 0.12);
+  --fog: #8b8599;
+  --text: #e2dfe6;
+  --danger: #ff5577;
+  --success: #3cd070;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body { height:100%; }
@@ -35,16 +37,16 @@ body {
 }
 
 .bg-dots {
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size: 28px 28px;
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:radial-gradient(circle, rgba(179,75,244,0.04) 1px, transparent 1px);
+  background-size:28px 28px;
 }
 .bg-bloom {
-  position: fixed; z-index: 0; pointer-events: none;
-  border-radius: 50%; filter: blur(110px);
+  position:fixed; z-index:0; pointer-events:none;
+  border-radius:50%; filter:blur(110px);
 }
-.bg-bloom-a { width: 500px; height: 500px; top:-180px; left:-180px; background: rgba(232,160,0,0.06); }
-.bg-bloom-b { width: 380px; height: 380px; bottom:-120px; right:-120px; background: rgba(197,245,0,0.04); }
+.bg-bloom-a { width:500px; height:500px; top:-180px; left:-180px; background: rgba(179,75,244,0.06); }
+.bg-bloom-b { width:400px; height:400px; bottom:-140px; right:-140px; background: rgba(225,48,108,0.05); }
 
 .scene {
   position: relative; z-index: 10;
@@ -68,13 +70,13 @@ body {
 }
 .card::before {
   content: ''; position: absolute; top:0; left:0; right:0; height: 2px;
-  background: linear-gradient(90deg, var(--amber) 0%, var(--lime) 100%);
+  background: linear-gradient(90deg, #b34bf4, #e1306c 50%, #ff7a00);
 }
 
 .logo-row {
   display: flex; align-items: center; gap: 10px; margin-bottom: 32px;
 }
-.logo-bracket { font-size: 20px; color: var(--amber); }
+.logo-bracket { font-size:18px; color:#e1306c; }
 .logo-name {
   font-size: 11px; letter-spacing: 0.22em;
   text-transform: uppercase; color: var(--fog);
@@ -83,7 +85,7 @@ body {
 .live-badge {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 4px 12px; border-radius: 2px;
-  border: 1px solid rgba(197,245,0,0.2);
+  border: 1px solid rgba(225,48,108,0.2);
   background: var(--lime-dim);
   font-size: 10px; letter-spacing: 0.18em;
   text-transform: uppercase; color: var(--lime);
@@ -101,7 +103,12 @@ body {
   line-height: 0.9; letter-spacing: 0.03em;
   text-align: center; margin-bottom: 12px;
 }
-.card-headline .amber { color: var(--amber); }
+.card-headline .amber {
+  background: linear-gradient(90deg, #b34bf4 0%, #e1306c 60%, #ff7a00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
 
 .card-sub {
   text-align: center; color: var(--fog);

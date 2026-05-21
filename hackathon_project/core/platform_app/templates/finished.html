@@ -9,17 +9,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --ink: #0a0a0b;
-  --ink-1: #111114;
-  --ink-2: #1a1a1f;
-  --wire: rgba(255,255,255,0.07);
-  --wire-bright: rgba(255,255,255,0.13);
-  --amber: #e8a000;
-  --amber-dim: rgba(232,160,0,0.1);
-  --lime: #c5f500;
-  --lime-dim: rgba(197,245,0,0.1);
-  --fog: #8a8a96;
-  --text: #dddde0;
+  --ink: #07050b;
+  --ink-1: #0e0a16;
+  --ink-2: #161122;
+  --wire: rgba(179, 75, 244, 0.08);
+  --wire-bright: rgba(179, 75, 244, 0.18);
+  --amber: #b34bf4;
+  --amber-dim: rgba(179, 75, 244, 0.12);
+  --lime: #e1306c;
+  --lime-dim: rgba(225, 48, 108, 0.12);
+  --fog: #8b8599;
+  --text: #e2dfe6;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body { height:100%; }
@@ -33,15 +33,15 @@ body {
 
 .bg-dots {
   position:fixed; inset:0; z-index:0; pointer-events:none;
-  background-image:radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-image:radial-gradient(circle, rgba(179,75,244,0.04) 1px, transparent 1px);
   background-size:28px 28px;
 }
 .bg-bloom {
   position:fixed; z-index:0; pointer-events:none;
   border-radius:50%; filter:blur(120px);
 }
-.bg-bloom-a { width:500px; height:500px; top:-160px; left:-160px; background:rgba(232,160,0,0.07); }
-.bg-bloom-b { width:420px; height:420px; bottom:-130px; right:-130px; background:rgba(197,245,0,0.05); }
+.bg-bloom-a { width:500px; height:500px; top:-160px; left:-160px; background:rgba(179,75,244,0.06); }
+.bg-bloom-b { width:420px; height:420px; bottom:-130px; right:-130px; background:rgba(225,48,108,0.05); }
 
 .scene {
   position:relative; z-index:10;
@@ -64,7 +64,7 @@ body {
 }
 .trophy-ring {
   position:absolute; inset:0; border-radius:50%;
-  border:1.5px solid rgba(232,160,0,0.35);
+  border:1.5px solid rgba(225,48,108,0.35);
   animation:ringPing 2.2s ease-out infinite;
 }
 .trophy-ring-2 { animation-delay:0.7s; }
@@ -75,21 +75,21 @@ body {
 .trophy-icon {
   width:76px; height:76px; border-radius:50%;
   background:var(--amber-dim);
-  border:1.5px solid rgba(232,160,0,0.4);
+  border:1.5px solid rgba(179,75,244,0.4);
   display:flex; align-items:center; justify-content:center;
   font-size:34px; position:relative; z-index:1;
   animation:trophyGlow 3s ease-in-out infinite alternate;
 }
 @keyframes trophyGlow {
-  from{box-shadow:0 0 20px rgba(232,160,0,0.15);}
-  to{box-shadow:0 0 36px rgba(232,160,0,0.4);}
+  from{box-shadow:0 0 20px rgba(179,75,244,0.15);}
+  to{box-shadow:0 0 36px rgba(179,75,244,0.4);}
 }
 
 .round-badge {
   display:inline-flex; align-items:center; gap:7px;
   padding:4px 13px; border-radius:2px;
-  border:1px solid rgba(232,160,0,0.25); background:var(--amber-dim);
-  font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--amber);
+  border:1px solid rgba(225,48,108,0.25); background:var(--lime-dim);
+  font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--lime);
 }
 .badge-dot { width:5px; height:5px; border-radius:50%; background:var(--amber); }
 
@@ -97,7 +97,12 @@ body {
   font-family:'Bebas Neue',sans-serif;
   font-size:clamp(40px,8vw,58px); letter-spacing:0.03em; line-height:0.95;
 }
-.finish-title .amber { color:var(--amber); }
+.finish-title .amber {
+  background: linear-gradient(90deg, #b34bf4 0%, #e1306c 60%, #ff7a00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
 
 .finish-sub {
   font-size:13px; color:var(--fog); line-height:1.7; max-width:340px;
@@ -123,11 +128,11 @@ body {
 .lb-btn {
   display:inline-flex; align-items:center; gap:8px;
   padding:12px 24px; border-radius:3px;
-  background:var(--amber); color:var(--ink);
+  background:linear-gradient(135deg, #b34bf4, #e1306c); color:#fff;
   font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:0.1em;
-  text-decoration:none; transition:opacity 0.2s;
+  text-decoration:none; transition:opacity 0.2s, transform 0.15s;
 }
-.lb-btn:hover { opacity:0.85; }
+.lb-btn:hover { opacity:0.9; transform:scale(1.03); box-shadow:0 6px 20px rgba(225,48,108,0.3); }
 
 .footer-note { font-size:10px; color:rgba(255,255,255,0.08); letter-spacing:0.1em; }
 
@@ -178,7 +183,7 @@ body {
 </div>
 
 <script>
-const colors = ['#e8a000','#c5f500','#4fde9e','#ff5577','#fff','#ffcc66'];
+const colors = ['#b34bf4','#e1306c','#ff7a00','#ff5577','#fff','#d6a4ff'];
 function spawnParticle() {
   const p = document.createElement('div');
   p.className = 'particle';

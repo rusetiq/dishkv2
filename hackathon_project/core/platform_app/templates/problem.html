@@ -5,12 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ problem.title }} | DIS Hackathon</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Sans:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+  <link rel="stylesheet" href="{% static 'codemirror/codemirror.min.css' %}">
   <style>
     :root {
       --ink: #07050b;
@@ -356,7 +353,9 @@
     .timer-block {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 4px;
+      flex: 1;
+      max-width: 140px;
     }
 
     .timer-lbl {
@@ -595,6 +594,17 @@
       flex-direction: column;
       border-top: 1px solid var(--wire);
       background: rgba(0, 0, 0, 0.25);
+      position: relative;
+    }
+
+    .terminal-resizer {
+      position: absolute;
+      top: -3px;
+      left: 0;
+      right: 0;
+      height: 6px;
+      cursor: ns-resize;
+      z-index: 100;
     }
 
     .output-topbar {
@@ -1069,6 +1079,7 @@
       <div class="save-load-group">
         <button onclick="saveCode()" class="hdr-btn">Save</button>
         <button onclick="loadCode()" class="hdr-btn">Load</button>
+        <button onclick="resetCode()" class="hdr-btn">Reset</button>
       </div>
       <div class="sep"></div>
       <div class="score-chip">
@@ -1099,8 +1110,13 @@
       </div>
       <div class="action-strip" id="tour-action-strip">
         <div class="timer-block">
-          <span class="timer-lbl">Time Remaining</span>
-          <div class="timer-val" id="problem-timer">00:00:00</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+            <span class="timer-lbl">Time Remaining</span>
+            <div class="timer-val" id="problem-timer">00:00:00</div>
+          </div>
+          <div class="progress-track" style="height: 3px; background: rgba(255, 255, 255, 0.05); border-radius: 999px; overflow: hidden; width: 100%;">
+            <div id="timer-progress-fill" style="height: 100%; width: 100%; background: linear-gradient(90deg, #b34bf4, #e1306c 50%, #ff7a00); border-radius: 999px; transition: width 1s linear;"></div>
+          </div>
         </div>
         <button onclick="openHintPanel()" class="hint-btn{% if not hints_enabled %} hint-disabled{% endif %}"
           id="hint-btn" {% if not hints_enabled %}title="AI hints are currently disabled" {% endif %}>💡 AI
@@ -1122,6 +1138,7 @@
         <textarea id="code-editor">{{ progress.current_code }}</textarea>
       </div>
       <div class="output-panel" id="tour-output-panel">
+        <div class="terminal-resizer" id="terminal-resizer"></div>
         <div class="output-topbar">
           <span class="output-pip"></span>
           <span class="output-label">Terminal Output</span>
@@ -1164,10 +1181,10 @@
         multiple times as your code evolves.</div>
     </div>
   </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/matchbrackets.min.js"></script>
+  <script src="{% static 'codemirror/codemirror.min.js' %}"></script>
+  <script src="{% static 'codemirror/mode/python/python.min.js' %}"></script>
+  <script src="{% static 'codemirror/addon/edit/closebrackets.min.js' %}"></script>
+  <script src="{% static 'codemirror/addon/edit/matchbrackets.min.js' %}"></script>
   <script>
     const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
       mode: 'python',
@@ -1180,6 +1197,19 @@
         'Tab': cm => cm.execCommand('indentMore'),
         'Shift-Tab': cm => cm.execCommand('indentLess'),
         'Enter': 'newlineAndIndentContinueComment',
+        'Backspace': cm => {
+          if (cm.somethingSelected()) return CodeMirror.Pass;
+          const cur = cm.getCursor();
+          const line = cm.getLine(cur.line);
+          const before = line.slice(0, cur.ch);
+          if (/^\s+$/.test(before)) {
+            const tabSize = cm.getOption('tabSize') || 4;
+            const toDelete = cur.ch % tabSize || tabSize;
+            cm.replaceRange('', CodeMirror.Pos(cur.line, cur.ch - toDelete), cur);
+          } else {
+            return CodeMirror.Pass;
+          }
+        }
       },
       autoCloseBrackets: true,
       matchBrackets: true,
@@ -1193,6 +1223,13 @@
     const statusMsg = document.getElementById('statusMsg');
     const outputDiv = document.getElementById('output');
     const problemId = '{{ problem.id }}';
+    const starterCode = `{{ problem.starter_code|escapejs }}`;
+    function resetCode() {
+      if (confirm('Are you sure you want to reset the code to the starter code?')) {
+        editor.setValue(starterCode);
+        statusMsg.textContent = 'Reset to starter code';
+      }
+    }
     async function saveCode() {
       statusMsg.textContent = 'Saving...';
       try {
@@ -1229,6 +1266,7 @@
         .then(data => {
           outputDiv.innerHTML = '';
           if (data.results) {
+            outputDiv.style.color = 'var(--text)';
             let html = '';
             data.results.forEach((res, idx) => {
               let statusColor = 'var(--run-green)';
@@ -1279,7 +1317,7 @@
         .then(r => r.json())
         .then(data => {
           if (data.status === 'Correct Answer!') {
-            outputDiv.style.color = 'var(--lime)';
+            outputDiv.style.color = 'var(--run-green)';
             outputDiv.textContent = '✓ Correct Answer!\nPoints awarded.';
             document.getElementById('nav-total-score').textContent = data.new_total;
           } else {
@@ -1292,12 +1330,22 @@
     const endTime = new Date('{{ end_time }}').getTime();
     function updateTimer() {
       const dist = endTime - Date.now();
-      if (dist < 0) { document.getElementById('problem-timer').textContent = 'TIME UP!'; return; }
+      if (dist < 0) {
+        document.getElementById('problem-timer').textContent = 'TIME UP!';
+        const fill = document.getElementById('timer-progress-fill');
+        if (fill) fill.style.width = '0%';
+        return;
+      }
       const h = Math.floor(dist / 3600000);
       const m = Math.floor((dist % 3600000) / 60000);
       const s = Math.floor((dist % 60000) / 1000);
       document.getElementById('problem-timer').textContent =
         `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      
+      const totalDuration = 2 * 60 * 60 * 1000;
+      const pct = Math.max(0, Math.min(100, (dist / totalDuration) * 100));
+      const fill = document.getElementById('timer-progress-fill');
+      if (fill) fill.style.width = pct + '%';
     }
     setInterval(updateTimer, 1000);
     updateTimer();
@@ -1494,6 +1542,33 @@
     if (TOUR_ENABLED_INIT && !localStorage.getItem('arena_tour_done')) {
       setTimeout(startTour, 900);
     }
+    (function() {
+      const resizer = document.getElementById('terminal-resizer');
+      const panel = document.getElementById('tour-output-panel');
+      if (!resizer || !panel) return;
+      let isDragging = false;
+      resizer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        resizer.classList.add('active');
+        document.body.style.cursor = 'ns-resize';
+        document.body.style.userSelect = 'none';
+      });
+      document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const newHeight = window.innerHeight - e.clientY;
+        if (newHeight >= 60 && newHeight <= window.innerHeight * 0.7) {
+          panel.style.height = newHeight + 'px';
+        }
+      });
+      document.addEventListener('mouseup', () => {
+        if (isDragging) {
+          isDragging = false;
+          resizer.classList.remove('active');
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
+        }
+      });
+    })();
   </script>
 </body>
 

@@ -38,6 +38,31 @@
                     <span>🛑</span> End Hackathon
                 </a>
             {% endif %}
+            {% if h_state and h_state.is_started or h_state.is_finished %}
+                <a href="/admin-api/reset-hackathon/" class="qa-btn danger" style="padding:10px 16px;font-size:13px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;background:rgba(255,93,108,0.1);color:var(--danger);border-color:rgba(255,93,108,0.2);" onclick="return confirm('Are you sure you want to reset the hackathon to Standby?');">
+                    <span>🔄</span> Reset to Standby
+                </a>
+            {% endif %}
+            {% if h_state %}
+                {% if h_state.hints_enabled %}
+                    <a href="/admin-api/toggle-hints/" class="qa-btn" style="padding:10px 16px;font-size:13px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;background:rgba(255,93,108,0.1);color:var(--danger);border-color:rgba(255,93,108,0.2);">
+                        <span>📴</span> Disable AI Hints
+                    </a>
+                {% else %}
+                    <a href="/admin-api/toggle-hints/" class="qa-btn success-btn" style="padding:10px 16px;font-size:13px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;">
+                        <span>💡</span> Enable AI Hints
+                    </a>
+                {% endif %}
+                {% if h_state.onboarding_tour_enabled %}
+                    <a href="/admin-api/toggle-tour/" class="qa-btn" style="padding:10px 16px;font-size:13px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;background:rgba(255,93,108,0.1);color:var(--danger);border-color:rgba(255,93,108,0.2);">
+                        <span>🚫</span> Disable Tour
+                    </a>
+                {% else %}
+                    <a href="/admin-api/toggle-tour/" class="qa-btn success-btn" style="padding:10px 16px;font-size:13px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;">
+                        <span>❓</span> Enable Tour
+                    </a>
+                {% endif %}
+            {% endif %}
         </div>
     </div>
 

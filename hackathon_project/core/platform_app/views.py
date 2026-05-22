@@ -65,7 +65,9 @@ def waiting_room(request):
     state = HackathonState.objects.first()
     if state and state.is_started and not state.is_finished:
         return redirect('home')
-    return render(request, 'waiting_room.html')
+    return render(request, 'waiting_room.html', {
+        'onboarding_tour_enabled': state.onboarding_tour_enabled if state else True
+    })
 
 
 @login_required
@@ -652,4 +654,38 @@ def admin_end_bonus(request):
         bonus.paused_at = None
         bonus.activated_at = None
         bonus.save()
+    return redirect('/admin/')
+
+@login_required
+def admin_toggle_hints(request):
+    if not request.user.is_staff:
+        return redirect('waiting_room')
+    state = HackathonState.objects.first()
+    if state:
+        state.hints_enabled = not state.hints_enabled
+        state.save()
+    return redirect('/admin/')
+
+@login_required
+def admin_reset_hackathon(request):
+    if not request.user.is_staff:
+        return redirect('waiting_room')
+    state = HackathonState.objects.first()
+    if state:
+        state.is_started = False
+        state.is_finished = False
+        state.is_paused = False
+        state.start_time = None
+        state.paused_at = None
+        state.save()
+    return redirect('/admin/')
+
+@login_required
+def admin_toggle_tour(request):
+    if not request.user.is_staff:
+        return redirect('waiting_room')
+    state = HackathonState.objects.first()
+    if state:
+        state.onboarding_tour_enabled = not state.onboarding_tour_enabled
+        state.save()
     return redirect('/admin/')

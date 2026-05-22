@@ -35,4 +35,7 @@ urlpatterns = [
     path('admin-api/pause-bonus/', views.admin_pause_bonus, name='admin_pause_bonus'),
     path('admin-api/resume-bonus/', views.admin_resume_bonus, name='admin_resume_bonus'),
     path('admin-api/end-bonus/', views.admin_end_bonus, name='admin_end_bonus'),
+    path('admin-api/toggle-hints/', views.admin_toggle_hints, name='admin_toggle_hints'),
+    path('admin-api/reset-hackathon/', views.admin_reset_hackathon, name='admin_reset_hackathon'),
+    path('admin-api/toggle-tour/', views.admin_toggle_tour, name='admin_toggle_tour'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

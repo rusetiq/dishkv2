@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,11 +6,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DIS Hackathon — Waiting Room</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Sans:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
   <style>
     :root {
       --ink: #07050b;
@@ -86,27 +83,50 @@
       background: rgba(225, 48, 108, 0.05);
     }
 
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+
     .scene {
       position: relative;
       z-index: 10;
       display: flex;
       flex-direction: column;
       align-items: center;
-      width: min(460px, 92vw);
+      width: min(560px, 94vw);
     }
 
     .card {
       width: 100%;
-      background: var(--ink-1);
-      border: 1px solid var(--wire-bright);
-      border-radius: 4px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(14,10,22,0.5) 50%, rgba(179,75,244,0.04) 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-top: 1px solid rgba(255,255,255,0.2);
+      border-left: 1px solid rgba(255,255,255,0.13);
+      border-radius: 20px;
       padding: 44px 40px 36px;
       display: flex;
       flex-direction: column;
       align-items: center;
       position: relative;
       overflow: hidden;
-      animation: cardIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+      backdrop-filter: blur(40px) saturate(160%);
+      -webkit-backdrop-filter: blur(40px) saturate(160%);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04), inset 0 0 60px rgba(179,75,244,0.03);
+      animation: cardIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) backwards, cardPulse 6s ease-in-out 0.65s infinite;
+    }
+
+    @keyframes cardPulse {
+      0%, 100% {
+        box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04), inset 0 0 60px rgba(179,75,244,0.03), 0 0 40px rgba(179,75,244,0.0);
+      }
+      50% {
+        box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 80px rgba(179,75,244,0.07), 0 0 60px rgba(179,75,244,0.12), 0 0 120px rgba(225,48,108,0.06);
+      }
     }
 
     @keyframes cardIn {
@@ -219,12 +239,12 @@
       font-size: 12px;
       line-height: 1.7;
       max-width: 300px;
-      margin-bottom: 36px;
+      margin-bottom: 20px;
     }
 
     .progress-wrap {
       width: 100%;
-      margin-bottom: 24px;
+      margin-bottom: 12px;
     }
 
     .progress-label {
@@ -257,6 +277,12 @@
       transform-origin: left;
     }
 
+    .progress-fill.static {
+      animation: none;
+      transform: none;
+      width: 100%;
+    }
+
     @keyframes indeterminate {
       0% {
         transform: scaleX(0) translateX(0);
@@ -274,7 +300,7 @@
     .status-line {
       font-size: 11px;
       color: var(--fog);
-      margin-bottom: 32px;
+      margin-bottom: 20px;
       height: 16px;
       display: flex;
       align-items: center;
@@ -327,9 +353,12 @@
 
     .info-cell {
       padding: 12px 10px;
-      border: 1px solid var(--wire);
-      border-radius: 3px;
-      background: var(--ink-2);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-top: 1px solid rgba(255,255,255,0.11);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       display: flex;
       flex-direction: column;
       gap: 5px;
@@ -362,9 +391,12 @@
       align-items: center;
       gap: 7px;
       padding: 9px 18px;
-      border-radius: 3px;
-      border: 1px solid var(--wire-bright);
-      background: var(--ink-2);
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-top: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       color: var(--fog);
       font-size: 12px;
       cursor: pointer;
@@ -390,8 +422,9 @@
       position: fixed;
       inset: 0;
       z-index: 10000;
-      background: rgba(5, 5, 6, 0.9);
-      backdrop-filter: blur(12px);
+      background: linear-gradient(135deg, rgba(5,5,6,0.75) 0%, rgba(14,10,22,0.8) 100%);
+      backdrop-filter: blur(24px) saturate(140%);
+      -webkit-backdrop-filter: blur(24px) saturate(140%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -413,12 +446,16 @@
     }
 
     .tutorial-card {
-      width: min(540px, 94vw);
-      background: var(--ink-1);
-      border: 1px solid var(--wire-bright);
-      border-radius: 4px;
+      width: min(580px, 94vw);
+      background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(14,10,22,0.55) 60%, rgba(179,75,244,0.05) 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-top: 1px solid rgba(255,255,255,0.2);
+      border-left: 1px solid rgba(255,255,255,0.13);
+      border-radius: 24px;
       overflow: hidden;
-      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04), inset 0 0 60px rgba(179,75,244,0.04);
+      backdrop-filter: blur(40px) saturate(160%);
+      -webkit-backdrop-filter: blur(40px) saturate(160%);
       animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -520,13 +557,16 @@
       display: flex;
       align-items: flex-start;
       gap: 10px;
-      background: var(--ink-2);
-      border: 1px solid var(--wire);
-      border-radius: 3px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-top: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
       padding: 10px 12px;
       font-size: 12px;
       color: var(--fog);
       line-height: 1.55;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
     .step-bullet strong {
@@ -545,8 +585,9 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-top: 1px solid var(--wire);
+      border-top: 1px solid rgba(255,255,255,0.06);
       margin-top: 20px;
+      background: rgba(255,255,255,0.02);
     }
 
     .tut-step-n {
@@ -561,7 +602,7 @@
 
     .tut-btn {
       padding: 8px 18px;
-      border-radius: 3px;
+      border-radius: 20px;
       font-family: 'DM Mono', monospace;
       font-size: 12px;
       font-weight: 500;
@@ -571,9 +612,13 @@
     }
 
     .tut-btn-skip {
-      background: transparent;
-      border: 1px solid var(--wire-bright);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-top: 1px solid rgba(255,255,255,0.16);
+      border-radius: 20px;
       color: var(--fog);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
     .tut-btn-skip:hover {
@@ -595,12 +640,14 @@
       opacity: 0.85;
     }
   </style>
+
 </head>
 
 <body>
   <div class="bg-dots"></div>
   <div class="bg-bloom bg-bloom-a"></div>
   <div class="bg-bloom bg-bloom-b"></div>
+  <canvas id="bg-canvas"></canvas>
   <div id="tutorial-overlay" class="hidden">
     <div class="tutorial-card">
       <div class="tut-topbar"></div>
@@ -698,7 +745,7 @@
       <p class="card-sub">Your session is active. The round begins when the admin fires the signal.</p>
       <div class="progress-wrap">
         <div class="progress-label">
-          <span>Initializing</span>
+          <span id="pct-label">Initializing</span>
           <span class="pct" id="pct-text">standby</span>
         </div>
         <div class="progress-track">
@@ -724,9 +771,11 @@
           <div class="val lime" id="live-status">Standby</div>
         </div>
       </div>
+      {% if onboarding_tour_enabled %}
       <button class="htp-btn" onclick="openTutorial()">
         <span>📖</span> How does this work?
       </button>
+      {% endif %}
     </div>
     <div class="footprint">DIS Hackathon • Arena • 2026</div>
   </div>
@@ -740,9 +789,7 @@
       'Almost time — stay sharp'
     ];
     const finishedMessages = [
-      'The hackathon has ended',
-      'Check the leaderboard for final standings',
-      'Thank you for participating'
+      'Check the leaderboard for final standings'
     ];
     let msgIdx = 0;
     const msgEl = document.getElementById('status-msg');
@@ -767,6 +814,8 @@
             isFinished = true;
             document.getElementById('live-status').textContent = 'FINISHED';
             document.getElementById('pct-text').textContent = 'ended';
+            document.getElementById('pct-label').textContent = 'Initializing';
+            document.querySelector('.progress-fill').classList.add('static');
             if (!finishedMessages.includes(msgEl.textContent)) {
               msgEl.textContent = finishedMessages[0];
             }
@@ -778,8 +827,11 @@
             document.getElementById('live-status').textContent = 'PAUSED';
             document.getElementById('pct-text').textContent = 'paused';
           } else {
+            isFinished = false;
             document.getElementById('live-status').textContent = 'Standby';
             document.getElementById('pct-text').textContent = 'standby';
+            document.getElementById('pct-label').textContent = 'Initializing';
+            document.querySelector('.progress-fill').classList.remove('static');
           }
         }).catch(() => { });
     }
@@ -812,7 +864,92 @@
       document.getElementById('tut-next').textContent = currentStep === totalSteps - 1 ? "Let's Go →" : 'Next →';
       document.getElementById('tut-skip').textContent = currentStep === totalSteps - 1 ? 'Close' : 'Skip tour';
     }
-    if (!localStorage.getItem('dis_tutorial_done')) setTimeout(openTutorial, 700);
+    const TOUR_ENABLED_INIT = {{ onboarding_tour_enabled|yesno:"true,false" }};
+    if (TOUR_ENABLED_INIT && !localStorage.getItem('dis_tutorial_done')) setTimeout(openTutorial, 700);
+    (function () {
+      const canvas = document.getElementById('bg-canvas');
+      const gl = canvas.getContext('webgl');
+      if (!gl) return;
+      const vsrc = `attribute vec2 a_pos;
+      void main(){gl_Position=vec4(a_pos,0.0,1.0);}`;
+      const fsrc = `#ifdef GL_ES
+      precision mediump float;
+      #endif
+      uniform vec2 u_res;
+      uniform vec2 u_mouse;
+      uniform float u_time;
+      float threadGrid(vec2 p){
+        float r=length(p),a=atan(p.y,p.x);
+        float aBent=a*1.2;
+        float grid=abs(fract(aBent/6.28318*30.0)-0.5)*1.5;
+        float width=0.9-0.5*r;
+        float line=smoothstep(width,1.0,grid);
+        line*=smoothstep(4.0,2.0,r);
+        return line;
+      }
+      void main(){
+        vec2 st=gl_FragCoord.xy/u_res.xy*2.0-1.0;
+        st.x*=u_res.x/u_res.y;
+        float t=u_time;
+        st*=3.5;
+        float speed=0.1;
+        float angle=atan(st.y,st.x);
+        float phase=t*speed;
+        float ripple=sin(phase*10.0+angle*2.0)*0.5+0.5;
+        ripple+=sin(length(st)*5.0-t);
+        float threads=threadGrid(st);
+        vec3 colA=vec3(0.702,0.294,0.957);
+        vec3 colB=vec3(0.882,0.188,0.424);
+        vec3 colC=vec3(1.0,0.478,0.0);
+        float mixAB=clamp(ripple*0.5,0.0,1.0);
+        float mixBC=clamp(threads*ripple*0.3,0.0,1.0);
+        vec3 col=mix(colA,colB,mixAB);
+        col=mix(col,colC,mixBC);
+        float brightness=ripple*0.18*(threads*(ripple*8.0))*0.22;
+        gl_FragColor=vec4(col*brightness*3.0,1.0);
+      }`;
+      function mkShader(type, src) {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        return s;
+      }
+      const prog = gl.createProgram();
+      gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, vsrc));
+      gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, fsrc));
+      gl.linkProgram(prog);
+      gl.useProgram(prog);
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+      const loc = gl.getAttribLocation(prog, 'a_pos');
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      const uRes = gl.getUniformLocation(prog, 'u_res');
+      const uTime = gl.getUniformLocation(prog, 'u_time');
+      const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+      let mx = 0, my = 0;
+      document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+      function resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(window.innerWidth * dpr);
+        canvas.height = Math.floor(window.innerHeight * dpr);
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+      }
+      resize();
+      window.addEventListener('resize', resize);
+      function render(ts) {
+        gl.uniform2f(uRes, canvas.width, canvas.height);
+        gl.uniform1f(uTime, ts * 0.001);
+        gl.uniform2f(uMouse, mx, my);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        requestAnimationFrame(render);
+      }
+      requestAnimationFrame(render);
+    })();
   </script>
 </body>
 

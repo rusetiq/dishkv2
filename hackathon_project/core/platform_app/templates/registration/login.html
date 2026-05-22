@@ -5,9 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DIS Hackathon — Login</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/fonts.css' %}">
 <style>
 :root {
   --ink: #07050b;
@@ -58,16 +56,37 @@ body {
   bottom: -100px; right: -100px;
   background: rgba(225,48,108,0.05);
 }
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: none;
+}
 .shell {
   position: relative; z-index: 10;
   display: flex;
-  width: min(900px, 96vw);
-  min-height: 520px;
-  border: 1px solid var(--wire-bright);
-  border-radius: 4px;
+  width: min(1000px, 96vw);
+  min-height: 560px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid rgba(255,255,255,0.18);
+  border-left: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 40px 100px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.04);
-  animation: shellIn 0.6s cubic-bezier(0.16,1,0.3,1) backwards;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04), inset 0 0 60px rgba(179,75,244,0.03);
+  backdrop-filter: blur(40px) saturate(160%);
+  -webkit-backdrop-filter: blur(40px) saturate(160%);
+  animation: shellIn 0.6s cubic-bezier(0.16,1,0.3,1) backwards, shellPulse 6s ease-in-out 0.6s infinite;
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(14,10,22,0.55) 40%, rgba(255,255,255,0.02) 100%);
+}
+@keyframes shellPulse {
+  0%, 100% {
+    box-shadow: 0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04), inset 0 0 60px rgba(179,75,244,0.03);
+  }
+  50% {
+    box-shadow: 0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 80px rgba(179,75,244,0.07), 0 0 70px rgba(179,75,244,0.12), 0 0 140px rgba(225,48,108,0.06);
+  }
 }
 @keyframes shellIn {
   from { opacity:0; transform: translateY(28px) scale(0.98); }
@@ -75,11 +94,17 @@ body {
 }
 .panel-left {
   width: 42%;
-  background: var(--ink-1);
-  border-right: 1px solid var(--wire);
+  background: linear-gradient(150deg, rgba(179,75,244,0.1) 0%, rgba(14,10,22,0.45) 50%, rgba(225,48,108,0.06) 100%);
+  border-right: 1px solid rgba(255,255,255,0.07);
   padding: 44px 40px;
   display: flex; flex-direction: column; justify-content: space-between;
   position: relative; overflow: hidden;
+}
+.panel-left::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(120deg, rgba(255,255,255,0.04) 0%, transparent 60%);
+  pointer-events: none;
 }
 .panel-left::before {
   content: '';
@@ -126,9 +151,13 @@ body {
 .meta-pill {
   display: flex; align-items: center; justify-content: space-between;
   padding: 9px 12px;
-  border: 1px solid var(--wire);
-  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-top: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
   font-size: 11px;
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .meta-pill-key { color: var(--fog); letter-spacing: 0.08em; }
 .meta-pill-val { color: var(--text); font-weight: 500; }
@@ -136,9 +165,21 @@ body {
 .meta-pill-val.lime { color: var(--lime); }
 .panel-right {
   flex: 1;
-  background: var(--ink-2);
+  background: linear-gradient(150deg, rgba(14,10,22,0.4) 0%, rgba(22,17,34,0.5) 50%, rgba(179,75,244,0.05) 100%);
   padding: 52px 48px;
   display: flex; flex-direction: column; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.panel-right::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%; width: 200%; height: 200%;
+  background: conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(255,255,255,0.015) 60deg, transparent 120deg);
+  animation: panelRotate 12s linear infinite;
+  pointer-events: none;
+}
+@keyframes panelRotate {
+  to { transform: rotate(360deg); }
 }
 .form-eyebrow {
   font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
@@ -159,14 +200,17 @@ body {
 }
 .field-input {
   width: 100%; padding: 12px 14px;
-  background: var(--ink-1);
-  border: 1px solid var(--wire-bright);
-  border-radius: 3px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid rgba(255,255,255,0.14);
+  border-radius: 8px;
   color: var(--text);
   font-family: 'DM Mono', monospace;
   font-size: 14px;
   outline: none;
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 .field-input:focus {
   border-color: #e1306c;
@@ -217,11 +261,13 @@ body {
   .panel-right { padding: 32px 28px; }
 }
 </style>
+
 </head>
 <body>
 <div class="bg-dots"></div>
 <div class="bg-bloom bg-bloom-a"></div>
 <div class="bg-bloom bg-bloom-b"></div>
+<canvas id="bg-canvas"></canvas>
 <div class="shell" id="shell">
   <div class="panel-left">
     <div>
@@ -281,16 +327,100 @@ document.getElementById('login-form').addEventListener('submit', function() {
   text.textContent = 'Authenticating';
   spinner.classList.add('show');
 });
-const shell = document.getElementById('shell');
-document.addEventListener('mousemove', e => {
-  const rect = shell.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
-  const dx = (e.clientX - cx) / (window.innerWidth / 2);
-  const dy = (e.clientY - cy) / (window.innerHeight / 2);
-  shell.style.transform = `perspective(1400px) rotateY(${dx * 2.5}deg) rotateX(${-dy * 1.5}deg)`;
-});
-document.addEventListener('mouseleave', () => { shell.style.transform = ''; });
+(function () {
+  const canvas = document.getElementById('bg-canvas');
+  const gl = canvas.getContext('webgl');
+  if (!gl) return;
+  const vsrc = `attribute vec2 a_pos;
+  void main(){gl_Position=vec4(a_pos,0.0,1.0);}`;
+  const fsrc = `#ifdef GL_ES
+  precision mediump float;
+  #endif
+  uniform vec2 u_res;
+  uniform vec2 u_mouse;
+  uniform float u_time;
+  float threadGrid(vec2 p){
+    float r=length(p),a=atan(p.y,p.x);
+    float aBent=a*1.2;
+    float grid=abs(fract(aBent/6.28318*30.0)-0.5)*1.5;
+    float width=0.9-0.5*r;
+    float line=smoothstep(width,1.0,grid);
+    line*=smoothstep(4.0,2.0,r);
+    return line;
+  }
+  void main(){
+    vec2 st=gl_FragCoord.xy/u_res.xy*2.0-1.0;
+    st.x*=u_res.x/u_res.y;
+    float t=u_time;
+    st*=3.5;
+    float speed=0.1;
+    float angle=atan(st.y,st.x);
+    float phase=t*speed;
+    float ripple=sin(phase*10.0+angle*2.0)*0.5+0.5;
+    ripple+=sin(length(st)*5.0-t);
+    float threads=threadGrid(st);
+    vec3 colA=vec3(0.702,0.294,0.957);
+    vec3 colB=vec3(0.882,0.188,0.424);
+    vec3 colC=vec3(1.0,0.478,0.0);
+    float mixAB=clamp(ripple*0.5,0.0,1.0);
+    float mixBC=clamp(threads*ripple*0.3,0.0,1.0);
+    vec3 col=mix(colA,colB,mixAB);
+    col=mix(col,colC,mixBC);
+    float brightness=ripple*0.18*(threads*(ripple*8.0))*0.22;
+    gl_FragColor=vec4(col*brightness*3.0,1.0);
+  }`;
+  function mkShader(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, vsrc));
+  gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, fsrc));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'a_pos');
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const uRes = gl.getUniformLocation(prog, 'u_res');
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+  let mx = 0, my = 0;
+  const shell = document.getElementById('shell');
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    const rect = shell.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX - cx) / (window.innerWidth / 2);
+    const dy = (e.clientY - cy) / (window.innerHeight / 2);
+    shell.style.transform = `perspective(1400px) rotateY(${dx * 2.5}deg) rotateX(${-dy * 1.5}deg)`;
+  });
+  document.addEventListener('mouseleave', () => { shell.style.transform = ''; });
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(window.innerWidth * dpr);
+    canvas.height = Math.floor(window.innerHeight * dpr);
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  function render(ts) {
+    gl.uniform2f(uRes, canvas.width, canvas.height);
+    gl.uniform1f(uTime, ts * 0.001);
+    gl.uniform2f(uMouse, mx, my);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  requestAnimationFrame(render);
+})();
 </script>
 </body>
 </html>

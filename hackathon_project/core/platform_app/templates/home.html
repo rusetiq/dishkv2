@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,11 +6,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DIS Hackathon — Dominate the Leaderboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Sans:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
   <style>
     :root {
       --ink: #07050b;
@@ -48,37 +45,226 @@
       overflow-x: hidden;
     }
 
-    .bg-dots {
+    #bg-canvas {
       position: fixed;
       inset: 0;
       z-index: 0;
       pointer-events: none;
-      background-image: radial-gradient(circle, rgba(179, 75, 244, 0.04) 1px, transparent 1px);
-      background-size: 28px 28px;
+      width: 100vw;
+      height: 100vh;
     }
 
-    .bg-bloom {
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(179, 75, 244, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(179, 75, 244, 0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      animation: gridShift 20s linear infinite;
+    }
+
+    @keyframes gridShift {
+      0% {
+        background-position: 0 0;
+      }
+
+      100% {
+        background-position: 48px 48px;
+      }
+    }
+
+    .aurora {
       position: fixed;
       z-index: 0;
       pointer-events: none;
       border-radius: 50%;
-      filter: blur(110px);
+      filter: blur(80px);
+      opacity: 0;
+      animation: auroraPulse var(--dur, 8s) ease-in-out infinite;
     }
 
-    .bg-bloom-a {
+    .aurora-1 {
+      width: 700px;
+      height: 300px;
+      top: -80px;
+      left: -100px;
+      background: linear-gradient(135deg, rgba(179, 75, 244, 0.18), rgba(225, 48, 108, 0.08));
+      --dur: 9s;
+    }
+
+    .aurora-2 {
       width: 500px;
-      height: 500px;
-      top: -180px;
-      left: -180px;
-      background: rgba(179, 75, 244, 0.06);
+      height: 400px;
+      bottom: -120px;
+      right: -80px;
+      background: linear-gradient(225deg, rgba(225, 48, 108, 0.14), rgba(255, 122, 0, 0.06));
+      --dur: 12s;
+      animation-delay: -4s;
     }
 
-    .bg-bloom-b {
+    .aurora-3 {
       width: 400px;
       height: 400px;
-      bottom: -140px;
-      right: -140px;
-      background: rgba(225, 48, 108, 0.05);
+      top: 30%;
+      left: 40%;
+      background: radial-gradient(circle, rgba(179, 75, 244, 0.07), transparent 70%);
+      --dur: 15s;
+      animation-delay: -7s;
+    }
+
+    @keyframes auroraPulse {
+
+      0%,
+      100% {
+        opacity: 0;
+        transform: scale(1) translateY(0);
+      }
+
+      30% {
+        opacity: 1;
+        transform: scale(1.08) translateY(-20px);
+      }
+
+      60% {
+        opacity: 0.7;
+        transform: scale(0.96) translateY(10px);
+      }
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      animation: orbFloat var(--t, 14s) ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 6px;
+      height: 6px;
+      top: 15%;
+      left: 8%;
+      background: rgba(179, 75, 244, 0.6);
+      box-shadow: 0 0 16px 4px rgba(179, 75, 244, 0.3);
+      --t: 11s;
+    }
+
+    .orb-2 {
+      width: 4px;
+      height: 4px;
+      top: 70%;
+      left: 88%;
+      background: rgba(225, 48, 108, 0.7);
+      box-shadow: 0 0 12px 3px rgba(225, 48, 108, 0.35);
+      --t: 14s;
+      animation-delay: -5s;
+    }
+
+    .orb-3 {
+      width: 5px;
+      height: 5px;
+      top: 45%;
+      left: 55%;
+      background: rgba(255, 122, 0, 0.5);
+      box-shadow: 0 0 14px 3px rgba(255, 122, 0, 0.2);
+      --t: 18s;
+      animation-delay: -9s;
+    }
+
+    .orb-4 {
+      width: 3px;
+      height: 3px;
+      top: 85%;
+      left: 25%;
+      background: rgba(179, 75, 244, 0.5);
+      box-shadow: 0 0 10px 2px rgba(179, 75, 244, 0.25);
+      --t: 9s;
+      animation-delay: -3s;
+    }
+
+    .orb-5 {
+      width: 7px;
+      height: 7px;
+      top: 25%;
+      left: 78%;
+      background: rgba(225, 48, 108, 0.4);
+      box-shadow: 0 0 18px 5px rgba(225, 48, 108, 0.18);
+      --t: 22s;
+      animation-delay: -11s;
+    }
+
+    @keyframes orbFloat {
+
+      0%,
+      100% {
+        transform: translateY(0) translateX(0) scale(1);
+      }
+
+      25% {
+        transform: translateY(-18px) translateX(10px) scale(1.2);
+      }
+
+      50% {
+        transform: translateY(-8px) translateX(-8px) scale(0.9);
+      }
+
+      75% {
+        transform: translateY(14px) translateX(6px) scale(1.1);
+      }
+    }
+
+    .scan-line {
+      position: fixed;
+      left: 0;
+      right: 0;
+      height: 1px;
+      z-index: 1;
+      pointer-events: none;
+      background: linear-gradient(90deg, transparent 0%, rgba(179, 75, 244, 0.15) 30%, rgba(225, 48, 108, 0.1) 70%, transparent 100%);
+      animation: scanDown 8s linear infinite;
+    }
+
+    @keyframes scanDown {
+      0% {
+        top: -2px;
+        opacity: 0;
+      }
+
+      5% {
+        opacity: 1;
+      }
+
+      95% {
+        opacity: 0.4;
+      }
+
+      100% {
+        top: 100vh;
+        opacity: 0;
+      }
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+    }
+
+    .dither-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 15;
+      pointer-events: none;
+      background-image:
+        radial-gradient(rgba(7, 5, 11, 0.35) 25%, transparent 25%),
+        radial-gradient(rgba(7, 5, 11, 0.35) 25%, transparent 25%);
+      background-size: 4px 4px;
+      background-position: 0 0, 2px 2px;
     }
 
     nav {
@@ -166,24 +352,31 @@
       }
     }
 
+    @keyframes shimmerLine {
+      0%, 100% { left: -100%; }
+      50% { left: 0%; }
+    }
+
     .hero-card {
-      background: var(--ink-1);
-      border: 1px solid var(--wire-bright);
-      border-radius: 4px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(179, 75, 244, 0.04) 50%, rgba(225, 48, 108, 0.03) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
       padding: 36px 32px;
       position: relative;
       overflow: hidden;
+      backdrop-filter: blur(32px) saturate(150%);
+      -webkit-backdrop-filter: blur(32px) saturate(150%);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(179, 75, 244, 0.03);
       animation: fadeUp 0.5s ease-out backwards;
     }
 
     .hero-card::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, #b34bf4, #e1306c 50%, #ff7a00);
+      top: 0; left: -100%; width: 200%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), rgba(179,75,244,0.3), rgba(225,48,108,0.2), transparent);
+      animation: shimmerLine 6s ease-in-out infinite;
     }
 
     @keyframes fadeUp {
@@ -314,19 +507,36 @@
     }
 
     .score-card {
-      background: var(--ink-1);
-      border: 1px solid var(--wire-bright);
-      border-radius: 4px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(179, 75, 244, 0.04) 50%, rgba(225, 48, 108, 0.03) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
       overflow: hidden;
+      position: relative;
       display: flex;
       flex-direction: column;
+      backdrop-filter: blur(32px) saturate(150%);
+      -webkit-backdrop-filter: blur(32px) saturate(150%);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(179, 75, 244, 0.03);
       animation: fadeUp 0.5s ease-out 0.08s backwards;
+    }
+
+    .score-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%; width: 200%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), rgba(179,75,244,0.3), rgba(225,48,108,0.2), transparent);
+      animation: shimmerLine 6s ease-in-out infinite;
+      animation-delay: -2s;
     }
 
     .score-top {
       padding: 24px 24px 16px;
       position: relative;
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .score-top::before {
@@ -376,9 +586,9 @@
     }
 
     .stat-cell {
-      background: var(--ink-2);
-      border: 1px solid var(--wire);
-      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
       padding: 10px 12px;
     }
 
@@ -433,19 +643,32 @@
     }
 
     .challenge-card {
-      background: var(--ink-1);
-      border: 1px solid var(--wire);
-      border-radius: 4px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(179, 75, 244, 0.04) 50%, rgba(225, 48, 108, 0.03) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
       padding: 22px;
       position: relative;
       overflow: hidden;
-      transition: border-color 0.25s, transform 0.25s;
+      backdrop-filter: blur(32px) saturate(150%);
+      -webkit-backdrop-filter: blur(32px) saturate(150%);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(179, 75, 244, 0.03);
+      transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
       animation: fadeUp 0.5s ease-out backwards;
+    }
+
+    .challenge-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%; width: 200%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), rgba(179,75,244,0.3), rgba(225,48,108,0.2), transparent);
+      animation: shimmerLine 6s ease-in-out infinite;
     }
 
     .challenge-card:hover {
       transform: translateY(-3px);
       border-color: rgba(179, 75, 244, 0.3);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(179, 75, 244, 0.25), inset 0 0 40px rgba(179, 75, 244, 0.06);
     }
 
     .card-shine {
@@ -541,7 +764,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 13px;
+      font-size: 16px;
     }
 
     .card-pts .bolt {
@@ -549,12 +772,12 @@
     }
 
     .card-pts b {
-      font-weight: 500;
+      font-weight: 700;
     }
 
     .card-pts span {
       color: var(--fog);
-      font-size: 11px;
+      font-size: 12px;
     }
 
     .solve-btn {
@@ -1013,6 +1236,7 @@
       justify-content: center;
       gap: 12px;
       z-index: 15;
+      border-radius: inherit;
     }
 
     .solved-badge {
@@ -1072,12 +1296,23 @@
       background: rgba(60, 208, 112, 0.15);
     }
   </style>
+  <script src="{% static 'js/three.min.js' %}"></script>
 </head>
 
 <body>
-  <div class="bg-dots"></div>
-  <div class="bg-bloom bg-bloom-a"></div>
-  <div class="bg-bloom bg-bloom-b"></div>
+  <canvas id="bg-canvas"></canvas>
+  <div class="bg-grid"></div>
+  <div class="aurora aurora-1"></div>
+  <div class="aurora aurora-2"></div>
+  <div class="aurora aurora-3"></div>
+  <div class="scan-line"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+  <div class="orb orb-5"></div>
+  <div class="vignette"></div>
+  <div class="dither-overlay"></div>
   <nav>
     <div class="nav-inner">
       <a href="/home/" class="nav-brand">
@@ -1115,7 +1350,10 @@
           </div>
           <div class="stat-cell">
             <div class="lbl">⏳ Time Left</div>
-            <div class="val timer" id="problem-timer">00:00:00</div>
+            <div class="val timer" id="problem-timer" style="margin-bottom: 6px;">00:00:00</div>
+            <div class="progress-track" style="height: 3px; background: rgba(255, 255, 255, 0.05); border-radius: 999px; overflow: hidden; width: 100%;">
+              <div id="timer-progress-fill" style="height: 100%; width: 100%; background: linear-gradient(90deg, #b34bf4, #e1306c 50%, #ff7a00); border-radius: 999px; transition: width 1s linear;"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1258,12 +1496,22 @@
     const endTime = new Date("{{ end_time }}").getTime();
     function updateTimer() {
       const distance = endTime - Date.now();
-      if (distance < 0) { document.getElementById("problem-timer").innerHTML = "TIME UP!"; return; }
+      if (distance < 0) {
+        document.getElementById("problem-timer").innerHTML = "TIME UP!";
+        const fill = document.getElementById("timer-progress-fill");
+        if (fill) fill.style.width = "0%";
+        return;
+      }
       const h = Math.floor(distance / 3600000);
       const m = Math.floor((distance % 3600000) / 60000);
       const s = Math.floor((distance % 60000) / 1000);
       document.getElementById("problem-timer").innerHTML =
         `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      
+      const totalDuration = 2 * 60 * 60 * 1000;
+      const pct = Math.max(0, Math.min(100, (distance / totalDuration) * 100));
+      const fill = document.getElementById("timer-progress-fill");
+      if (fill) fill.style.width = pct + "%";
     }
     setInterval(updateTimer, 1000);
     updateTimer();
@@ -1392,6 +1640,99 @@
     }
     loadBonusData();
     setInterval(loadBonusData, 15000);
+    const canvas = document.getElementById('bg-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 1000);
+    camera.position.set(0, 150, 250);
+    camera.lookAt(0, 0, 0);
+    const amountX = 45;
+    const amountY = 45;
+    const spacing = 15;
+    const numParticles = amountX * amountY;
+    const positions = new Float32Array(numParticles * 3);
+    let i = 0;
+    for (let ix = 0; ix < amountX; ix++) {
+      for (let iy = 0; iy < amountY; iy++) {
+        positions[i] = ix * spacing - ((amountX * spacing) / 2);
+        positions[i + 1] = 0;
+        positions[i + 2] = iy * spacing - ((amountY * spacing) / 2);
+        i += 3;
+      }
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const material1 = new THREE.PointsMaterial({
+      color: 0xff7a00,
+      size: 2.2,
+      transparent: true,
+      opacity: 0.6,
+      sizeAttenuation: true
+    });
+    const particles1 = new THREE.Points(geometry, material1);
+    scene.add(particles1);
+    const positions2 = new Float32Array(numParticles * 3);
+    i = 0;
+    for (let ix = 0; ix < amountX; ix++) {
+      for (let iy = 0; iy < amountY; iy++) {
+        positions2[i] = ix * spacing - ((amountX * spacing) / 2);
+        positions2[i + 1] = -12;
+        positions2[i + 2] = iy * spacing - ((amountY * spacing) / 2);
+        i += 3;
+      }
+    }
+    const geometry2 = new THREE.BufferGeometry();
+    geometry2.setAttribute('position', new THREE.BufferAttribute(positions2, 3));
+    const material2 = new THREE.PointsMaterial({
+      color: 0xe1306c,
+      size: 2.2,
+      transparent: true,
+      opacity: 0.45,
+      sizeAttenuation: true
+    });
+    const particles2 = new THREE.Points(geometry2, material2);
+    scene.add(particles2);
+    let mouseX = 0;
+    let mouseY = 0;
+    let targetMouseX = 0;
+    let targetMouseY = 0;
+    document.addEventListener('mousemove', (e) => {
+      targetMouseX = (e.clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+      targetMouseY = (e.clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+    });
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+    let count = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      count += 0.04;
+      mouseX += (targetMouseX - mouseX) * 0.05;
+      mouseY += (targetMouseY - mouseY) * 0.05;
+      camera.position.x = mouseX * 120;
+      camera.position.y = 150 - (mouseY * 60);
+      camera.lookAt(0, 0, 0);
+      const pos1 = particles1.geometry.attributes.position.array;
+      const pos2 = particles2.geometry.attributes.position.array;
+      let idx = 0;
+      for (let ix = 0; ix < amountX; ix++) {
+        for (let iy = 0; iy < amountY; iy++) {
+          const y1 = Math.sin((ix + count) * 0.3) * 16 + Math.sin((iy + count) * 0.5) * 16;
+          const y2 = Math.sin((ix + count + 2) * 0.3) * 16 + Math.sin((iy + count + 2) * 0.5) * 16 - 12;
+          pos1[idx + 1] = y1;
+          pos2[idx + 1] = y2;
+          idx += 3;
+        }
+      }
+      particles1.geometry.attributes.position.needsUpdate = true;
+      particles2.geometry.attributes.position.needsUpdate = true;
+      renderer.render(scene, camera);
+    }
+    animate();
   </script>
 </body>
 

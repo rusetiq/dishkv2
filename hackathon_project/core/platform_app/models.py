@@ -26,9 +26,7 @@ class Problem(models.Model):
     description = models.TextField()
     difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES, default='Easy')
     hidden_test_cases = models.JSONField(default=list) 
-    # Use 'points' as the master field to match your logic
     points = models.IntegerField(default=100)
-    # This is the function name the judge will look for (e.g., 'twoSum' or 'solution')
     function_name = models.CharField(max_length=100, default="solution")
     base_points = models.IntegerField(default=100)
     starter_code = models.TextField(blank=True, default="")

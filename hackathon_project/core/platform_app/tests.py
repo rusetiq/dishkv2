@@ -79,3 +79,35 @@ class CodeRunnerTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data["status"], "Correct Answer!")
+
+class AdminTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.staff_user = User.objects.create_superuser(username="admin", password="password", email="admin@test.com")
+        self.normal_user = User.objects.create_user(username="testteam", password="password")
+        self.state = HackathonState.objects.create(
+            is_started=True,
+            is_finished=False,
+            is_paused=False,
+            start_time=timezone.now(),
+            hints_enabled=True
+        )
+
+    def test_admin_toggle_hints_as_staff(self):
+        self.client.login(username="admin", password="password")
+        response = self.client.get("/admin-api/toggle-hints/")
+        self.assertEqual(response.status_code, 302)
+        self.state.refresh_from_db()
+        self.assertFalse(self.state.hints_enabled)
+
+        response = self.client.get("/admin-api/toggle-hints/")
+        self.assertEqual(response.status_code, 302)
+        self.state.refresh_from_db()
+        self.assertTrue(self.state.hints_enabled)
+
+    def test_admin_toggle_hints_as_normal_user(self):
+        self.client.login(username="testteam", password="password")
+        response = self.client.get("/admin-api/toggle-hints/")
+        self.assertEqual(response.status_code, 302)
+        self.state.refresh_from_db()
+        self.assertTrue(self.state.hints_enabled)

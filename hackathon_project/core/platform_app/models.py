@@ -2,6 +2,16 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class HackathonState(models.Model):
+    AI_MODEL_CHOICES = [
+        ('gemini-3.1-flash-lite', 'Gemini 3.1 Flash Lite'),
+        ('gemini-3.1-flash', 'Gemini 3.1 Flash'),
+        ('gemini-3.1-pro', 'Gemini 3.1 Pro'),
+        ('gemini-2.5-flash-lite', 'Gemini 2.5 Flash Lite'),
+        ('gemini-2.5-flash', 'Gemini 2.5 Flash'),
+        ('gemini-2.5-pro', 'Gemini 2.5 Pro'),
+        ('gemma-4-26b', 'Gemma 4 26B'),
+        ('gemma-4-31b', 'Gemma 4 31B'),
+    ]
     is_started = models.BooleanField(default=False)
     is_finished = models.BooleanField(default=False)
     is_paused = models.BooleanField(default=False)
@@ -9,6 +19,7 @@ class HackathonState(models.Model):
     start_time = models.DateTimeField(null=True, blank=True)
     hints_enabled = models.BooleanField(default=True, help_text='Allow teams to request AI hints on problem pages')
     onboarding_tour_enabled = models.BooleanField(default=True, help_text='Show the guided UI tour to teams on their first visit to a problem')
+    ai_model = models.CharField(max_length=100, choices=AI_MODEL_CHOICES, default='gemini-3.1-flash-lite', help_text='Gemini model used for AI hints — change takes effect immediately')
 
     class Meta:
         verbose_name_plural = "Hackathon State"

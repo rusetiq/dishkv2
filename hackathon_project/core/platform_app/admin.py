@@ -5,13 +5,13 @@ from .models import Problem, TeamProgress, HackathonState, BonusQuestion, BonusS
 
 @admin.register(HackathonState)
 class StateAdmin(admin.ModelAdmin):
-    list_display = ('is_started', 'is_finished', 'is_paused', 'hints_enabled', 'onboarding_tour_enabled', 'start_time')
+    list_display = ('is_started', 'is_finished', 'is_paused', 'hints_enabled', 'ai_model', 'start_time')
     actions = ['start_hackathon_action', 'stop_hackathon_action']
     fieldsets = (
         ('Event Control', {'fields': ('is_started', 'is_finished', 'is_paused', 'start_time', 'paused_at')}),
         ('Feature Flags', {
             'description': 'Toggle these at any time — changes take effect immediately for all teams.',
-            'fields': ('hints_enabled', 'onboarding_tour_enabled'),
+            'fields': ('hints_enabled', 'onboarding_tour_enabled', 'ai_model'),
         }),
     )
     readonly_fields = ('paused_at',)

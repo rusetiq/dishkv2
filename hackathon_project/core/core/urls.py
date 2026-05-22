@@ -18,6 +18,8 @@ urlpatterns = [
     path('api/run-custom/', views.run_code_custom, name='run_custom'),
     path('api/submit/', views.submit_code, name='submit_code'),
     path('check-status/', views.check_hackathon_status, name='check_status'),
+    path('logout/', views.logout_view, name='logout'),
+    path('accounts/logout/', views.logout_view),
     path('accounts/', include('django.contrib.auth.urls')),
     path('api/status/', views.check_hackathon_status, name='check_status'),
     path('finished/', views.finished, name='finished'),

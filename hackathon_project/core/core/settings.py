@@ -5,6 +5,27 @@ LOGIN_REDIRECT_URL = '/accounts/profile/'
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+try:
+    import dotenv
+    dotenv.load_dotenv(os.path.join(BASE_DIR, 'core', '.env'))
+    dotenv.load_dotenv(os.path.join(BASE_DIR, '.env'))
+except ImportError:
+    for env_path in [os.path.join(BASE_DIR, 'core', '.env'), os.path.join(BASE_DIR, '.env')]:
+        if os.path.exists(env_path):
+            with open(env_path, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith('#'):
+                        continue
+                    if '=' in line:
+                        k, v = line.split('=', 1)
+                        k = k.strip()
+                        v = v.strip()
+                        if (v.startswith('"') and v.endswith('"')) or (v.startswith("'") and v.endswith("'")):
+                            v = v[1:-1]
+                        if k not in os.environ:
+                            os.environ[k] = v
+
 SECRET_KEY = 'django-insecure-_+tqj)c_mvnrxe&ctn2p*%@fm(6(ylprr=fopxu08o#6)+3hum'
 
 DEBUG = True
@@ -74,6 +95,6 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGOUT_REDIRECT_URL = '/login/'
 
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')

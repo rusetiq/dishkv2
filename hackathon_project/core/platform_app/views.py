@@ -6,6 +6,7 @@ from urllib import request as urllib_request
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout as auth_logout
 from django.http import JsonResponse
 from django.db.models import Sum
 from .models import Problem, TeamProgress, HackathonState, BonusQuestion, BonusSubmission
@@ -14,13 +15,15 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Case, When, IntegerField
 
+def logout_view(request):
+    auth_logout(request)
+    return redirect('/login/')
+
 @login_required
 def leaderboard(request):
     state = HackathonState.objects.first()
     if not state:
         return redirect('waiting_room')
-    if state.is_finished:
-        return redirect('finished')
     if not state.is_started or state.is_paused:
         return redirect('waiting_room')
 
@@ -62,8 +65,6 @@ def waiting_room(request):
     state = HackathonState.objects.first()
     if state and state.is_started and not state.is_finished:
         return redirect('home')
-    if state and state.is_finished:
-        return redirect('finished')
     return render(request, 'waiting_room.html')
 
 
@@ -75,7 +76,7 @@ def home(request):
         return redirect('waiting_room')
 
     if state.is_finished:
-        return redirect('finished')
+        return redirect('waiting_room')
 
     if not state.is_started or state.is_paused:
         return redirect('waiting_room')
@@ -109,9 +110,6 @@ def problem_detail(request, problem_id):
     if not state:
         return redirect('waiting_room')
 
-    if state.is_finished:
-        return redirect('finished')
-
     if not state.is_started or state.is_paused:
         return redirect('waiting_room')
 
@@ -127,9 +125,8 @@ def problem_detail(request, problem_id):
         progress.save()
     bonus_points = BonusSubmission.objects.filter(team=request.user, is_correct=True).aggregate(s=Sum('points_awarded'))['s'] or 0
     total_score = sum(tp.points for tp in TeamProgress.objects.filter(team=request.user)) + bonus_points
-    # Logic for navigation arrows
     prev_id = problem_id - 1 if problem_id > 1 else None
-    next_id = problem_id + 1 if problem_id < 15 else None # Assuming 15 problems total
+    next_id = problem_id + 1 if Problem.objects.filter(id=problem_id+1).exists() else None
 
     return render(request, 'problem.html', {
         'end_time': end_time.isoformat(),
@@ -156,27 +153,105 @@ def load_code(request, problem_id):
     progress = TeamProgress.objects.get(team=request.user, problem_id=problem_id)
     return JsonResponse({'code': progress.current_code})
 
+def run_leetcode_code(user_code, input_data, problem):
+    driver = f"""
+import json
+import inspect
+
+def _run_leetcode_style():
+    func_name = {repr(problem.function_name)}
+    g = globals()
+    func = None
+    if func_name in g:
+        func = g[func_name]
+    elif "Solution" in g:
+        sol_class = g["Solution"]
+        sol_inst = sol_class()
+        if hasattr(sol_inst, func_name):
+            func = getattr(sol_inst, func_name)
+    
+    if not func:
+        print(f"Error: Function '{{func_name}}' not found.", file=sys.stderr)
+        sys.exit(1)
+        
+    input_str = sys.stdin.read().strip()
+    if not input_str:
+        return
+        
+    try:
+        parsed_input = eval(input_str)
+    except Exception:
+        lines = [line.strip() for line in input_str.split('\\n') if line.strip()]
+        parsed_input = []
+        for line in lines:
+            try:
+                parsed_input.append(eval(line))
+            except Exception:
+                parsed_input.append(line)
+                
+    sig = inspect.signature(func)
+    params = list(sig.parameters.values())
+    expected_args_count = len([p for p in params if p.name != 'self' and p.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)])
+    
+    if expected_args_count > 1:
+        if isinstance(parsed_input, tuple):
+            args = parsed_input
+        elif isinstance(parsed_input, list) and len(parsed_input) == expected_args_count:
+            args = tuple(parsed_input)
+        else:
+            args = (parsed_input,)
+    else:
+        args = (parsed_input,)
+        
+    if func_name == "firstBadVersion" or "firstBadVersion" in g or "First Bad Version" in {repr(problem.title)}:
+        bad_version = 0
+        lines = [line.strip() for line in input_str.split('\\n') if line.strip()]
+        if len(lines) >= 2:
+            try:
+                bad_version = int(lines[1])
+            except:
+                pass
+        g['isBadVersion'] = lambda v: v >= bad_version
+        
+    try:
+        res = func(*args)
+        if res is True:
+            print("True")
+        elif res is False:
+            print("False")
+        elif res is None:
+            print("None")
+        elif isinstance(res, (list, dict, tuple)):
+            print(json.dumps(res))
+        else:
+            print(str(res))
+    except Exception as e:
+        print(f"Runtime Error: {{type(e).__name__}}: {{e}}", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    _run_leetcode_style()
+"""
+    full_code = user_code + "\n" + driver
+    return run_python_code(full_code, input_data, inject_var=None)
+
 @login_required
 def submit_code(request):
     if request.method == "POST":
         p_id = request.POST.get('problem_id')
         user_code = request.POST.get('code')
         problem = get_object_or_404(Problem, id=p_id)
-        if 'import' in user_code:
-            return JsonResponse({
-                'status': 'Runtime Error',
-                'error': 'Import statements are not allowed.'
-            })
         progress = get_object_or_404(TeamProgress, team=request.user, problem=problem)
         state = HackathonState.objects.first()
+        if not state or not state.is_started or state.is_finished or state.is_paused:
+            return JsonResponse({'status': 'Hackathon is not active.'})
         
-        # 1. Run Hidden Test Cases
         for case in problem.hidden_test_cases:
             try:
-                input_data = case['input']   # 👈 string input
+                input_data = case['input']
                 expected = case['expected']
 
-                output, error = run_python_code(user_code, input_data, inject_var=problem.input_variable)
+                output, error = run_leetcode_code(user_code, input_data, problem)
 
                 if error:
                     return JsonResponse({
@@ -193,11 +268,7 @@ def submit_code(request):
                     'error': str(e)
                 })
 
-
-
-        # 2. If it reaches here, all cases passed
         if not progress.is_solved:
-            # Calculate points: Base - (minutes elapsed)
             elapsed = (timezone.now() - state.start_time).total_seconds()
             time_penalty = int(elapsed / 120)
             final_points = max(20, problem.base_points - time_penalty)
@@ -206,7 +277,6 @@ def submit_code(request):
             progress.is_solved = True
             progress.save()
 
-        # 3. Get total team score to update the header
         new_total = sum(tp.points for tp in TeamProgress.objects.filter(team=request.user))
         
         return JsonResponse({
@@ -355,10 +425,42 @@ def check_hackathon_status(request):
 @login_required
 def run_code_custom(request):
     if request.method == "POST":
+        p_id = request.POST.get('problem_id')
         user_code = request.POST.get('code')
-        # This runs the code without any hidden variables injected
-        output, error = run_python_code(user_code)
-        return JsonResponse({'output': output, 'error': error})
+        problem = get_object_or_404(Problem, id=p_id)
+        cases = problem.hidden_test_cases[:3]
+        results = []
+        overall_status = "Accepted"
+        for case in cases:
+            input_data = case.get('input', '')
+            expected = case.get('expected', '')
+            try:
+                output, error = run_leetcode_code(user_code, input_data, problem)
+                if error:
+                    status = "Runtime Error"
+                    overall_status = "Runtime Error"
+                elif output.strip() != str(expected).strip():
+                    status = "Wrong Answer"
+                    if overall_status == "Accepted":
+                        overall_status = "Wrong Answer"
+                else:
+                    status = "Accepted"
+            except Exception as e:
+                output = ""
+                error = str(e)
+                status = "Runtime Error"
+                overall_status = "Runtime Error"
+            results.append({
+                'input': input_data,
+                'expected': expected,
+                'output': output,
+                'error': error,
+                'status': status
+            })
+        return JsonResponse({
+            'status': overall_status,
+            'results': results
+        })
 @login_required
 def ai_hint(request):
     if request.method != 'POST':
@@ -373,9 +475,19 @@ def ai_hint(request):
 
     problem = get_object_or_404(Problem, id=problem_id)
 
-    api_key = os.environ.get('GEMINI_API_KEY', '')
+    from django.conf import settings
+    api_key = getattr(settings, 'GEMINI_API_KEY', '')
     if not api_key:
         return JsonResponse({'hint': 'AI hints are not configured. Ask your admin to set GEMINI_API_KEY.'})
+
+    console_output = request.POST.get('console_output', '').strip()
+    model_name = (state.ai_model if state and state.ai_model else 'gemini-3.1-flash-lite')
+
+    code_block = current_code.strip() if current_code.strip() else '(empty — student has not written anything yet)'
+
+    console_section = ''
+    if console_output:
+        console_section = f'\n\nLatest console output / error when they ran the code:\n```\n{console_output}\n```\nIf this shows an error or wrong answer, prioritize addressing it in your hint.'
 
     prompt = f"""You are a helpful coding tutor for a Python hackathon. Help the student with this problem.
 
@@ -384,20 +496,20 @@ Description: {problem.description}
 
 Student's current code:
 ```python
-{current_code if current_code.strip() else '(empty - student has not written anything yet)'}
-```
+{code_block}
+```{console_section}
 
 Give a helpful hint to guide them toward the solution WITHOUT giving away the full answer.
-Be encouraging, concise (2-4 sentences max), and specific to their code if they've written something.
+Be encouraging, concise (2-4 sentences max), and specific to their code and any errors shown.
 Focus on the approach/algorithm, not the exact implementation."""
 
     payload = json.dumps({
         'contents': [{'parts': [{'text': prompt}]}],
-        'generationConfig': {'maxOutputTokens': 256, 'temperature': 0.7}
+        'generationConfig': {'maxOutputTokens': 300, 'temperature': 0.7}
     }).encode()
 
     req = urlreq.Request(
-        f'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key={api_key}',
+        f'https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}',
         data=payload,
         headers={'Content-Type': 'application/json'},
         method='POST'
@@ -408,11 +520,11 @@ Focus on the approach/algorithm, not the exact implementation."""
             data = json.loads(resp.read().decode())
             hint_text = data['candidates'][0]['content']['parts'][0]['text']
             return JsonResponse({'hint': hint_text})
-    except urllib.error.HTTPError:
-        return JsonResponse({'hint': 'AI hint service is temporarily unavailable. Try again shortly.'})
-    except Exception:
-
-        return JsonResponse({'hint': 'Could not load hint at this time. Keep trying!'})
+    except urllib.error.HTTPError as e:
+        body = e.read().decode(errors='ignore')
+        return JsonResponse({'hint': f'API error {e.code}: {body}'})
+    except Exception as e:
+        return JsonResponse({'hint': f'Could not load hint: {e}'})
 
 @login_required
 def features(request):
@@ -425,6 +537,8 @@ def features(request):
 @login_required
 def finished(request):
     state = HackathonState.objects.first()
+    if not TeamProgress.objects.filter(team=request.user).exists():
+        return redirect('waiting_room')
     if state and state.is_started and not state.is_finished:
         if state.is_paused:
             return redirect('waiting_room')

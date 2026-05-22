@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DIS Hackathon — Round 2 Complete</title>
+<title>DIS Hackathon — Round Complete</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -30,7 +30,6 @@ body {
   align-items:center; justify-content:center;
   text-align:center; padding:24px; overflow:hidden;
 }
-
 .bg-dots {
   position:fixed; inset:0; z-index:0; pointer-events:none;
   background-image:radial-gradient(circle, rgba(179,75,244,0.04) 1px, transparent 1px);
@@ -42,7 +41,6 @@ body {
 }
 .bg-bloom-a { width:500px; height:500px; top:-160px; left:-160px; background:rgba(179,75,244,0.06); }
 .bg-bloom-b { width:420px; height:420px; bottom:-130px; right:-130px; background:rgba(225,48,108,0.05); }
-
 .scene {
   position:relative; z-index:10;
   display:flex; flex-direction:column; align-items:center; gap:20px;
@@ -56,8 +54,8 @@ body {
 .scene > *:nth-child(5){animation-delay:0.33s;}
 .scene > *:nth-child(6){animation-delay:0.38s;}
 .scene > *:nth-child(7){animation-delay:0.43s;}
+.scene > *:nth-child(8){animation-delay:0.48s;}
 @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-
 .trophy-wrap {
   position:relative; width:80px; height:80px;
   display:flex; align-items:center; justify-content:center;
@@ -84,7 +82,6 @@ body {
   from{box-shadow:0 0 20px rgba(179,75,244,0.15);}
   to{box-shadow:0 0 36px rgba(179,75,244,0.4);}
 }
-
 .round-badge {
   display:inline-flex; align-items:center; gap:7px;
   padding:4px 13px; border-radius:2px;
@@ -92,24 +89,26 @@ body {
   font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--lime);
 }
 .badge-dot { width:5px; height:5px; border-radius:50%; background:var(--amber); }
-
 .finish-title {
   font-family:'Bebas Neue',sans-serif;
   font-size:clamp(40px,8vw,58px); letter-spacing:0.03em; line-height:0.95;
 }
+@keyframes gradShift {
+  0%{background-position:0% center}
+  100%{background-position:200% center}
+}
 .finish-title .amber {
-  background: linear-gradient(90deg, #b34bf4 0%, #e1306c 60%, #ff7a00 100%);
+  background: linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00, #b34bf4);
+  background-size:200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
+  animation: gradShift 4s linear infinite;
 }
-
 .finish-sub {
   font-size:13px; color:var(--fog); line-height:1.7; max-width:340px;
 }
-
 .rule { width:100%; height:1px; background:linear-gradient(to right, transparent, var(--wire-bright), transparent); }
-
 .stats-row { display:flex; gap:12px; width:100%; }
 .stat-box {
   flex:1; padding:16px 14px;
@@ -124,18 +123,34 @@ body {
 }
 .stat-box .val.amber { color:var(--amber); }
 .stat-box .val.lime { color:var(--lime); }
-
 .lb-btn {
   display:inline-flex; align-items:center; gap:8px;
   padding:12px 24px; border-radius:3px;
   background:linear-gradient(135deg, #b34bf4, #e1306c); color:#fff;
   font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:0.1em;
   text-decoration:none; transition:opacity 0.2s, transform 0.15s;
+  font-weight: 800;
 }
-.lb-btn:hover { opacity:0.9; transform:scale(1.03); box-shadow:0 6px 20px rgba(225,48,108,0.3); }
-
+.lb-btn:hover { opacity:0.95; transform:scale(1.03); box-shadow:0 6px 20px rgba(225,48,108,0.3); }
+.redirect-banner {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 18px; border-radius:3px;
+  background:rgba(255,255,255,0.03); border:1px solid var(--wire-bright);
+  font-size:11px; color:var(--fog); width:100%; justify-content:center;
+}
+.redirect-countdown {
+  font-family:'Bebas Neue',sans-serif; font-size:18px; color:var(--amber); min-width:20px;
+}
+.redirect-bar-track {
+  flex:1; height:2px; border-radius:999px;
+  background:rgba(255,255,255,0.06); overflow:hidden;
+}
+.redirect-bar {
+  height:100%; border-radius:999px;
+  background:linear-gradient(90deg, var(--amber), var(--lime));
+  transition:width 1s linear;
+}
 .footer-note { font-size:10px; color:rgba(255,255,255,0.08); letter-spacing:0.1em; }
-
 .particle {
   position:fixed; width:5px; height:5px; border-radius:1px;
   z-index:5; animation:fall linear forwards; pointer-events:none;
@@ -150,22 +165,16 @@ body {
 <div class="bg-dots"></div>
 <div class="bg-bloom bg-bloom-a"></div>
 <div class="bg-bloom bg-bloom-b"></div>
-
 <div class="scene">
   <div class="trophy-wrap">
     <div class="trophy-ring"></div>
     <div class="trophy-ring trophy-ring-2"></div>
     <div class="trophy-icon">🏆</div>
   </div>
-
-  <span class="round-badge"><span class="badge-dot"></span>Round 2 Complete</span>
-
-  <div class="finish-title">Hackathon<br><span class="amber">Round 2</span><br>Complete!</div>
-
+  <span class="round-badge"><span class="badge-dot"></span>Round Complete</span>
+  <div class="finish-title">Hackathon<br><span class="amber">Round</span><br>Complete!</div>
   <p class="finish-sub">The clock has stopped. Every submission is locked in.<br>Check the leaderboard to see where your team landed.</p>
-
   <div class="rule"></div>
-
   <div class="stats-row">
     <div class="stat-box">
       <div class="lbl">⏱ Duration</div>
@@ -176,12 +185,17 @@ body {
       <div class="val lime">{{ total_score }}<span style="font-size:13px;margin-left:3px;font-family:'DM Mono',monospace;color:var(--fog);">pts</span></div>
     </div>
   </div>
-
   <a href="/leaderboard/" class="lb-btn">View Final Standings ↗</a>
-
+  <div class="redirect-banner">
+    <span>Returning to waiting room in</span>
+    <span class="redirect-countdown" id="redir-num">12</span>
+    <span>s</span>
+    <div class="redirect-bar-track">
+      <div class="redirect-bar" id="redir-bar" style="width:100%"></div>
+    </div>
+  </div>
   <div class="footer-note">Built for champions • DIS Hackathon 2026</div>
 </div>
-
 <script>
 const colors = ['#b34bf4','#e1306c','#ff7a00','#ff5577','#fff','#d6a4ff'];
 function spawnParticle() {
@@ -197,6 +211,20 @@ function spawnParticle() {
   setTimeout(() => p.remove(), 5000);
 }
 for (let i = 0; i < 70; i++) setTimeout(spawnParticle, i * 30);
+
+const TOTAL = 12;
+let remaining = TOTAL;
+const numEl = document.getElementById('redir-num');
+const barEl = document.getElementById('redir-bar');
+const iv = setInterval(() => {
+  remaining--;
+  numEl.textContent = remaining;
+  barEl.style.width = ((remaining / TOTAL) * 100) + '%';
+  if (remaining <= 0) {
+    clearInterval(iv);
+    window.location.href = '/';
+  }
+}, 1000);
 </script>
 </body>
 </html>

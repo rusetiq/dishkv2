@@ -26,6 +26,9 @@ def run_python_code(code, input_data="", inject_var=None):
     # Wrap in sandbox that blocks dangerous modules
     sandbox = """
 import sys
+import json
+import inspect
+from typing import List, Dict, Tuple, Set, Optional, Union
 
 BLOCKED = {
     'os', 'sys', 'subprocess', 'shutil', 'pathlib', 'socket',
@@ -39,6 +42,13 @@ BLOCKED = {
 original_import = __builtins__.__import__ if hasattr(__builtins__, '__import__') else __import__
 
 def blocked_import(name, *args, **kwargs):
+    try:
+        frame = sys._getframe(1)
+        filename = frame.f_code.co_filename
+        if filename != '<string>':
+            return original_import(name, *args, **kwargs)
+    except Exception:
+        pass
     base = name.split('.')[0]
     if base in BLOCKED:
         raise ImportError(f"Module '{name}' is not allowed.")

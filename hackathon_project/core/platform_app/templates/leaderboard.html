@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DIS Hackathon — Dominate the Leaderboard</title>
+<title>DIS Hackathon — Leaderboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -28,22 +28,101 @@
 html,body { background:var(--ink); color:var(--text); min-height:100vh; }
 body { font-family:'DM Mono',monospace; overflow-x:hidden; }
 
-.bg-dots {
+#bg-canvas {
   position:fixed; inset:0; z-index:0; pointer-events:none;
-  background-image:radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size:28px 28px;
 }
-.bg-bloom {
+.bg-grid {
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(179,75,244,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(179,75,244,0.03) 1px, transparent 1px);
+  background-size:48px 48px;
+  animation:gridShift 20s linear infinite;
+}
+@keyframes gridShift {
+  0%{background-position:0 0;}
+  100%{background-position:48px 48px;}
+}
+.aurora {
   position:fixed; z-index:0; pointer-events:none;
-  border-radius:50%; filter:blur(110px);
+  border-radius:50%; filter:blur(80px); opacity:0;
+  animation:auroraPulse var(--dur, 8s) ease-in-out infinite;
 }
-.bg-bloom-a { width:500px; height:500px; top:-180px; left:-180px; background:rgba(179,75,244,0.06); }
-.bg-bloom-b { width:400px; height:400px; bottom:-140px; right:-140px; background:rgba(225,48,108,0.05); }
+.aurora-1 {
+  width:700px; height:300px; top:-80px; left:-100px;
+  background:linear-gradient(135deg, rgba(179,75,244,0.18), rgba(225,48,108,0.08));
+  --dur: 9s;
+}
+.aurora-2 {
+  width:500px; height:400px; bottom:-120px; right:-80px;
+  background:linear-gradient(225deg, rgba(225,48,108,0.14), rgba(255,122,0,0.06));
+  --dur: 12s; animation-delay:-4s;
+}
+.aurora-3 {
+  width:400px; height:400px; top:30%; left:40%;
+  background:radial-gradient(circle, rgba(179,75,244,0.07), transparent 70%);
+  --dur: 15s; animation-delay:-7s;
+}
+@keyframes auroraPulse {
+  0%,100%{opacity:0; transform:scale(1) translateY(0);}
+  30%{opacity:1; transform:scale(1.08) translateY(-20px);}
+  60%{opacity:0.7; transform:scale(0.96) translateY(10px);}
+}
+.orb {
+  position:fixed; border-radius:50%; pointer-events:none; z-index:0;
+  animation:orbFloat var(--t, 14s) ease-in-out infinite;
+}
+.orb-1 {
+  width:6px; height:6px; top:15%; left:8%;
+  background:rgba(179,75,244,0.6); box-shadow:0 0 16px 4px rgba(179,75,244,0.3);
+  --t: 11s;
+}
+.orb-2 {
+  width:4px; height:4px; top:70%; left:88%;
+  background:rgba(225,48,108,0.7); box-shadow:0 0 12px 3px rgba(225,48,108,0.35);
+  --t: 14s; animation-delay:-5s;
+}
+.orb-3 {
+  width:5px; height:5px; top:45%; left:55%;
+  background:rgba(255,122,0,0.5); box-shadow:0 0 14px 3px rgba(255,122,0,0.2);
+  --t: 18s; animation-delay:-9s;
+}
+.orb-4 {
+  width:3px; height:3px; top:85%; left:25%;
+  background:rgba(179,75,244,0.5); box-shadow:0 0 10px 2px rgba(179,75,244,0.25);
+  --t: 9s; animation-delay:-3s;
+}
+.orb-5 {
+  width:7px; height:7px; top:25%; left:78%;
+  background:rgba(225,48,108,0.4); box-shadow:0 0 18px 5px rgba(225,48,108,0.18);
+  --t: 22s; animation-delay:-11s;
+}
+@keyframes orbFloat {
+  0%,100%{transform:translateY(0) translateX(0) scale(1);}
+  25%{transform:translateY(-18px) translateX(10px) scale(1.2);}
+  50%{transform:translateY(-8px) translateX(-8px) scale(0.9);}
+  75%{transform:translateY(14px) translateX(6px) scale(1.1);}
+}
+.scan-line {
+  position:fixed; left:0; right:0; height:1px; z-index:1; pointer-events:none;
+  background:linear-gradient(90deg, transparent 0%, rgba(179,75,244,0.15) 30%, rgba(225,48,108,0.1) 70%, transparent 100%);
+  animation:scanDown 8s linear infinite;
+}
+@keyframes scanDown {
+  0%{top:-2px; opacity:0;}
+  5%{opacity:1;}
+  95%{opacity:0.4;}
+  100%{top:100vh; opacity:0;}
+}
+.vignette {
+  position:fixed; inset:0; z-index:1; pointer-events:none;
+  background:radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%);
+}
 
 nav {
   position:sticky; top:0; z-index:20;
-  background:rgba(10,10,11,0.88);
-  backdrop-filter:blur(16px);
+  background:rgba(7,5,11,0.82);
+  backdrop-filter:blur(20px);
   border-bottom:1px solid var(--wire);
 }
 .nav-inner {
@@ -60,16 +139,17 @@ nav {
 .nav-link {
   padding:6px 12px; border-radius:3px; border:1px solid transparent;
   font-size:12px; color:var(--fog); text-decoration:none;
-  transition:all 0.2s;
+  transition:all 0.2s; font-family:'DM Mono',monospace; background:none; cursor:pointer;
 }
 .nav-link:hover { color:var(--text); border-color:var(--wire-bright); }
 .nav-link.active { color:var(--amber); border-color:var(--amber-dim); background:var(--amber-dim); }
+.nav-link.logout { color:var(--fog); }
+.nav-link.logout:hover { color:var(--danger); border-color:rgba(255,85,119,0.3); background:rgba(255,85,119,0.06); }
 
 main {
   max-width:1060px; margin:0 auto; padding:48px 24px 96px;
   position:relative; z-index:10;
 }
-
 .page-header {
   display:flex; align-items:flex-end; justify-content:space-between; gap:20px;
   margin-bottom:52px;
@@ -79,21 +159,27 @@ main {
   font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:var(--amber);
   margin-bottom:8px;
 }
+@keyframes gradShift {
+  0%{background-position:0% center}
+  100%{background-position:200% center}
+}
 .page-title {
   font-family:'Bebas Neue',sans-serif;
   font-size:clamp(40px,5vw,60px); letter-spacing:0.03em; line-height:0.95;
-  background: linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00);
+  background: linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00, #b34bf4);
+  background-size:200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
+  animation: gradShift 4s linear infinite;
 }
 .page-sub { margin-top:8px; font-size:12px; color:var(--fog); }
-
 .timer-widget {
-  background:var(--ink-1);
+  background:rgba(14,10,22,0.85);
   border:1px solid var(--wire-bright);
   border-radius:4px; padding:16px 20px;
   min-width:240px; flex-shrink:0;
+  backdrop-filter:blur(8px);
 }
 .timer-eyebrow {
   font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--fog); margin-bottom:6px;
@@ -112,8 +198,6 @@ main {
   background:linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00);
   transition:width 1s linear;
 }
-
-/* ── Podium ── */
 .section-label {
   display:flex; align-items:center; gap:12px; margin-bottom:20px;
 }
@@ -125,7 +209,6 @@ main {
   flex:1; height:1px;
   background:linear-gradient(to right, var(--wire-bright), transparent);
 }
-
 .podium-section {
   display:flex; align-items:flex-end; justify-content:center;
   gap:14px; margin-bottom:52px; padding:0 8px;
@@ -140,7 +223,6 @@ main {
 .podium-card:nth-child(2){animation-delay:0s;}
 .podium-card:nth-child(3){animation-delay:0.2s;}
 @keyframes podiumRise { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
-
 .podium-avatar-wrap { position:relative; display:inline-block; margin-bottom:0; }
 .podium-avatar {
   width:60px; height:60px; border-radius:50%;
@@ -167,7 +249,6 @@ main {
   background:rgba(190,130,70,0.1);
   border:1.5px solid rgba(190,130,70,0.35);
 }
-
 .crown {
   position:absolute; top:-18px; left:50%; transform:translateX(-50%);
   font-size:18px;
@@ -179,7 +260,6 @@ main {
   0%,100%{transform:translateX(-50%) translateY(0) rotate(-4deg);}
   50%{transform:translateX(-50%) translateY(-3px) rotate(4deg);}
 }
-
 .podium-rank-badge {
   width:22px; height:22px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
@@ -191,7 +271,6 @@ main {
 .podium-card-1st .podium-rank-badge { background:var(--amber); color:var(--ink); }
 .podium-card-2nd .podium-rank-badge { background:#b4b9c8; color:var(--ink); }
 .podium-card-3rd .podium-rank-badge { background:#be8246; color:var(--ink); }
-
 .podium-name {
   font-family:'Instrument Sans',sans-serif;
   font-weight:700; text-align:center;
@@ -202,7 +281,6 @@ main {
 .podium-card-1st .podium-name { font-size:14px; color:#fff; }
 .podium-card-2nd .podium-name { font-size:12px; color:rgba(255,255,255,0.8); }
 .podium-card-3rd .podium-name { font-size:12px; color:rgba(255,255,255,0.65); }
-
 .podium-score {
   font-family:'DM Mono',monospace; font-weight:500;
   margin-bottom:12px;
@@ -211,7 +289,6 @@ main {
 .podium-card-2nd .podium-score { font-size:14px; color:#b4b9c8; }
 .podium-card-3rd .podium-score { font-size:14px; color:#be8246; }
 .pts-label { font-size:9px; opacity:0.5; letter-spacing:0.12em; margin-left:2px; }
-
 .podium-plinth {
   width:100%; border-radius:3px 3px 0 0;
   display:flex; align-items:flex-start; justify-content:center;
@@ -237,7 +314,6 @@ main {
   border-color:rgba(190,130,70,0.3) rgba(190,130,70,0.1) transparent;
   color:rgba(190,130,70,0.2);
 }
-
 .podium-empty { opacity:0.2; }
 .podium-empty .podium-avatar {
   background:rgba(255,255,255,0.03) !important;
@@ -248,16 +324,14 @@ main {
 }
 .podium-empty .podium-name { color:rgba(255,255,255,0.25) !important; }
 .podium-empty .podium-score { color:rgba(255,255,255,0.15) !important; }
-
-/* ── Rankings Table ── */
 .rankings-panel {
-  background:var(--ink-1);
+  background:rgba(14,10,22,0.75);
   border:1px solid var(--wire);
   border-radius:4px; overflow:hidden;
   animation:fadeUp 0.5s ease-out 0.2s backwards;
+  backdrop-filter:blur(10px);
 }
 @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-
 .rankings-table { width:100%; border-collapse:collapse; }
 .rankings-table thead tr {
   background:rgba(0,0,0,0.3);
@@ -274,9 +348,8 @@ main {
   transition:background 0.15s;
 }
 .rankings-table tbody tr:last-child { border-bottom:none; }
-.rankings-table tbody tr:hover { background:rgba(255,255,255,0.025); }
+.rankings-table tbody tr:hover { background:rgba(179,75,244,0.04); }
 .rankings-table td { padding:14px 24px; }
-
 .rank-num { font-size:12px; color:var(--fog); }
 .team-cell { display:flex; align-items:center; gap:10px; }
 .team-pip { width:6px; height:6px; border-radius:50%; background:var(--ink-3); flex-shrink:0; }
@@ -293,22 +366,20 @@ main {
   color:rgba(255,255,255,0.7);
 }
 .score-unit { font-size:9px; color:var(--fog); letter-spacing:0.1em; margin-left:3px; }
-
 .empty-state {
-  background:var(--ink-1);
+  background:rgba(14,10,22,0.75);
   border:1px solid var(--wire);
   border-radius:4px; padding:60px 24px;
   text-align:center; font-size:13px;
   color:var(--fog); font-style:italic;
+  backdrop-filter:blur(8px);
 }
-
 footer {
   margin-top:40px; text-align:center;
   font-size:10px; color:rgba(255,255,255,0.1);
   letter-spacing:0.18em; text-transform:uppercase;
 }
 footer .ok { color:var(--lime); }
-
 @media (max-width:640px) {
   .page-header { flex-direction:column; align-items:flex-start; }
   .podium-section { gap:8px; }
@@ -316,9 +387,17 @@ footer .ok { color:var(--lime); }
 </style>
 </head>
 <body>
-<div class="bg-dots"></div>
-<div class="bg-bloom bg-bloom-a"></div>
-<div class="bg-bloom bg-bloom-b"></div>
+<div class="bg-grid"></div>
+<div class="aurora aurora-1"></div>
+<div class="aurora aurora-2"></div>
+<div class="aurora aurora-3"></div>
+<div class="scan-line"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<div class="orb orb-4"></div>
+<div class="orb orb-5"></div>
+<div class="vignette"></div>
 
 <nav>
   <div class="nav-inner">
@@ -329,10 +408,10 @@ footer .ok { color:var(--lime); }
     <div class="nav-links">
       <a href="/home/" class="nav-link">Problems</a>
       <a href="/leaderboard/" class="nav-link active">Leaderboard</a>
+      <a href="/logout/" class="nav-link logout">Logout</a>
     </div>
   </div>
 </nav>
-
 <main>
   <div class="page-header">
     <div>
@@ -348,13 +427,11 @@ footer .ok { color:var(--lime); }
       </div>
     </div>
   </div>
-
   {% if teams %}
   <div class="section-label">
     <span class="section-label-text">Top Performers</span>
     <div class="section-label-rule"></div>
   </div>
-
   <div class="podium-section">
     <div class="podium-card podium-card-2nd {% if teams|length < 2 %}podium-empty{% endif %}">
       <div class="podium-avatar-wrap">
@@ -365,7 +442,6 @@ footer .ok { color:var(--lime); }
       <div class="podium-score">{% if teams|length >= 2 %}{{ teams.1.total_score|default:0 }}{% else %}0{% endif %}<span class="pts-label">pts</span></div>
       <div class="podium-plinth">2</div>
     </div>
-
     <div class="podium-card podium-card-1st {% if teams|length < 1 %}podium-empty{% endif %}">
       <div class="podium-avatar-wrap">
         {% if teams|length >= 1 %}<div class="crown">👑</div>{% endif %}
@@ -376,7 +452,6 @@ footer .ok { color:var(--lime); }
       <div class="podium-score">{% if teams|length >= 1 %}{{ teams.0.total_score|default:0 }}{% else %}0{% endif %}<span class="pts-label">pts</span></div>
       <div class="podium-plinth">1</div>
     </div>
-
     <div class="podium-card podium-card-3rd {% if teams|length < 3 %}podium-empty{% endif %}">
       <div class="podium-avatar-wrap">
         <div class="podium-avatar">{% if teams|length >= 3 %}{{ teams.2.team__username|slice:":2"|upper }}{% else %}?{% endif %}</div>
@@ -388,7 +463,6 @@ footer .ok { color:var(--lime); }
     </div>
   </div>
   {% endif %}
-
   {% if teams|length > 3 %}
   <div class="section-label" style="margin-bottom:16px;">
     <span class="section-label-text">Rankings</span>
@@ -425,22 +499,17 @@ footer .ok { color:var(--lime); }
     </table>
   </div>
   {% endif %}
-
   {% if not teams %}
   <div class="empty-state">No submissions yet. The race is wide open.</div>
   {% endif %}
-
   <footer>
     System: <span class="ok">Operational</span> &nbsp;•&nbsp; Updated: <span id="last-update">just now</span>
   </footer>
 </main>
-
 <script>
 document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
-
 const endTime = new Date("{{ end_time }}").getTime();
 const duration = 2 * 60 * 60 * 1000;
-
 function updateTimer() {
   const dist = endTime - Date.now();
   if (dist < 0) {
@@ -460,12 +529,9 @@ function updateTimer() {
 }
 setInterval(updateTimer, 1000);
 updateTimer();
-
 setInterval(async () => {
   try {
     const res = await fetch('/api/status/');
-    const data = await res.json();
-    if (data.is_finished) window.location.href = '/finished/';
   } catch(e) {}
 }, 5000);
 </script>

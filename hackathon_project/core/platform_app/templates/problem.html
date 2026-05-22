@@ -16,6 +16,8 @@
   --ink-3: #221a33;
   --wire: rgba(179, 75, 244, 0.08);
   --wire-bright: rgba(179, 75, 244, 0.18);
+  --cyber-cyan: #b34bf4;
+  --cyber-orange: #ff7a00;
   --amber: #b34bf4;
   --amber-dim: rgba(179, 75, 244, 0.12);
   --lime: #e1306c;
@@ -28,14 +30,10 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body { height:100%; background:var(--ink); color:var(--text); overflow:hidden; }
 body { font-family:'DM Mono',monospace; }
-
-/* ── Blobs (subtle) ── */
 .blob { position:fixed; border-radius:50%; filter:blur(130px); opacity:0.12; z-index:0; animation:floatBlob 18s ease-in-out infinite; pointer-events:none; }
 .blob-1 { width:440px; height:440px; top:-120px; left:-120px; background:var(--amber); }
 .blob-2 { width:360px; height:360px; bottom:-100px; right:-100px; background:var(--lime); animation-direction:reverse; animation-duration:22s; }
 @keyframes floatBlob { 0%,100%{transform:translate(0,0)} 50%{transform:translate(24px,-24px)} }
-
-/* ── Nav ── */
 header {
   position:relative; z-index:50;
   height:56px; display:flex; align-items:center; justify-content:space-between;
@@ -45,7 +43,7 @@ header {
   flex-shrink:0;
 }
 .nav-brand { display:flex; align-items:center; gap:9px; text-decoration:none; color:inherit; }
-.nav-bracket { font-size:16px; color:#e1306c; }
+.nav-bracket { font-size:16px; color:var(--cyber-orange); }
 .nav-name { font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--fog); }
 .nav-links { display:flex; align-items:center; gap:3px; }
 .nav-link {
@@ -54,7 +52,6 @@ header {
   font-family:'DM Mono',monospace;
 }
 .nav-link:hover { color:var(--text); border-color:var(--wire-bright); }
-
 .save-load-group { display:flex; gap:3px; background:var(--ink-2); border:1px solid var(--wire); border-radius:3px; padding:2px; }
 .hdr-btn {
   padding:5px 12px; border-radius:2px; border:none; background:transparent; color:var(--fog);
@@ -63,7 +60,6 @@ header {
 }
 .hdr-btn:hover { background:rgba(255,255,255,0.07); color:var(--text); }
 .sep { width:1px; background:var(--wire); margin:0 8px; }
-
 .score-chip {
   display:flex; flex-direction:column; align-items:flex-end; gap:1px;
   padding:5px 12px; border-radius:2px;
@@ -73,15 +69,11 @@ header {
 .score-chip .val {
   font-family:'Bebas Neue',sans-serif; font-size:17px; letter-spacing:0.05em; color:var(--lime); line-height:1;
 }
-
-/* ── Layout ── */
 .workspace {
   display:grid; grid-template-columns:360px 1fr; height:calc(100vh - 56px);
   position:relative; z-index:10;
 }
 @media (max-width:900px) { .workspace { grid-template-columns:1fr; } }
-
-/* ── Left: Problem Panel ── */
 .problem-panel {
   background:var(--ink-1); border-right:1px solid var(--wire);
   display:flex; flex-direction:column; overflow:hidden;
@@ -89,7 +81,6 @@ header {
 .problem-scroll { flex:1; overflow-y:auto; padding:24px 22px; }
 .problem-scroll::-webkit-scrollbar { width:4px; }
 .problem-scroll::-webkit-scrollbar-thumb { background:var(--wire-bright); border-radius:999px; }
-
 .prob-meta { display:flex; align-items:center; gap:7px; margin-bottom:14px; }
 .diff-tag {
   padding:3px 9px; border-radius:2px; font-size:10px; font-weight:500; letter-spacing:0.06em;
@@ -98,23 +89,26 @@ header {
 .diff-medium { background:rgba(255,122,0,0.1); color:#ff7a00; border:1px solid rgba(255,122,0,0.2); }
 .diff-hard { background:rgba(255,0,85,0.08); color:#ff3b70; border:1px solid rgba(255,0,85,0.2); }
 .prob-id { font-size:11px; color:var(--fog); }
-
+@keyframes gradShift {
+  0%{background-position:0% center}
+  100%{background-position:200% center}
+}
 .prob-title {
   font-family:'Instrument Sans',sans-serif;
   font-size:22px; font-weight:700; line-height:1.2; margin-bottom:18px;
-  background: linear-gradient(90deg, #b34bf4, #e1306c);
+  background: linear-gradient(90deg, var(--cyber-cyan), var(--cyber-orange), var(--lime), var(--cyber-cyan));
+  background-size:200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
+  animation: gradShift 4s linear infinite;
 }
-
 .prob-section-label {
   font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--fog);
   margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--wire);
 }
 .prob-desc { font-size:12px; color:var(--fog); line-height:1.75; }
 .prob-desc p { margin-bottom:10px; }
-
 .examples-box {
   margin-top:20px;
   background:rgba(0,0,0,0.25); border:1px solid var(--wire);
@@ -124,8 +118,6 @@ header {
   font-family:'DM Mono',monospace; font-size:12px;
   color:rgba(255,255,255,0.7); white-space:pre-wrap; line-height:1.65;
 }
-
-/* Timer + Hint strip */
 .action-strip {
   flex-shrink:0; padding:12px 16px;
   border-top:1px solid var(--wire);
@@ -137,21 +129,17 @@ header {
 .timer-val {
   font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:0.05em; color:var(--amber);
 }
-
 .hint-btn {
   display:inline-flex; align-items:center; gap:6px;
   padding:7px 14px; border-radius:3px;
-  background:var(--amber-dim); border:1px solid rgba(179,75,244,0.2);
+  background:var(--amber-dim); border:1px solid rgba(179, 75, 244, 0.2);
   color:var(--amber); font-size:11px; cursor:pointer; transition:all 0.2s;
   font-family:'DM Mono',monospace;
 }
-.hint-btn:hover { background:rgba(179,75,244,0.18); border-color:rgba(179,75,244,0.4); }
-
-/* ── Right: Editor + Output ── */
+.hint-btn:hover { background:rgba(179, 75, 244, 0.18); border-color:rgba(179, 75, 244, 0.4); }
 .editor-panel {
   display:flex; flex-direction:column; overflow:hidden;
 }
-
 .editor-topbar {
   height:44px; display:flex; align-items:center; justify-content:space-between;
   padding:0 16px; border-bottom:1px solid var(--wire); background:rgba(0,0,0,0.2);
@@ -159,7 +147,6 @@ header {
 }
 .editor-title { display:flex; align-items:center; gap:7px; font-size:11px; color:var(--fog); }
 .editor-dot { width:8px; height:8px; border-radius:50%; background:var(--amber); }
-
 .editor-actions { display:flex; gap:6px; }
 .run-btn, .submit-btn {
   padding:5px 14px; border-radius:2px; border:none; cursor:pointer;
@@ -168,9 +155,8 @@ header {
 }
 .run-btn { background:var(--ink-3); color:var(--run-green); border:1px solid rgba(79,222,158,0.2); }
 .run-btn:hover { background:rgba(79,222,158,0.08); }
-.submit-btn { background:linear-gradient(135deg, #b34bf4, #e1306c); color:#fff; font-weight:600; }
-.submit-btn:hover { opacity:0.9; box-shadow: 0 4px 10px rgba(225,48,108,0.25); }
-
+.submit-btn { background:linear-gradient(135deg, var(--cyber-cyan), var(--lime)); color:#fff; font-weight:800; }
+.submit-btn:hover { opacity:0.95; box-shadow: 0 4px 12px rgba(225, 48, 108, 0.25); }
 .editor-wrap {
   flex:1; position:relative; overflow:hidden; min-height:0;
 }
@@ -178,8 +164,6 @@ header {
   position:absolute; inset:0; height:100% !important; width:100%;
 }
 .line-nums { display:none; }
-
-/* ── Custom 'arena' CodeMirror Theme ── */
 .cm-s-arena.CodeMirror {
   background: #0d0d10;
   color: #c8c8d0;
@@ -201,14 +185,14 @@ header {
   padding: 0 6px 0 4px;
 }
 .cm-s-arena .CodeMirror-cursor {
-  border-left: 2px solid #b34bf4;
+  border-left: 2px solid var(--cyber-cyan);
 }
 .cm-s-arena .CodeMirror-selected,
 .cm-s-arena .CodeMirror-focused .CodeMirror-selected {
   background: rgba(179,75,244,0.15);
 }
 .cm-s-arena .CodeMirror-matchingbracket {
-  color: #b34bf4 !important;
+  color: var(--cyber-cyan) !important;
   background: rgba(179,75,244,0.2);
   border-radius: 2px;
 }
@@ -216,23 +200,20 @@ header {
   background: rgba(255,255,255,0.025);
 }
 .cm-s-arena .CodeMirror-scroll { overflow: auto !important; }
-
-/* Syntax tokens */
-.cm-s-arena .cm-keyword    { color: #e1306c; }          /* def, for, if, return … */
-.cm-s-arena .cm-builtin    { color: #d6a4ff; }          /* print, len, range … */
-.cm-s-arena .cm-def        { color: #ff7a00; }          /* function/class names */
-.cm-s-arena .cm-string     { color: #7ce6a1; }          /* string literals */
-.cm-s-arena .cm-string-2   { color: #7ce6a1; }          /* multiline strings */
-.cm-s-arena .cm-number     { color: #ff5577; }          /* numeric literals */
-.cm-s-arena .cm-comment    { color: #4a4a58; font-style: italic; }  /* comments */
-.cm-s-arena .cm-operator   { color: #c8c8d0; }          /* = + - * … */
-.cm-s-arena .cm-punctuation{ color: #787888; }          /* () [] : */
-.cm-s-arena .cm-variable   { color: #c8c8d0; }          /* variables */
-.cm-s-arena .cm-variable-2 { color: #b0b0c0; }          /* secondary vars */
-.cm-s-arena .cm-property   { color: #a8d8ff; }          /* .attr access */
-.cm-s-arena .cm-atom       { color: #b34bf4; }          /* True, False, None */
+.cm-s-arena .cm-keyword    { color: #e1306c; }
+.cm-s-arena .cm-builtin    { color: #d6a4ff; }
+.cm-s-arena .cm-def        { color: #ff7a00; }
+.cm-s-arena .cm-string     { color: #7ce6a1; }
+.cm-s-arena .cm-string-2   { color: #7ce6a1; }
+.cm-s-arena .cm-number     { color: #ff5577; }
+.cm-s-arena .cm-comment    { color: #4a4a58; font-style: italic; }
+.cm-s-arena .cm-operator   { color: #c8c8d0; }
+.cm-s-arena .cm-punctuation{ color: #787888; }
+.cm-s-arena .cm-variable   { color: #c8c8d0; }
+.cm-s-arena .cm-variable-2 { color: #b0b0c0; }
+.cm-s-arena .cm-property   { color: #a8d8ff; }
+.cm-s-arena .cm-atom       { color: #b34bf4; }
 .cm-s-arena .cm-error      { color: #ff5577; background: rgba(255,0,85,0.12); border-radius: 2px; }
-
 .output-panel {
   flex-shrink:0; height:170px; display:flex; flex-direction:column;
   border-top:1px solid var(--wire); background:rgba(0,0,0,0.25);
@@ -250,8 +231,6 @@ header {
 }
 .output-body::-webkit-scrollbar { width:3px; }
 .output-body::-webkit-scrollbar-thumb { background:var(--wire-bright); border-radius:999px; }
-
-/* ── AI Hint Panel ── */
 #ai-hint-overlay {
   position:fixed; inset:0; z-index:899;
   background:rgba(0,0,0,0.45); backdrop-filter:blur(2px); display:none;
@@ -262,7 +241,7 @@ header {
   z-index:900; transition:right 0.38s cubic-bezier(0.16,1,0.3,1);
   display:flex; flex-direction:column;
   background:var(--ink-1);
-  border-left:1px solid rgba(225,48,108,0.18);
+  border-left:1px solid rgba(179, 75, 244, 0.18);
   box-shadow:-20px 0 60px rgba(0,0,0,0.7);
 }
 #ai-hint-panel.open { right:0; }
@@ -290,7 +269,7 @@ header {
 }
 .hint-resp-label { font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:var(--fog); }
 .hint-box {
-  background:var(--amber-dim); border:1px solid rgba(179,75,244,0.18);
+  background:var(--amber-dim); border:1px solid rgba(179, 75, 244, 0.18);
   border-radius:3px; padding:14px; font-size:13px; line-height:1.7;
   color:rgba(225,180,255,0.88); min-height:110px;
 }
@@ -307,35 +286,32 @@ header {
 @keyframes hintBounce { 0%,80%,100%{transform:scale(0.7);opacity:0.4} 40%{transform:scale(1.2);opacity:1} }
 .hint-ask-btn {
   width:100%; padding:11px; border-radius:3px; border:none; cursor:pointer;
-  background:linear-gradient(135deg, #b34bf4, #e1306c); color:#fff;
+  background:linear-gradient(135deg, var(--cyber-cyan), var(--lime)); color:#fff;
   font-family:'Bebas Neue',sans-serif; font-size:17px; letter-spacing:0.1em;
   transition:opacity 0.2s;
+  font-weight: 800;
 }
 .hint-ask-btn:hover { opacity:0.85; }
 .hint-ask-btn:disabled { opacity:0.4; cursor:not-allowed; }
 .hint-disclaimer { font-size:11px; color:var(--fog); text-align:center; line-height:1.6; }
-
 ::-webkit-scrollbar { width:4px; }
 ::-webkit-scrollbar-thumb { background:var(--wire-bright); border-radius:999px; }
-
 #tour-backdrop {
   position:fixed; inset:0; z-index:8000; pointer-events:none;
   background:rgba(0,0,0,0); transition:background 0.35s;
 }
 #tour-backdrop.active { background:rgba(0,0,0,0.72); pointer-events:all; }
-
 .tour-spotlight {
   position:fixed; z-index:8001; pointer-events:none;
   border-radius:5px;
-  box-shadow:0 0 0 4px #e1306c, 0 0 0 8px rgba(225,48,108,0.18);
+  box-shadow:0 0 0 4px var(--cyber-orange), 0 0 0 8px rgba(255,122,0,0.18);
   transition:all 0.38s cubic-bezier(0.16,1,0.3,1);
 }
-
 .tour-bubble {
   position:fixed; z-index:8002; pointer-events:all;
   width:272px;
   background:var(--ink-1);
-  border:1px solid rgba(225,48,108,0.35);
+  border:1px solid rgba(255,122,0,0.35);
   border-radius:4px;
   box-shadow:0 20px 56px rgba(0,0,0,0.85);
   padding:18px 18px 14px;
@@ -343,27 +319,25 @@ header {
   animation:bubbleIn 0.38s cubic-bezier(0.16,1,0.3,1);
 }
 @keyframes bubbleIn { from{opacity:0;transform:scale(0.93)} to{opacity:1;transform:scale(1)} }
-
 .tour-bubble::before {
   content:''; position:absolute; width:0; height:0;
 }
 .tour-bubble.arrow-left::before {
   right:100%; top:22px;
-  border:8px solid transparent; border-right-color:rgba(225,48,108,0.35);
+  border:8px solid transparent; border-right-color:rgba(255,122,0,0.35);
 }
 .tour-bubble.arrow-right::before {
   left:100%; top:22px;
-  border:8px solid transparent; border-left-color:rgba(225,48,108,0.35);
+  border:8px solid transparent; border-left-color:rgba(255,122,0,0.35);
 }
 .tour-bubble.arrow-top::before {
   bottom:100%; left:24px;
-  border:8px solid transparent; border-bottom-color:rgba(225,48,108,0.35);
+  border:8px solid transparent; border-bottom-color:rgba(255,122,0,0.35);
 }
 .tour-bubble.arrow-bottom::before {
   top:100%; left:24px;
-  border:8px solid transparent; border-top-color:rgba(225,48,108,0.35);
+  border:8px solid transparent; border-top-color:rgba(255,122,0,0.35);
 }
-
 .tour-step-chip {
   font-size:9px; letter-spacing:0.2em; text-transform:uppercase;
   color:var(--amber); margin-bottom:7px; display:block;
@@ -382,7 +356,6 @@ header {
 }
 .tour-pip.done { background:var(--lime); }
 .tour-pip.active { background:var(--amber); }
-
 .tour-footer { display:flex; justify-content:space-between; align-items:center; }
 .tour-skip-btn {
   font-size:11px; color:var(--fog); background:none; border:none;
@@ -391,20 +364,19 @@ header {
 .tour-skip-btn:hover { color:var(--text); }
 .tour-next-btn {
   padding:6px 16px; border-radius:3px; border:none; cursor:pointer;
-  background:linear-gradient(135deg, #b34bf4, #e1306c); color:#fff;
+  background:linear-gradient(135deg, var(--cyber-cyan), var(--lime)); color:#fff;
   font-family:'Bebas Neue',sans-serif; font-size:16px; letter-spacing:0.08em;
   transition:opacity 0.15s;
+  font-weight: 800;
 }
 .tour-next-btn:hover { opacity:0.85; }
-
 .tour-launch-btn {
   display:inline-flex; align-items:center; gap:5px;
   padding:5px 10px; border-radius:2px; border:1px solid var(--wire-bright);
   background:transparent; color:var(--fog); font-size:11px; cursor:pointer;
   transition:all 0.2s; font-family:'DM Mono',monospace;
 }
-.tour-launch-btn:hover { color:#e1306c; border-color:rgba(225,48,108,0.4); }
-
+.tour-launch-btn:hover { color:var(--cyber-orange); border-color:rgba(255,122,0,0.4); }
 .hint-btn.hint-disabled {
   opacity:0.32; cursor:not-allowed; pointer-events:none;
 }
@@ -413,7 +385,6 @@ header {
 <body>
 <div class="blob blob-1"></div>
 <div class="blob blob-2"></div>
-
 <header>
   <div style="display:flex;align-items:center;gap:20px;">
     <a href="/home/" class="nav-brand">
@@ -440,7 +411,6 @@ header {
     </div>
   </div>
 </header>
-
 <div class="workspace">
   <div class="problem-panel">
     <div class="problem-scroll">
@@ -451,10 +421,8 @@ header {
         <span class="prob-id">#{{ problem.id }}</span>
       </div>
       <h1 class="prob-title">{{ problem.title }}</h1>
-
       <div class="prob-section-label">// Problem</div>
       <div class="prob-desc">{{ problem.description|linebreaks }}</div>
-
       {% if problem.examples %}
       <div class="examples-box" style="margin-top:18px;">
         <div class="prob-section-label" style="margin-bottom:10px;">// Examples</div>
@@ -462,7 +430,6 @@ header {
       </div>
       {% endif %}
     </div>
-
     <div class="action-strip" id="tour-action-strip">
       <div class="timer-block">
         <span class="timer-lbl">Time Remaining</span>
@@ -471,7 +438,6 @@ header {
       <button onclick="openHintPanel()" class="hint-btn{% if not hints_enabled %} hint-disabled{% endif %}" id="hint-btn" {% if not hints_enabled %}title="AI hints are currently disabled"{% endif %}>💡 AI Hint</button>
     </div>
   </div>
-
   <div class="editor-panel">
     <div class="editor-topbar" id="tour-editor-topbar">
       <div class="editor-title">
@@ -483,11 +449,9 @@ header {
         <button onclick="submitCode()" class="submit-btn" id="submit-btn">↑ Submit</button>
       </div>
     </div>
-
     <div class="editor-wrap">
       <textarea id="code-editor">{{ progress.current_code }}</textarea>
     </div>
-
     <div class="output-panel" id="tour-output-panel">
       <div class="output-topbar">
         <span class="output-pip"></span>
@@ -500,13 +464,9 @@ header {
     </div>
   </div>
 </div>
-
-<!-- Tour Backdrop -->
 <div id="tour-backdrop"></div>
 <div id="tour-spotlight" class="tour-spotlight" style="display:none;"></div>
 <div id="tour-bubble" class="tour-bubble" style="display:none;"></div>
-
-<!-- AI Hint Overlay -->
 <div id="ai-hint-overlay" onclick="closeHintPanel()"></div>
 <div id="ai-hint-panel">
   <div class="hint-header">
@@ -532,7 +492,6 @@ header {
     <div class="hint-disclaimer">Hints guide your thinking — they don't give away the solution.<br>You can ask multiple times as your code evolves.</div>
   </div>
 </div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js"></script>
@@ -542,7 +501,6 @@ const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
   mode: 'python',
   theme: 'arena',
   lineNumbers: true,
-
   indentUnit: 4,
   tabSize: 4,
   lineWrapping: true,
@@ -554,18 +512,15 @@ const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
   autoCloseBrackets: true,
   matchBrackets: true,
 });
-
 editor.on('copy', (cm, e) => e.preventDefault());
 editor.on('paste', (cm, e) => e.preventDefault());
 editor.on('cut', (cm, e) => e.preventDefault());
 editor.on('keydown', (cm, e) => {
   if ((e.ctrlKey || e.metaKey) && ['c','v','x'].includes(e.key.toLowerCase())) e.preventDefault();
 });
-
 const statusMsg = document.getElementById('statusMsg');
 const outputDiv = document.getElementById('output');
 const problemId = '{{ problem.id }}';
-
 async function saveCode() {
   statusMsg.textContent = 'Saving...';
   try {
@@ -577,7 +532,6 @@ async function saveCode() {
     statusMsg.textContent = res.ok ? 'Saved ✓' : 'Save failed ✗';
   } catch { statusMsg.textContent = 'Network error'; }
 }
-
 async function loadCode() {
   try {
     const res = await fetch(`/api/load/${problemId}/`);
@@ -587,23 +541,59 @@ async function loadCode() {
     else statusMsg.textContent = 'No saved code';
   } catch { statusMsg.textContent = 'Network error'; }
 }
-
 function runCode() {
-  outputDiv.style.color = '#58a6ff';
-  outputDiv.textContent = 'Running...';
+  outputDiv.style.color = 'var(--amber)';
+  outputDiv.textContent = 'Running test cases...';
+  const fd = new FormData();
+  fd.append('code', editor.getValue());
+  fd.append('problem_id', problemId);
+  fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
   fetch('/api/run-custom/', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': '{{ csrf_token }}' },
-    body: `code=${encodeURIComponent(editor.getValue())}`,
+    body: fd,
   })
   .then(r => r.json())
   .then(data => {
-    if (data.error) { outputDiv.style.color = '#ff5577'; outputDiv.textContent = data.error; }
-    else { outputDiv.style.color = 'var(--lime)'; outputDiv.textContent = data.output || 'Executed successfully.'; }
+    outputDiv.innerHTML = '';
+    if (data.results) {
+      let html = '';
+      data.results.forEach((res, idx) => {
+        let statusColor = 'var(--run-green)';
+        if (res.status === 'Wrong Answer') {
+          statusColor = '#ff5577';
+        } else if (res.status === 'Runtime Error') {
+          statusColor = 'var(--danger)';
+        }
+        html += `<div style="margin-bottom: 16px; padding: 10px; border: 1px solid var(--wire); border-radius: 3px; background: rgba(0,0,0,0.15);">`;
+        html += `<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">`;
+        html += `<span style="font-weight: bold; color: var(--text);">Test Case ${idx + 1}</span>`;
+        html += `<span style="color: ${statusColor}; font-weight: bold;">${res.status}</span>`;
+        html += `</div>`;
+        html += `<div style="margin-bottom: 4px;"><span style="color: var(--fog);">Input:</span> <code style="color: var(--text);">${res.input}</code></div>`;
+        html += `<div style="margin-bottom: 4px;"><span style="color: var(--fog);">Expected:</span> <code style="color: var(--text);">${res.expected}</code></div>`;
+        if (res.status === 'Runtime Error') {
+          html += `<div><span style="color: var(--fog);">Error:</span> <pre style="color: var(--danger); white-space: pre-wrap; font-family: monospace; margin-top: 4px;">${res.error}</pre></div>`;
+        } else {
+          html += `<div><span style="color: var(--fog);">Output:</span> <code style="color: var(--text);">${res.output}</code></div>`;
+        }
+        html += `</div>`;
+      });
+      outputDiv.innerHTML = html;
+    } else if (data.error) {
+      outputDiv.style.color = 'var(--danger)';
+      outputDiv.textContent = data.error;
+    } else {
+      outputDiv.style.color = 'var(--danger)';
+      outputDiv.textContent = 'An unknown error occurred.';
+    }
     statusMsg.textContent = 'Run complete';
+  })
+  .catch(err => {
+    outputDiv.style.color = 'var(--danger)';
+    outputDiv.textContent = 'Error: ' + err.message;
+    statusMsg.textContent = 'Error';
   });
 }
-
 function submitCode() {
   outputDiv.style.color = 'var(--amber)';
   outputDiv.textContent = 'Checking hidden test cases...';
@@ -625,7 +615,6 @@ function submitCode() {
     statusMsg.textContent = 'Submission complete';
   });
 }
-
 const endTime = new Date('{{ end_time }}').getTime();
 function updateTimer() {
   const dist = endTime - Date.now();
@@ -638,16 +627,16 @@ function updateTimer() {
 }
 setInterval(updateTimer, 1000);
 updateTimer();
-
 setInterval(async () => {
   try {
     const res = await fetch('/api/status/');
     const data = await res.json();
-    if (data.is_finished) window.location.href = '/finished/';
-    else if (!data.is_live) window.location.href = '/';
+    if (data.is_finished) {
+    } else if (!data.is_live) {
+      window.location.href = '/';
+    }
   } catch(e) {}
 }, 5000);
-
 function openHintPanel() {
   document.getElementById('ai-hint-panel').classList.add('open');
   document.getElementById('ai-hint-overlay').classList.add('open');
@@ -666,6 +655,7 @@ async function fetchHint() {
     const fd = new FormData();
     fd.append('problem_id', problemId);
     fd.append('code', editor.getValue());
+    fd.append('console_output', document.getElementById('output').textContent);
     fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
     const res = await fetch('/api/hint/', { method: 'POST', body: fd });
     const data = await res.json();
@@ -681,10 +671,8 @@ async function fetchHint() {
   }
   btn.disabled = false; btn.textContent = '✨ Ask again';
 }
-
 const HINTS_ENABLED_INIT = {{ hints_enabled|yesno:'true,false' }};
 const TOUR_ENABLED_INIT  = {{ onboarding_tour_enabled|yesno:'true,false' }};
-
 function applyHintState(enabled) {
   const btn = document.getElementById('hint-btn');
   if (!btn) return;
@@ -699,7 +687,6 @@ function applyHintState(enabled) {
   }
 }
 applyHintState(HINTS_ENABLED_INIT);
-
 setInterval(async () => {
   try {
     const r = await fetch('/api/features/');
@@ -709,7 +696,6 @@ setInterval(async () => {
     if (tourBtn) tourBtn.style.display = f.onboarding_tour_enabled ? '' : 'none';
   } catch(e) {}
 }, 12000);
-
 const TOUR_STEPS = [
   {
     targetId: 'tour-action-strip',
@@ -747,10 +733,8 @@ const TOUR_STEPS = [
     placement: 'right',
   },
 ];
-
 let currentTourStep = 0;
 let tourActive = false;
-
 function startTour() {
   if (!TOUR_ENABLED_INIT) return;
   currentTourStep = 0;
@@ -758,7 +742,6 @@ function startTour() {
   document.getElementById('tour-backdrop').classList.add('active');
   renderTourStep();
 }
-
 function endTour() {
   tourActive = false;
   document.getElementById('tour-backdrop').classList.remove('active');
@@ -766,25 +749,20 @@ function endTour() {
   document.getElementById('tour-bubble').style.display = 'none';
   localStorage.setItem('arena_tour_done', '1');
 }
-
 function renderTourStep() {
   const step = TOUR_STEPS[currentTourStep];
   const target = document.getElementById(step.targetId);
   const spotlight = document.getElementById('tour-spotlight');
   const bubble = document.getElementById('tour-bubble');
-
   if (!target) { endTour(); return; }
-
   target.scrollIntoView({ block: 'nearest' });
   const rect = target.getBoundingClientRect();
   const pad = 6;
-
   spotlight.style.display = 'block';
   spotlight.style.left   = (rect.left - pad) + 'px';
   spotlight.style.top    = (rect.top  - pad) + 'px';
   spotlight.style.width  = (rect.width  + pad * 2) + 'px';
   spotlight.style.height = (rect.height + pad * 2) + 'px';
-
   const totalSteps = TOUR_STEPS.length;
   const pips = Array.from({length: totalSteps}, (_, i) => {
     let cls = 'tour-pip';
@@ -792,7 +770,6 @@ function renderTourStep() {
     else if (i === currentTourStep) cls += ' active';
     return `<div class="${cls}"></div>`;
   }).join('');
-
   bubble.className = `tour-bubble ${step.arrow}`;
   bubble.style.display = 'block';
   bubble.innerHTML = `
@@ -805,12 +782,10 @@ function renderTourStep() {
       <button class="tour-next-btn" onclick="advanceTour()">${currentTourStep === totalSteps - 1 ? "Finish" : "Next"}</button>
     </div>
   `;
-
   const bubbleW = bubble.offsetWidth || 280;
   const bubbleH = bubble.offsetHeight || 180;
   const margin  = 18;
   let bLeft, bTop;
-
   if (step.placement === 'right') {
     bLeft = rect.right + margin + pad;
     bTop  = rect.top - pad;
@@ -824,14 +799,11 @@ function renderTourStep() {
     bLeft = rect.left - pad;
     bTop  = rect.top - bubbleH - margin - pad;
   }
-
   bLeft = Math.max(10, Math.min(bLeft, window.innerWidth  - bubbleW - 10));
   bTop  = Math.max(10, Math.min(bTop,  window.innerHeight - bubbleH - 10));
-
   bubble.style.left = bLeft + 'px';
   bubble.style.top  = bTop  + 'px';
 }
-
 function advanceTour() {
   if (currentTourStep < TOUR_STEPS.length - 1) {
     currentTourStep++;
@@ -840,13 +812,11 @@ function advanceTour() {
     endTour();
   }
 }
-
 document.addEventListener('keydown', e => {
   if (!tourActive) return;
   if (e.key === 'Escape') endTour();
   if (e.key === 'ArrowRight' || e.key === 'Enter') advanceTour();
 });
-
 if (TOUR_ENABLED_INIT && !localStorage.getItem('arena_tour_done')) {
   setTimeout(startTour, 900);
 }

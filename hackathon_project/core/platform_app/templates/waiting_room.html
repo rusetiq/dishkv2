@@ -15,6 +15,8 @@
   --ink-3: #221a33;
   --wire: rgba(179, 75, 244, 0.08);
   --wire-bright: rgba(179, 75, 244, 0.18);
+  --cyber-cyan: #b34bf4;
+  --cyber-orange: #ff7a00;
   --amber: #b34bf4;
   --amber-dim: rgba(179, 75, 244, 0.12);
   --lime: #e1306c;
@@ -35,7 +37,6 @@ body {
   align-items: center; justify-content: center;
   overflow: hidden;
 }
-
 .bg-dots {
   position:fixed; inset:0; z-index:0; pointer-events:none;
   background-image:radial-gradient(circle, rgba(179,75,244,0.04) 1px, transparent 1px);
@@ -47,13 +48,11 @@ body {
 }
 .bg-bloom-a { width:500px; height:500px; top:-180px; left:-180px; background: rgba(179,75,244,0.06); }
 .bg-bloom-b { width:400px; height:400px; bottom:-140px; right:-140px; background: rgba(225,48,108,0.05); }
-
 .scene {
   position: relative; z-index: 10;
   display: flex; flex-direction: column; align-items: center;
   width: min(460px, 92vw);
 }
-
 .card {
   width: 100%;
   background: var(--ink-1);
@@ -72,7 +71,6 @@ body {
   content: ''; position: absolute; top:0; left:0; right:0; height: 2px;
   background: linear-gradient(90deg, #b34bf4, #e1306c 50%, #ff7a00);
 }
-
 .logo-row {
   display: flex; align-items: center; gap: 10px; margin-bottom: 32px;
 }
@@ -81,7 +79,6 @@ body {
   font-size: 11px; letter-spacing: 0.22em;
   text-transform: uppercase; color: var(--fog);
 }
-
 .live-badge {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 4px 12px; border-radius: 2px;
@@ -96,26 +93,29 @@ body {
   animation: dotPulse 2s ease-in-out infinite;
 }
 @keyframes dotPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
 .card-headline {
   font-family: 'Bebas Neue', sans-serif;
   font-size: clamp(44px, 10vw, 62px);
   line-height: 0.9; letter-spacing: 0.03em;
   text-align: center; margin-bottom: 12px;
 }
+@keyframes gradShift {
+  0%{background-position:0% center}
+  100%{background-position:200% center}
+}
 .card-headline .amber {
-  background: linear-gradient(90deg, #b34bf4 0%, #e1306c 60%, #ff7a00 100%);
+  background: linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00, #b34bf4);
+  background-size:200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
+  animation: gradShift 4s linear infinite;
 }
-
 .card-sub {
   text-align: center; color: var(--fog);
   font-size: 12px; line-height: 1.7;
   max-width: 300px; margin-bottom: 36px;
 }
-
 .progress-wrap { width: 100%; margin-bottom: 24px; }
 .progress-label {
   display: flex; justify-content: space-between; align-items: center;
@@ -128,7 +128,7 @@ body {
 }
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--amber), var(--lime));
+  background: linear-gradient(90deg, #b34bf4, #e1306c 50%, #ff7a00);
   border-radius: 999px;
   animation: indeterminate 2.4s cubic-bezier(0.4,0,0.6,1) infinite;
   transform-origin: left;
@@ -138,7 +138,6 @@ body {
   40%  { transform: scaleX(0.55) translateX(40%); }
   100% { transform: scaleX(0) translateX(280%); }
 }
-
 .status-line {
   font-size: 11px; color: var(--fog);
   margin-bottom: 32px; height: 16px;
@@ -152,12 +151,10 @@ body {
   animation: blink 1s step-end infinite;
 }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
 .rule {
   width: 100%; height: 1px; margin-bottom: 24px;
   background: linear-gradient(to right, transparent, var(--wire-bright), transparent);
 }
-
 .info-grid {
   display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; width: 100%;
 }
@@ -175,7 +172,6 @@ body {
 .info-cell .val { font-size: 13px; font-weight: 500; color: var(--text); }
 .info-cell .val.amber { color: var(--amber); }
 .info-cell .val.lime { color: var(--lime); }
-
 .htp-btn {
   margin-top: 20px;
   display: inline-flex; align-items: center; gap: 7px;
@@ -187,14 +183,11 @@ body {
   font-family: 'DM Mono', monospace;
 }
 .htp-btn:hover { border-color: var(--amber); color: var(--amber); }
-
 .footprint {
   margin-top: 20px; z-index: 10;
   font-size: 10px; color: rgba(255,255,255,0.08);
   letter-spacing: 0.15em; text-transform: uppercase;
 }
-
-/* ── Tutorial Overlay ── */
 #tutorial-overlay {
   position: fixed; inset: 0; z-index: 10000;
   background: rgba(5,5,6,0.9);
@@ -204,7 +197,6 @@ body {
 }
 @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 #tutorial-overlay.hidden { display: none; }
-
 .tutorial-card {
   width: min(540px, 94vw);
   background: var(--ink-1);
@@ -215,10 +207,9 @@ body {
   animation: slideUp 0.45s cubic-bezier(0.16,1,0.3,1);
 }
 @keyframes slideUp { from{opacity:0;transform:translateY(32px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
-
 .tut-topbar {
   height: 2px;
-  background: linear-gradient(90deg, var(--amber), var(--lime));
+  background: linear-gradient(90deg, #b34bf4, #e1306c 50%, #ff7a00);
 }
 .tut-progress {
   display: flex; gap: 4px; padding: 18px 24px 0;
@@ -230,12 +221,10 @@ body {
 }
 .tprog.active { background: var(--amber); }
 .tprog.done { background: var(--lime); }
-
 .tut-body { padding: 24px 24px 0; }
 .tut-step { display:none; animation: fadeSlide 0.35s ease-out; }
 .tut-step.active { display:block; }
 @keyframes fadeSlide { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:translateX(0)} }
-
 .step-chip {
   display: inline-block;
   font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
@@ -247,7 +236,6 @@ body {
   margin-bottom: 8px;
 }
 .step-desc { font-size: 12px; color: var(--fog); line-height: 1.7; margin-bottom: 16px; }
-
 .step-bullets { display:flex; flex-direction:column; gap:8px; }
 .step-bullet {
   display: flex; align-items: flex-start; gap: 10px;
@@ -258,7 +246,6 @@ body {
 }
 .step-bullet strong { color: var(--text); font-weight: 500; }
 .step-icon { flex-shrink:0; font-size:15px; margin-top:1px; }
-
 .tut-footer {
   padding: 18px 24px 22px;
   display: flex; align-items: center; justify-content: space-between;
@@ -280,11 +267,12 @@ body {
 }
 .tut-btn-skip:hover { color: var(--text); border-color: var(--wire); }
 .tut-btn-next {
-  background: var(--amber);
-  color: var(--ink);
+  background: linear-gradient(135deg, #b34bf4, #e1306c);
+  color: #fff;
   font-family: 'Bebas Neue', sans-serif;
   font-size: 15px; letter-spacing: 0.08em;
   padding: 8px 22px;
+  font-weight: 800;
 }
 .tut-btn-next:hover { opacity: 0.85; }
 </style>
@@ -293,7 +281,6 @@ body {
 <div class="bg-dots"></div>
 <div class="bg-bloom bg-bloom-a"></div>
 <div class="bg-bloom bg-bloom-b"></div>
-
 <div id="tutorial-overlay" class="hidden">
   <div class="tutorial-card">
     <div class="tut-topbar"></div>
@@ -354,19 +341,15 @@ body {
     </div>
   </div>
 </div>
-
 <div class="scene">
   <div class="card" id="card">
     <div class="logo-row">
       <span class="logo-bracket">{ }</span>
       <span class="logo-name">DIS Hackathon</span>
     </div>
-
     <span class="live-badge"><span class="live-dot"></span>Authenticated</span>
-
     <div class="card-headline">Get Ready<br>to <span class="amber">Code.</span></div>
     <p class="card-sub">Your session is active. The round begins when the admin fires the signal.</p>
-
     <div class="progress-wrap">
       <div class="progress-label">
         <span>Initializing</span>
@@ -376,14 +359,11 @@ body {
         <div class="progress-fill"></div>
       </div>
     </div>
-
     <div class="status-line">
       <span id="status-msg">Waiting for admin to start</span>
       <span class="cursor-blink"></span>
     </div>
-
     <div class="rule"></div>
-
     <div class="info-grid">
       <div class="info-cell">
         <div class="lbl">Event</div>
@@ -398,35 +378,53 @@ body {
         <div class="val lime" id="live-status">Standby</div>
       </div>
     </div>
-
     <button class="htp-btn" onclick="openTutorial()">
       <span>📖</span> How does this work?
     </button>
   </div>
   <div class="footprint">DIS Hackathon • Arena • 2026</div>
 </div>
-
 <script>
+let isFinished = false;
 const messages = [
   'Waiting for admin to start',
   'Loading problem set',
   'Calibrating the judge',
   'Systems nominal — standby',
-  'Almost time — stay sharp',
+  'Almost time — stay sharp'
+];
+const finishedMessages = [
+  'The hackathon has ended',
+  'Check the leaderboard for final standings',
+  'Thank you for participating'
 ];
 let msgIdx = 0;
 const msgEl = document.getElementById('status-msg');
 setInterval(() => {
-  msgIdx = (msgIdx + 1) % messages.length;
   msgEl.style.opacity = '0';
-  setTimeout(() => { msgEl.textContent = messages[msgIdx]; msgEl.style.opacity = '1'; }, 300);
+  setTimeout(() => {
+    if (isFinished) {
+      msgIdx = (msgIdx + 1) % finishedMessages.length;
+      msgEl.textContent = finishedMessages[msgIdx];
+    } else {
+      msgIdx = (msgIdx + 1) % messages.length;
+      msgEl.textContent = messages[msgIdx];
+    }
+    msgEl.style.opacity = '1';
+  }, 300);
 }, 3500);
-
 function checkStatus() {
   fetch('/check-status/')
     .then(r => r.json())
     .then(data => {
-      if (data.is_live) {
+      if (data.is_finished) {
+        isFinished = true;
+        document.getElementById('live-status').textContent = 'FINISHED';
+        document.getElementById('pct-text').textContent = 'ended';
+        if (!finishedMessages.includes(msgEl.textContent)) {
+          msgEl.textContent = finishedMessages[0];
+        }
+      } else if (data.is_live) {
         document.getElementById('live-status').textContent = 'LIVE!';
         document.getElementById('pct-text').textContent = 'launching...';
         setTimeout(() => { window.location.href = '/home/'; }, 600);
@@ -439,11 +437,10 @@ function checkStatus() {
       }
     }).catch(() => {});
 }
+checkStatus();
 setInterval(checkStatus, 5000);
-
 let currentStep = 0;
 const totalSteps = 4;
-
 function openTutorial() {
   document.getElementById('tutorial-overlay').classList.remove('hidden');
   currentStep = 0;
@@ -469,7 +466,6 @@ function renderStep() {
   document.getElementById('tut-next').textContent = currentStep === totalSteps-1 ? "Let's Go →" : 'Next →';
   document.getElementById('tut-skip').textContent = currentStep === totalSteps-1 ? 'Close' : 'Skip tour';
 }
-
 if (!localStorage.getItem('dis_tutorial_done')) setTimeout(openTutorial, 700);
 </script>
 </body>

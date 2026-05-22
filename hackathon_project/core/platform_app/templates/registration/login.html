@@ -16,10 +16,13 @@
   --ink-3: #221a33;
   --wire: rgba(179, 75, 244, 0.08);
   --wire-bright: rgba(179, 75, 244, 0.18);
+  --cyber-cyan: #b34bf4;
+  --cyber-orange: #ff7a00;
   --amber: #b34bf4;
   --amber-dim: rgba(179, 75, 244, 0.12);
   --amber-glow: rgba(179, 75, 244, 0.25);
   --lime: #e1306c;
+  --lime-dim: rgba(225, 48, 108, 0.12);
   --fog: #8b8599;
   --text: #e2dfe6;
   --danger: #ff5577;
@@ -36,7 +39,6 @@ body {
   min-height: 100vh;
   overflow: hidden;
 }
-
 .bg-dots {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background-image: radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px);
@@ -56,7 +58,6 @@ body {
   bottom: -100px; right: -100px;
   background: rgba(225,48,108,0.05);
 }
-
 .shell {
   position: relative; z-index: 10;
   display: flex;
@@ -72,7 +73,6 @@ body {
   from { opacity:0; transform: translateY(28px) scale(0.98); }
   to   { opacity:1; transform: translateY(0) scale(1); }
 }
-
 .panel-left {
   width: 42%;
   background: var(--ink-1);
@@ -86,7 +86,6 @@ body {
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
   background: linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00);
 }
-
 .logo-mark {
   display: flex; align-items: center; gap: 10px; margin-bottom: 40px;
 }
@@ -101,7 +100,6 @@ body {
   font-size: 11px; letter-spacing: 0.22em;
   text-transform: uppercase; color: var(--fog);
 }
-
 .brand-head {
   font-family: 'Bebas Neue', sans-serif;
   font-size: clamp(52px, 6vw, 76px);
@@ -115,7 +113,6 @@ body {
   -webkit-text-fill-color: transparent;
   display: inline-block;
 }
-
 .brand-sub {
   margin-top: 16px;
   font-size: 12px;
@@ -123,7 +120,6 @@ body {
   line-height: 1.7;
   max-width: 220px;
 }
-
 .meta-pills {
   display: flex; flex-direction: column; gap: 6px;
 }
@@ -138,14 +134,12 @@ body {
 .meta-pill-val { color: var(--text); font-weight: 500; }
 .meta-pill-val.amber { color: var(--amber); }
 .meta-pill-val.lime { color: var(--lime); }
-
 .panel-right {
   flex: 1;
   background: var(--ink-2);
   padding: 52px 48px;
   display: flex; flex-direction: column; justify-content: center;
 }
-
 .form-eyebrow {
   font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
   color: var(--amber); margin-bottom: 10px;
@@ -158,7 +152,6 @@ body {
 .form-sub {
   font-size: 12px; color: var(--fog); margin-bottom: 36px; line-height: 1.6;
 }
-
 .field { margin-bottom: 22px; }
 .field-label {
   display: block; font-size: 10px; letter-spacing: 0.18em;
@@ -173,23 +166,22 @@ body {
   font-family: 'DM Mono', monospace;
   font-size: 14px;
   outline: none;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
 .field-input:focus {
   border-color: #e1306c;
   background: rgba(225,48,108,0.03);
+  box-shadow: 0 0 10px rgba(225,48,108,0.15);
 }
 .field-input::placeholder { color: #32294d; }
-
 .errorlist {
-  background: rgba(255,0,85,0.06);
-  border: 1px solid rgba(255,0,85,0.2);
-  color: #ff5577; padding: 10px 14px;
+  background: rgba(255, 0, 85, 0.06);
+  border: 1px solid rgba(255, 0, 85, 0.2);
+  color: var(--danger); padding: 10px 14px;
   border-radius: 3px; font-size: 12px;
   margin-bottom: 20px; text-align: center;
   letter-spacing: 0.04em;
 }
-
 .submit-btn {
   width: 100%; margin-top: 12px; padding: 14px;
   border-radius: 3px; border: none; cursor: pointer;
@@ -197,12 +189,12 @@ body {
   color: #fff;
   font-family: 'Bebas Neue', sans-serif;
   font-size: 18px; letter-spacing: 0.12em;
-  transition: opacity 0.2s, transform 0.15s;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
   display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-weight: 800;
 }
-.submit-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow:0 4px 14px rgba(225,48,108,0.25); }
+.submit-btn:hover { opacity: 0.95; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(225,48,108,0.25); }
 .submit-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-
 .spinner {
   width: 14px; height: 14px;
   border: 2px solid rgba(0,0,0,0.2);
@@ -213,13 +205,11 @@ body {
 }
 .spinner.show { display: block; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
 .form-footer {
   margin-top: 28px;
   font-size: 10px; color: var(--ink-3);
   letter-spacing: 0.1em; text-align: center;
 }
-
 @media (max-width: 640px) {
   .shell { flex-direction: column; }
   .panel-left { width: 100%; padding: 28px 28px 20px; border-right: none; border-bottom: 1px solid var(--wire); }
@@ -232,7 +222,6 @@ body {
 <div class="bg-dots"></div>
 <div class="bg-bloom bg-bloom-a"></div>
 <div class="bg-bloom bg-bloom-b"></div>
-
 <div class="shell" id="shell">
   <div class="panel-left">
     <div>
@@ -258,19 +247,15 @@ body {
       </div>
     </div>
   </div>
-
   <div class="panel-right">
     <div class="form-eyebrow">// Authentication</div>
     <div class="form-title">Sign In</div>
     <p class="form-sub">Use your team credentials to enter the arena.</p>
-
     <form method="post" id="login-form">
       {% csrf_token %}
-
       {% if form.errors %}
         <div class="errorlist">Invalid team name or access code.</div>
       {% endif %}
-
       <div class="field">
         <label class="field-label">Team Name</label>
         <input class="field-input" type="text" name="username" placeholder="your_team_name" required autofocus>
@@ -279,17 +264,14 @@ body {
         <label class="field-label">Access Code</label>
         <input class="field-input" type="password" name="password" placeholder="••••••••" required>
       </div>
-
       <button type="submit" class="submit-btn" id="login-btn">
         <span id="btn-text">Enter the Arena</span>
         <span class="spinner" id="btn-spinner"></span>
       </button>
     </form>
-
     <div class="form-footer">DIS HACKATHON • 2026</div>
   </div>
 </div>
-
 <script>
 document.getElementById('login-form').addEventListener('submit', function() {
   const btn = document.getElementById('login-btn');
@@ -299,7 +281,6 @@ document.getElementById('login-form').addEventListener('submit', function() {
   text.textContent = 'Authenticating';
   spinner.classList.add('show');
 });
-
 const shell = document.getElementById('shell');
 document.addEventListener('mousemove', e => {
   const rect = shell.getBoundingClientRect();

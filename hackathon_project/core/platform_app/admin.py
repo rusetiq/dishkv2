@@ -3,8 +3,20 @@ from django.contrib import messages
 from django.utils import timezone
 from .models import Problem, TeamProgress, HackathonState, BonusQuestion, BonusSubmission
 
+from django import forms
+
+class HackathonStateForm(forms.ModelForm):
+    ai_model = forms.CharField(
+        max_length=100,
+        help_text='Groq model ID — e.g. llama-3.3-70b-versatile, openai/gpt-oss-120b, groq/compound'
+    )
+    class Meta:
+        model = HackathonState
+        fields = '__all__'
+
 @admin.register(HackathonState)
 class StateAdmin(admin.ModelAdmin):
+    form = HackathonStateForm
     list_display = ('is_started', 'is_finished', 'is_paused', 'hints_enabled', 'ai_model', 'start_time')
     actions = ['start_hackathon_action', 'stop_hackathon_action']
     fieldsets = (

@@ -90,19 +90,19 @@ def home(request):
     )
 )
 
+    solved_problem_ids = set(TeamProgress.objects.filter(team=request.user, is_solved=True).values_list('problem_id', flat=True))
     bonus_points = BonusSubmission.objects.filter(team=request.user, is_correct=True).aggregate(s=Sum('points_awarded'))['s'] or 0
     total_score = sum(tp.points for tp in TeamProgress.objects.filter(team=request.user)) + bonus_points
     solved_count = TeamProgress.objects.filter(team=request.user, is_solved=True).count()
-    # 🔥 ADD THIS
     end_time = state.start_time + timedelta(hours=2)
 
-
     return render(request, 'home.html', {
-    'problems': problems,
-    'total_score': total_score,
-    'solved_count': solved_count,
-    'end_time': end_time.isoformat()   # 👈 THIS is what JS needs
-})
+        'problems': problems,
+        'solved_problem_ids': solved_problem_ids,
+        'total_score': total_score,
+        'solved_count': solved_count,
+        'end_time': end_time.isoformat()
+    })
 
 @login_required
 def problem_detail(request, problem_id):
@@ -476,12 +476,12 @@ def ai_hint(request):
     problem = get_object_or_404(Problem, id=problem_id)
 
     from django.conf import settings
-    api_key = getattr(settings, 'GEMINI_API_KEY', '')
+    api_key = getattr(settings, 'GROQ_API_KEY', '')
     if not api_key:
-        return JsonResponse({'hint': 'AI hints are not configured. Ask your admin to set GEMINI_API_KEY.'})
+        return JsonResponse({'hint': 'AI hints are not configured. Ask your admin to set GROQ_API_KEY.'})
 
     console_output = request.POST.get('console_output', '').strip()
-    model_name = (state.ai_model if state and state.ai_model else 'gemini-3.1-flash-lite')
+    model_name = (state.ai_model if state and state.ai_model else 'llama-3.3-70b-versatile')
 
     code_block = current_code.strip() if current_code.strip() else '(empty — student has not written anything yet)'
 
@@ -504,21 +504,27 @@ Be encouraging, concise (2-4 sentences max), and specific to their code and any 
 Focus on the approach/algorithm, not the exact implementation."""
 
     payload = json.dumps({
-        'contents': [{'parts': [{'text': prompt}]}],
-        'generationConfig': {'maxOutputTokens': 300, 'temperature': 0.7}
+        'model': model_name,
+        'messages': [{'role': 'user', 'content': prompt}],
+        'max_tokens': 300,
+        'temperature': 0.7,
     }).encode()
 
     req = urlreq.Request(
-        f'https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}',
+        'https://api.groq.com/openai/v1/chat/completions',
         data=payload,
-        headers={'Content-Type': 'application/json'},
+        headers={
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {api_key}',
+            'User-Agent': 'Mozilla/5.0',
+        },
         method='POST'
     )
 
     try:
         with urlreq.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode())
-            hint_text = data['candidates'][0]['content']['parts'][0]['text']
+            hint_text = data['choices'][0]['message']['content']
             return JsonResponse({'hint': hint_text})
     except urllib.error.HTTPError as e:
         body = e.read().decode(errors='ignore')

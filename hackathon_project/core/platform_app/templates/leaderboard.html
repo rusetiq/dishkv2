@@ -256,11 +256,13 @@ main {
   flex:1; max-width:210px;
   display:flex; flex-direction:column; align-items:center;
   position:relative;
+}
+.podium-card.initial-rise {
   animation:podiumRise 0.6s cubic-bezier(0.16,1,0.3,1) backwards;
 }
-.podium-card:nth-child(1){animation-delay:0.1s;}
-.podium-card:nth-child(2){animation-delay:0s;}
-.podium-card:nth-child(3){animation-delay:0.2s;}
+.podium-card.initial-rise:nth-child(1){animation-delay:0.1s;}
+.podium-card.initial-rise:nth-child(2){animation-delay:0s;}
+.podium-card.initial-rise:nth-child(3){animation-delay:0.2s;}
 @keyframes podiumRise { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
 .podium-avatar-wrap { position:relative; display:inline-block; margin-bottom:0; }
 .podium-avatar {
@@ -375,57 +377,59 @@ main {
 }
 @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 .rankings-table { width:100%; border-collapse:collapse; }
-.rankings-table thead tr {
-  background:rgba(0,0,0,0.3);
-  border-bottom:1px solid var(--wire);
-}
-.rankings-table th {
-  padding:14px 24px; font-size:9px;
-  letter-spacing:0.2em; text-transform:uppercase; color:var(--fog);
-  text-align:left; font-weight:500;
-}
+.rankings-table thead tr { background:rgba(0,0,0,0.3); border-bottom:1px solid var(--wire); }
+.rankings-table th { padding:14px 24px; font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--fog); text-align:left; font-weight:500; }
 .rankings-table th:last-child { text-align:right; }
-.rankings-table tbody tr {
-  border-bottom:1px solid var(--wire);
-  transition:background 0.15s;
-}
+.rankings-table tbody tr { border-bottom:1px solid var(--wire); transition:background 0.15s, transform 0.5s cubic-bezier(0.16,1,0.3,1), opacity 0.3s; }
 .rankings-table tbody tr:last-child { border-bottom:none; }
 .rankings-table tbody tr:hover { background:rgba(179,75,244,0.04); }
 .rankings-table td { padding:14px 24px; }
 .rank-num { font-size:12px; color:var(--fog); }
 .team-cell { display:flex; align-items:center; gap:10px; }
 .team-pip { width:6px; height:6px; border-radius:50%; background:var(--ink-3); flex-shrink:0; }
-.team-name {
-  font-family:'Instrument Sans',sans-serif;
-  font-weight:600; font-size:13px; color:rgba(255,255,255,0.7);
-  text-transform:uppercase; letter-spacing:0.03em;
-  transition:color 0.15s;
-}
+.team-name { font-family:'Instrument Sans',sans-serif; font-weight:600; font-size:13px; color:rgba(255,255,255,0.7); text-transform:uppercase; letter-spacing:0.03em; transition:color 0.15s; }
 .rankings-table tr:hover .team-name { color:var(--text); }
 .score-cell { text-align:right; }
-.score-val {
-  font-family:'DM Mono',monospace; font-size:15px; font-weight:500;
-  color:rgba(255,255,255,0.7);
-}
+.score-val { font-family:'DM Mono',monospace; font-size:15px; font-weight:500; color:rgba(255,255,255,0.7); transition:color 0.4s; }
 .score-unit { font-size:9px; color:var(--fog); letter-spacing:0.1em; margin-left:3px; }
-.empty-state {
-  background:rgba(14,10,22,0.75);
-  border:1px solid var(--wire);
-  border-radius:4px; padding:60px 24px;
-  text-align:center; font-size:13px;
-  color:var(--fog); font-style:italic;
-  backdrop-filter:blur(8px);
+.delta-badge { display:inline-flex; align-items:center; gap:2px; font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px; margin-left:8px; opacity:0; transition:opacity 0.3s; font-family:'DM Mono',monospace; }
+.delta-badge.up { background:rgba(60,208,112,0.15); color:#3cd070; opacity:1; }
+.delta-badge.down { background:rgba(255,85,119,0.15); color:#ff5577; opacity:1; }
+.rank-up-row { animation: rowOvertake 1.2s cubic-bezier(0.16,1,0.3,1) forwards; }
+.rank-up-row .team-name { color: #3cd070 !important; text-shadow: 0 0 8px rgba(60,208,112,0.6); }
+@keyframes rowOvertake { 0% { background: rgba(60,208,112,0.35); box-shadow: inset 0 0 15px rgba(60,208,112,0.2); } 100% { background: transparent; } }
+.podium-card.rank-up-podium { animation: podiumRankUp 1s cubic-bezier(0.16,1,0.3,1) forwards; z-index:5; }
+@keyframes podiumRankUp {
+  0%   { transform: scale(0.8) translateY(40px); filter: brightness(2.5) saturate(1.8); box-shadow: 0 0 0 0 rgba(60,208,112,0); }
+  25%  { transform: scale(1.12) translateY(-8px); filter: brightness(2) saturate(1.4); box-shadow: 0 0 55px 22px rgba(60,208,112,0.55); }
+  55%  { transform: scale(1.05) translateY(-3px); filter: brightness(1.3) saturate(1.1); box-shadow: 0 0 28px 10px rgba(60,208,112,0.25); }
+  100% { transform: scale(1) translateY(0); filter: brightness(1) saturate(1); box-shadow: none; }
 }
-footer {
-  margin-top:40px; text-align:center;
-  font-size:10px; color:rgba(255,255,255,0.1);
-  letter-spacing:0.18em; text-transform:uppercase;
+.podium-card.rank-down-podium { animation: podiumRankDown 0.75s ease-out forwards; }
+@keyframes podiumRankDown {
+  0%   { transform: scale(1) translateX(0); filter: brightness(1) saturate(1); }
+  12%  { transform: scale(0.96) translateX(-12px); filter: brightness(0.6) saturate(0.3); }
+  28%  { transform: translateX(10px); }
+  44%  { transform: translateX(-7px); }
+  60%  { transform: translateX(4px); }
+  100% { transform: scale(1) translateX(0); filter: brightness(1) saturate(1); }
 }
+.overtake-flash { position:fixed; inset:0; z-index:9999; pointer-events:none; animation:overtakeFlash 1.2s ease-out forwards; }
+@keyframes overtakeFlash { 0%{background:rgba(179,75,244,0.18);} 30%{background:rgba(225,48,108,0.12);} 100%{background:transparent;} }
+.overtake-toast { position:fixed; top:80px; left:50%; transform:translateX(-50%); z-index:10000; background:linear-gradient(135deg,rgba(22,18,34,0.95),rgba(34,26,51,0.95)); border:1px solid rgba(179,75,244,0.4); border-top:1px solid rgba(255,255,255,0.18); border-radius:14px; padding:14px 24px; display:flex; align-items:center; gap:12px; backdrop-filter:blur(24px); box-shadow:0 20px 60px rgba(0,0,0,0.6); animation:toastIn 0.45s cubic-bezier(0.16,1,0.3,1) forwards; pointer-events:none; }
+@keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(-20px);} to{opacity:1;transform:translateX(-50%) translateY(0);} }
+.overtake-toast.out { animation:toastOut 0.35s ease-in forwards; }
+@keyframes toastOut { to{opacity:0;transform:translateX(-50%) translateY(-16px);} }
+.toast-crown { font-size:22px; }
+.toast-text { font-family:'Instrument Sans',sans-serif; font-size:13px; font-weight:700; color:#fff; }
+.toast-sub { font-size:11px; color:var(--fog); font-weight:500; }
+.live-dot-indicator { display:inline-flex; align-items:center; gap:6px; font-size:10px; color:var(--fog); letter-spacing:0.12em; text-transform:uppercase; }
+.live-dot-indicator span { width:6px; height:6px; border-radius:50%; background:var(--success); animation:dotPulse 2s ease-in-out infinite; }
+@keyframes dotPulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+.empty-state { background:rgba(14,10,22,0.75); border:1px solid var(--wire); border-radius:4px; padding:60px 24px; text-align:center; font-size:13px; color:var(--fog); font-style:italic; backdrop-filter:blur(8px); }
+footer { margin-top:40px; text-align:center; font-size:10px; color:rgba(255,255,255,0.1); letter-spacing:0.18em; text-transform:uppercase; }
 footer .ok { color:var(--lime); }
-@media (max-width:640px) {
-  .page-header { flex-direction:column; align-items:flex-start; }
-  .podium-section { gap:8px; }
-}
+@media (max-width:640px) { .page-header { flex-direction:column; align-items:flex-start; } .podium-section { gap:8px; } }
 </style>
 </head>
 <body>
@@ -461,7 +465,7 @@ footer .ok { color:var(--lime); }
     <div>
       <div class="page-eyebrow">// Live Standings</div>
       <div class="page-title">Leaderboard</div>
-      <p class="page-sub">Real-time team performance and ranking.</p>
+      <p class="page-sub"><span class="live-dot-indicator"><span></span> Auto-updating every 3 seconds</span></p>
     </div>
     <div class="timer-widget">
       <div class="timer-eyebrow">Event Ends In</div>
@@ -471,117 +475,248 @@ footer .ok { color:var(--lime); }
       </div>
     </div>
   </div>
-  {% if teams %}
-  <div class="podium-section-wrap">
-  <div class="section-label" style="margin-bottom:20px;">
-    <span class="section-label-text">Top Performers</span>
-    <div class="section-label-rule"></div>
-  </div>
-  <div class="podium-section">
-    <div class="podium-card podium-card-2nd {% if teams|length < 2 %}podium-empty{% endif %}">
-      <div class="podium-avatar-wrap">
-        <div class="podium-avatar">{% if teams|length >= 2 %}{{ teams.1.team__username|slice:":2"|upper }}{% else %}?{% endif %}</div>
-        <div class="podium-rank-badge">2</div>
+  <div id="podium-wrap" style="display:none;">
+    <div class="podium-section-wrap">
+      <div class="section-label" style="margin-bottom:20px;">
+        <span class="section-label-text">Top Performers</span>
+        <div class="section-label-rule"></div>
       </div>
-      <div class="podium-name" style="margin-top:8px;">{% if teams|length >= 2 %}{{ teams.1.team__username }}{% else %}—{% endif %}</div>
-      <div class="podium-score">{% if teams|length >= 2 %}{{ teams.1.total_score|default:0 }}{% else %}0{% endif %}<span class="pts-label">pts</span></div>
-      <div class="podium-plinth">2</div>
-    </div>
-    <div class="podium-card podium-card-1st {% if teams|length < 1 %}podium-empty{% endif %}">
-      <div class="podium-avatar-wrap">
-        {% if teams|length >= 1 %}<div class="crown">👑</div>{% endif %}
-        <div class="podium-avatar">{% if teams|length >= 1 %}{{ teams.0.team__username|slice:":2"|upper }}{% else %}?{% endif %}</div>
-        <div class="podium-rank-badge">1</div>
-      </div>
-      <div class="podium-name" style="margin-top:8px;">{% if teams|length >= 1 %}{{ teams.0.team__username }}{% else %}—{% endif %}</div>
-      <div class="podium-score">{% if teams|length >= 1 %}{{ teams.0.total_score|default:0 }}{% else %}0{% endif %}<span class="pts-label">pts</span></div>
-      <div class="podium-plinth">1</div>
-    </div>
-    <div class="podium-card podium-card-3rd {% if teams|length < 3 %}podium-empty{% endif %}">
-      <div class="podium-avatar-wrap">
-        <div class="podium-avatar">{% if teams|length >= 3 %}{{ teams.2.team__username|slice:":2"|upper }}{% else %}?{% endif %}</div>
-        <div class="podium-rank-badge">3</div>
-      </div>
-      <div class="podium-name" style="margin-top:8px;">{% if teams|length >= 3 %}{{ teams.2.team__username }}{% else %}—{% endif %}</div>
-      <div class="podium-score">{% if teams|length >= 3 %}{{ teams.2.total_score|default:0 }}{% else %}0{% endif %}<span class="pts-label">pts</span></div>
-      <div class="podium-plinth">3</div>
+      <div class="podium-section" id="podium-section"></div>
     </div>
   </div>
+  <div id="rankings-wrap" style="display:none;">
+    <div class="section-label" style="margin-bottom:16px;">
+      <span class="section-label-text">Rankings</span>
+      <div class="section-label-rule"></div>
+    </div>
+    <div class="rankings-panel">
+      <table class="rankings-table">
+        <thead><tr><th>Rank</th><th>Team</th><th>Score</th></tr></thead>
+        <tbody id="rankings-tbody"></tbody>
+      </table>
+    </div>
   </div>
-  {% endif %}
-  {% if teams|length > 3 %}
-  <div class="section-label" style="margin-bottom:16px;">
-    <span class="section-label-text">Rankings</span>
-    <div class="section-label-rule"></div>
-  </div>
-  <div class="rankings-panel">
-    <table class="rankings-table">
-      <thead>
-        <tr>
-          <th>Rank</th>
-          <th>Team</th>
-          <th>Score</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for team in teams %}
-        {% if forloop.counter > 3 %}
-        <tr>
-          <td><span class="rank-num">{{ forloop.counter }}</span></td>
-          <td>
-            <div class="team-cell">
-              <div class="team-pip"></div>
-              <span class="team-name">{{ team.team__username }}</span>
-            </div>
-          </td>
-          <td class="score-cell">
-            <span class="score-val">{{ team.total_score|default:0 }}</span>
-            <span class="score-unit">pts</span>
-          </td>
-        </tr>
-        {% endif %}
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% endif %}
-  {% if not teams %}
-  <div class="empty-state">No submissions yet. The race is wide open.</div>
-  {% endif %}
+  <div id="empty-state" class="empty-state" style="display:none;">No submissions yet. The race is wide open.</div>
   <footer>
-    System: <span class="ok">Operational</span> &nbsp;•&nbsp; Updated: <span id="last-update">just now</span>
+    System: <span class="ok">Operational</span> &nbsp;•&nbsp; Updated: <span id="last-update">—</span>
   </footer>
 </main>
 <script>
-document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
-const endTime = new Date("{{ end_time }}").getTime();
+const END_TIME_RAW = "{{ end_time }}";
+const endTime = END_TIME_RAW && END_TIME_RAW !== 'None' ? new Date(END_TIME_RAW).getTime() : null;
 const duration = 2 * 60 * 60 * 1000;
 function updateTimer() {
+  if (!endTime) { document.getElementById('timer-text').textContent = 'STANDBY'; return; }
   const dist = endTime - Date.now();
-  if (dist < 0) {
-    document.getElementById('timer-text').textContent = 'FINISHED';
-    document.getElementById('progress-bar').style.width = '0%';
-    return;
-  }
-  const h = Math.floor(dist / 3600000);
-  const m = Math.floor((dist % 3600000) / 60000);
-  const s = Math.floor((dist % 60000) / 1000);
-  document.getElementById('timer-text').textContent =
-    `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  const pct = Math.min(100, (dist / duration) * 100);
+  if (dist < 0) { document.getElementById('timer-text').textContent = 'FINISHED'; document.getElementById('progress-bar').style.width = '0%'; return; }
+  const h = Math.floor(dist/3600000), m = Math.floor((dist%3600000)/60000), s = Math.floor((dist%60000)/1000);
+  document.getElementById('timer-text').textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const pct = Math.min(100,(dist/duration)*100);
   const bar = document.getElementById('progress-bar');
-  bar.style.width = pct + '%';
+  bar.style.width = pct+'%';
   if (pct < 15) bar.style.background = 'var(--danger)';
 }
 setInterval(updateTimer, 1000);
 updateTimer();
-setInterval(async () => {
+
+let prevRanks = {};
+let prevLeader = null;
+let firstLoad = true;
+
+function initials(name) { return (name||'?').slice(0,2).toUpperCase(); }
+
+function renderPodium(teams) {
+  const wrap = document.getElementById('podium-wrap');
+  const sec = document.getElementById('podium-section');
+  if (!teams.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  const order = [teams[1], teams[0], teams[2]];
+  const classes = ['podium-card-2nd','podium-card-1st','podium-card-3rd'];
+  const heights = [58,80,44];
+  const colors = ['#b4b9c8','var(--amber)','#be8246'];
+  sec.innerHTML = order.map((t,i) => {
+    const empty = !t;
+    const nm = empty ? '—' : t.username;
+    const sc = empty ? 0 : t.score;
+    const rank = [2,1,3][i];
+    const crown = rank===1 && !empty ? '<div class="crown">👑</div>' : '';
+    const prev = !empty ? prevRanks[nm] : undefined;
+    const up = (!firstLoad && prev !== undefined && rank < prev);
+    const down = (!firstLoad && prev !== undefined && rank > prev);
+    const riseClass = firstLoad ? 'initial-rise' : (up ? 'rank-up-podium' : (down ? 'rank-down-podium' : ''));
+    return `<div class="podium-card ${classes[i]} ${empty?'podium-empty':''} ${riseClass}">
+      <div class="podium-avatar-wrap">${crown}
+        <div class="podium-avatar">${empty?'?':initials(nm)}</div>
+        <div class="podium-rank-badge">${rank}</div>
+      </div>
+      <div class="podium-name" style="margin-top:8px;">${nm}</div>
+      <div class="podium-score">${sc}<span class="pts-label">pts</span></div>
+      <div class="podium-plinth" style="height:${heights[i]}px;">${rank}</div>
+    </div>`;
+  }).join('');
+}
+
+function showOvertakeToast(newLeader, oldLeader) {
+  const existing = document.querySelector('.overtake-toast');
+  if (existing) existing.remove();
+  const flash = document.createElement('div');
+  flash.className = 'overtake-flash';
+  document.body.appendChild(flash);
+  setTimeout(() => flash.remove(), 1200);
+  const toast = document.createElement('div');
+  toast.className = 'overtake-toast';
+  toast.innerHTML = `<span class="toast-crown">👑</span><div><div class="toast-text">${newLeader} takes the lead!</div><div class="toast-sub">Overtook ${oldLeader}</div></div>`;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.classList.add('out'); setTimeout(() => toast.remove(), 350); }, 3500);
+}
+
+function renderRankings(teams) {
+  const wrap = document.getElementById('rankings-wrap');
+  const tbody = document.getElementById('rankings-tbody');
+  const empty = document.getElementById('empty-state');
+  if (!teams.length) { wrap.style.display='none'; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  const rest = teams.slice(3);
+  if (!rest.length) { wrap.style.display='none'; return; }
+  wrap.style.display = 'block';
+  const newRanks = {};
+  teams.forEach((t,i) => newRanks[t.username] = i+1);
+  const rows = rest.map((t, i) => {
+    const rank = i + 4;
+    const prev = prevRanks[t.username];
+    const up = (!firstLoad && prev !== undefined && rank < prev);
+    const delta = prev !== undefined ? prev - rank : 0;
+    const badge = up ? `<span class="delta-badge up">▲${Math.abs(delta)}</span>` : '';
+    const rowClass = up ? 'rank-up-row' : '';
+    return { html: `<tr data-team="${t.username}" class="${rowClass}"><td><span class="rank-num">${rank}</span></td><td><div class="team-cell"><div class="team-pip"></div><span class="team-name">${t.username}${badge}</span></div></td><td class="score-cell"><span class="score-val">${t.score}</span><span class="score-unit">pts</span></td></tr>` };
+  });
+  tbody.innerHTML = rows.map(r => r.html).join('');
+}
+
+async function pollLeaderboard() {
   try {
-    const res = await fetch('/api/status/');
+    const res = await fetch('/api/leaderboard-data/');
+    const data = await res.json();
+    const teams = data.teams || [];
+    const leader = teams[0]?.username || null;
+    if (!firstLoad && leader && prevLeader && leader !== prevLeader) showOvertakeToast(leader, prevLeader);
+    renderPodium(teams);
+    renderRankings(teams);
+    const newRanks = {};
+    teams.forEach((t,i) => newRanks[t.username] = i+1);
+    prevRanks = newRanks;
+    prevLeader = leader;
+    firstLoad = false;
+    document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
   } catch(e) {}
-}, 5000);
+}
+pollLeaderboard();
+setInterval(pollLeaderboard, 3000);
+</script>
+
+<div id="bonus-leaderboard-banner" style="display:none; position:fixed; top:0; left:0; right:0; z-index:9000; pointer-events:none;">
+  <div id="blb-inner" style="
+    background:rgba(10, 10, 11, 0.75);
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border-bottom:1px solid rgba(255,255,255,0.15);
+    padding:18px 32px; display:flex; align-items:center; justify-content:space-between; gap:20px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.5);
+    animation:bonusBannerIn 0.6s cubic-bezier(0.16,1,0.3,1) both;
+    pointer-events:all; position:relative; overflow:hidden;
+  ">
+    <div style="position:absolute; bottom:0; left:0; right:0; height:3px; background:linear-gradient(90deg, #fec053, #f47b20, #d62976, #962fbf);"></div>
+    <div style="display:flex;align-items:center;gap:16px;position:relative;">
+      <div style="display:flex;align-items:center;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#ig-grad-banner)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px rgba(214, 41, 118, 0.4));">
+          <defs>
+            <linearGradient id="ig-grad-banner" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#fec053" />
+              <stop offset="30%" stop-color="#f47b20" />
+              <stop offset="70%" stop-color="#d62976" />
+              <stop offset="100%" stop-color="#962fbf" />
+            </linearGradient>
+          </defs>
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(22px,3vw,36px);letter-spacing:0.08em;color:#fff;line-height:1;text-shadow:0 2px 8px rgba(0,0,0,0.3);" id="blb-title">BONUS ROUND ACTIVE</div>
+        <div style="font-size:clamp(11px,1.2vw,14px);color:var(--fog);font-family:'DM Mono',monospace;letter-spacing:0.05em;" id="blb-sub">Guess the input — limited spots available!</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:24px;position:relative;">
+      <div style="text-align:center;">
+        <div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--fog);margin-bottom:2px;">Time Left</div>
+        <div id="blb-timer" style="font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,3.5vw,48px);color:#fff;line-height:1;text-shadow:0 0 20px rgba(255,255,255,0.4);letter-spacing:0.05em;">--:--</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--fog);margin-bottom:2px;">Go To</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(14px,1.8vw,22px);color:#fff;letter-spacing:0.12em;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:4px 12px;">/bonus/</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes bonusBannerIn { from{transform:translateY(-100%);opacity:0;} to{transform:translateY(0);opacity:1;} }
+</style>
+
+<script>
+(function(){
+  let wasActive = false;
+  let blbInterval = null;
+  let blbRemaining = 0;
+
+  function tickBanner() {
+    if (blbRemaining <= 0) {
+      document.getElementById('blb-timer').textContent = '00:00';
+      return;
+    }
+    const m = Math.floor(blbRemaining / 60);
+    const s = blbRemaining % 60;
+    document.getElementById('blb-timer').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    blbRemaining--;
+  }
+
+  function showBanner(data) {
+    const banner = document.getElementById('bonus-leaderboard-banner');
+    banner.style.display = 'block';
+    document.getElementById('blb-title').textContent = (data.title || 'BONUS ROUND') + ' ACTIVE NOW';
+    document.getElementById('blb-sub').textContent = `${data.winners_so_far}/${data.max_winners} spots taken — up to ${data.max_points} pts · Go to /bonus/ to enter`;
+    blbRemaining = data.time_remaining_seconds || 120;
+    if (blbInterval) clearInterval(blbInterval);
+    blbInterval = setInterval(tickBanner, 1000);
+    tickBanner();
+    document.querySelector('main').style.paddingTop = '100px';
+  }
+
+  function hideBanner() {
+    document.getElementById('bonus-leaderboard-banner').style.display = 'none';
+    document.querySelector('main').style.paddingTop = '';
+    if (blbInterval) { clearInterval(blbInterval); blbInterval = null; }
+  }
+
+  async function checkBonus() {
+    try {
+      const res = await fetch('/api/bonus/status/');
+      if (!res.ok) { return; }
+      const d = await res.json();
+      if (d.active) {
+        showBanner(d);
+      } else {
+        hideBanner();
+        wasActive = false;
+      }
+    } catch(e) {}
+  }
+
+  checkBonus();
+  setInterval(checkBonus, 2000);
+})();
 </script>
 </body>
+
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"}}
 </script>

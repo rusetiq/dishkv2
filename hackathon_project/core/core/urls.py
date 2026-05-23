@@ -14,6 +14,7 @@ urlpatterns = [
     path('problem/<int:problem_id>/', views.problem_detail, name='problem_detail'),
     path('api/save/', views.save_code),
     path('leaderboard/', views.leaderboard, name='leaderboard'),
+    path('api/leaderboard-data/', views.leaderboard_data, name='leaderboard_data'),
     path('api/load/<int:problem_id>/', views.load_code),
     path('api/run-custom/', views.run_code_custom, name='run_custom'),
     path('api/submit/', views.submit_code, name='submit_code'),
@@ -23,6 +24,7 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('api/status/', views.check_hackathon_status, name='check_status'),
     path('finished/', views.finished, name='finished'),
+    path('bonus/', views.bonus_page, name='bonus'),
     path('api/bonus/status/', views.bonus_status, name='bonus_status'),
     path('api/bonus/submit/', views.bonus_submit, name='bonus_submit'),
     path('api/hint/', views.ai_hint, name='ai_hint'),
@@ -38,4 +40,5 @@ urlpatterns = [
     path('admin-api/toggle-hints/', views.admin_toggle_hints, name='admin_toggle_hints'),
     path('admin-api/reset-hackathon/', views.admin_reset_hackathon, name='admin_reset_hackathon'),
     path('admin-api/toggle-tour/', views.admin_toggle_tour, name='admin_toggle_tour'),
+    path('admin-api/adjust-points/', views.admin_adjust_points, name='admin_adjust_points'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

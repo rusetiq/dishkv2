@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.contrib import messages
 from django.utils import timezone
-from .models import Problem, TeamProgress, HackathonState, BonusQuestion, BonusSubmission
-
+from .models import Problem, TeamProgress, HackathonState, BonusQuestion, BonusSubmission, PointAdjustment
+from django.contrib.auth.models import User
 from django import forms
 
 class HackathonStateForm(forms.ModelForm):
@@ -68,7 +68,7 @@ class ProgressAdmin(admin.ModelAdmin):
     search_fields = ('team__username',)
     list_editable = ('points',)
     actions = ['reset_progress_action']
-    
+
     def reset_progress_action(self, request, queryset):
         queryset.update(points=0, is_solved=False, current_code='')
         self.message_user(request, f'Reset {queryset.count()} progress entries.', messages.WARNING)
@@ -85,7 +85,7 @@ class BonusAdmin(admin.ModelAdmin):
         ('Status', {'fields': ('is_active', 'activated_at')}),
     )
     readonly_fields = ('activated_at',)
-    
+
     def has_add_permission(self, request):
         return not BonusQuestion.objects.exists()
 
@@ -95,6 +95,19 @@ class BonusSubmissionAdmin(admin.ModelAdmin):
     list_filter = ('is_correct',)
     search_fields = ('team__username',)
     readonly_fields = ('team', 'bonus', 'submitted_input', 'is_correct', 'points_awarded', 'submitted_at')
+
+@admin.register(PointAdjustment)
+class PointAdjustmentAdmin(admin.ModelAdmin):
+    list_display = ('team', 'delta', 'reason', 'adjusted_by', 'created_at')
+    list_filter = ('team',)
+    search_fields = ('team__username', 'reason')
+    readonly_fields = ('adjusted_by', 'created_at')
+    ordering = ('-created_at',)
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            obj.adjusted_by = request.user
+        super().save_model(request, obj, form, change)
 
 admin.site.site_header = 'DIS Hackathon Admin'
 admin.site.site_title = 'DIS Admin'
@@ -106,5 +119,6 @@ def custom_index(request, extra_context=None):
         extra_context = {}
     extra_context['h_state'] = HackathonState.objects.first()
     extra_context['b_state'] = BonusQuestion.objects.first()
+    extra_context['teams'] = User.objects.filter(is_staff=False).order_by('username')
     return original_index(request, extra_context)
 admin.site.index = custom_index

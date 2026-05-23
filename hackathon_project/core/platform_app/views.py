@@ -7,9 +7,10 @@ from urllib import request as urllib_request
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.db.models import Sum
-from .models import Problem, TeamProgress, HackathonState, BonusQuestion, BonusSubmission
+from .models import Problem, TeamProgress, HackathonState, BonusQuestion, BonusSubmission, PointAdjustment
 from .utils import run_python_code
 from django.utils import timezone
 from datetime import timedelta
@@ -22,43 +23,68 @@ def logout_view(request):
 @login_required
 def leaderboard(request):
     state = HackathonState.objects.first()
-    if not state:
-        return redirect('waiting_room')
-    if not state.is_started or state.is_paused:
-        return redirect('waiting_room')
 
-    # Regular points from problems
     team_scores = TeamProgress.objects.filter(
         team__is_staff=False
     ).values('team__username').annotate(
         problem_score=Sum('points')
     )
 
-    # Bonus points
     bonus_scores = BonusSubmission.objects.filter(
         is_correct=True
     ).values('team__username').annotate(
         bonus_score=Sum('points_awarded')
     )
 
-    # Merge into a dict
+    adjustment_scores = PointAdjustment.objects.values('team__username').annotate(
+        adj_score=Sum('delta')
+    )
+
     bonus_map = {b['team__username']: b['bonus_score'] for b in bonus_scores}
+    adj_map = {a['team__username']: a['adj_score'] for a in adjustment_scores}
 
     teams = []
     for t in team_scores:
         username = t['team__username']
-        total = (t['problem_score'] or 0) + bonus_map.get(username, 0)
+        total = (t['problem_score'] or 0) + bonus_map.get(username, 0) + (adj_map.get(username, 0) or 0)
         teams.append({'team__username': username, 'total_score': total})
 
-    # Sort by total
     teams = sorted(teams, key=lambda x: x['total_score'], reverse=True)
 
-    start_time = state.start_time
-    end_time = start_time + timedelta(hours=2)
+    end_time_iso = None
+    if state and state.start_time:
+        end_time_iso = (state.start_time + timedelta(hours=2)).isoformat()
+
     return render(request, 'leaderboard.html', {
         'teams': teams,
-        'end_time': end_time.isoformat()
+        'end_time': end_time_iso
     })
+
+@login_required
+def leaderboard_data(request):
+    team_scores = TeamProgress.objects.filter(
+        team__is_staff=False
+    ).values('team__username').annotate(
+        problem_score=Sum('points')
+    )
+    bonus_scores = BonusSubmission.objects.filter(
+        is_correct=True
+    ).values('team__username').annotate(
+        bonus_score=Sum('points_awarded')
+    )
+    adjustment_scores = PointAdjustment.objects.values('team__username').annotate(
+        adj_score=Sum('delta')
+    )
+    bonus_map = {b['team__username']: b['bonus_score'] for b in bonus_scores}
+    adj_map = {a['team__username']: a['adj_score'] for a in adjustment_scores}
+    teams = []
+    for t in team_scores:
+        username = t['team__username']
+        total = (t['problem_score'] or 0) + bonus_map.get(username, 0) + (adj_map.get(username, 0) or 0)
+        teams.append({'username': username, 'score': total})
+    teams = sorted(teams, key=lambda x: x['score'], reverse=True)
+    return JsonResponse({'teams': teams})
+
 
 @login_required
 def waiting_room(request):
@@ -84,13 +110,13 @@ def home(request):
         return redirect('waiting_room')
 
     problems = Problem.objects.all().order_by(
-    Case(
-        When(difficulty='Easy', then=0),
-        When(difficulty='Medium', then=1),
-        When(difficulty='Hard', then=2),
-        output_field=IntegerField()
+        Case(
+            When(difficulty='Easy', then=0),
+            When(difficulty='Medium', then=1),
+            When(difficulty='Hard', then=2),
+            output_field=IntegerField()
+        )
     )
-)
 
     solved_problem_ids = set(TeamProgress.objects.filter(team=request.user, is_solved=True).values_list('problem_id', flat=True))
     bonus_points = BonusSubmission.objects.filter(team=request.user, is_correct=True).aggregate(s=Sum('points_awarded'))['s'] or 0
@@ -98,12 +124,31 @@ def home(request):
     solved_count = TeamProgress.objects.filter(team=request.user, is_solved=True).count()
     end_time = state.start_time + timedelta(hours=2)
 
+    all_teams = User.objects.filter(is_staff=False)
+    team_scores = {t['team__username']: t['problem_score'] or 0 for t in TeamProgress.objects.filter(team__is_staff=False).values('team__username').annotate(problem_score=Sum('points'))}
+    bonus_scores = {b['team__username']: b['bonus_score'] or 0 for b in BonusSubmission.objects.filter(is_correct=True).values('team__username').annotate(bonus_score=Sum('points_awarded'))}
+    adj_scores = {a['team__username']: a['adj_score'] or 0 for a in PointAdjustment.objects.values('team__username').annotate(adj_score=Sum('delta'))}
+
+    teams_list = []
+    for team in all_teams:
+        username = team.username
+        total = team_scores.get(username, 0) + bonus_scores.get(username, 0) + adj_scores.get(username, 0)
+        teams_list.append({'username': username, 'score': total})
+
+    teams_list = sorted(teams_list, key=lambda x: x['score'], reverse=True)
+    my_rank = "—"
+    for index, team in enumerate(teams_list):
+        if team['username'] == request.user.username:
+            my_rank = index + 1
+            break
+
     return render(request, 'home.html', {
         'problems': problems,
         'solved_problem_ids': solved_problem_ids,
         'total_score': total_score,
         'solved_count': solved_count,
-        'end_time': end_time.isoformat()
+        'end_time': end_time.isoformat(),
+        'rank': my_rank
     })
 
 @login_required
@@ -288,21 +333,30 @@ def submit_code(request):
 
 @login_required
 def bonus_status(request):
-    state = HackathonState.objects.first()
-    if not state or not state.start_time:
-        return JsonResponse({'available': False})
-
     bonus = BonusQuestion.objects.first()
-    if not bonus or not bonus.is_active:
-        return JsonResponse({'available': False})
+    if not bonus:
+        return JsonResponse({
+            'active': False,
+            'available': False,
+            'expired': True
+        })
 
-    elapsed_minutes = (timezone.now() - state.start_time).total_seconds() / 60
-    if elapsed_minutes < bonus.appear_after_minutes:
-        return JsonResponse({'available': False})
+    if not bonus.is_active and not bonus.activated_at and not bonus.auto_start_triggered:
+        state = HackathonState.objects.first()
+        if state and state.start_time:
+            elapsed_minutes = (timezone.now() - state.start_time).total_seconds() / 60
+            if elapsed_minutes >= bonus.appear_after_minutes:
+                bonus.is_active = True
+                bonus.activated_at = timezone.now()
+                bonus.auto_start_triggered = True
+                bonus.save()
 
-    if not bonus.activated_at:
-        bonus.activated_at = timezone.now()
-        bonus.save()
+    if not bonus.is_active:
+        return JsonResponse({
+            'active': False,
+            'available': False,
+            'expired': False
+        })
 
     if bonus.is_paused:
         open_seconds = (bonus.paused_at - bonus.activated_at).total_seconds()
@@ -326,13 +380,16 @@ def bonus_status(request):
 
     time_remaining_seconds = max(0, int(duration_seconds - open_seconds))
 
-    available = not expired and not already_submitted and not bonus.is_paused
+    active = bonus.is_active
+    available = active and not expired and not already_submitted and not bonus.is_paused
 
     return JsonResponse({
+        'active': active,
         'available': available,
         'expired': expired,
         'already_solved': already_solved,
         'already_submitted': already_submitted,
+        'is_paused': bonus.is_paused,
         'title': bonus.title,
         'description': bonus.description,
         'starter_code': bonus.starter_code,
@@ -400,6 +457,39 @@ def bonus_submit(request):
         return JsonResponse({'status': 'Correct! But all point slots were just taken.'})
     else:
         return JsonResponse({'status': 'Wrong Answer — check your input format.'})
+
+@login_required
+def bonus_page(request):
+    bonus = BonusQuestion.objects.first()
+    if not bonus or not bonus.is_active:
+        return redirect('home')
+    state = HackathonState.objects.first()
+    if not state or not state.start_time:
+        return redirect('home')
+    if bonus.activated_at:
+        if bonus.is_paused:
+            open_seconds = (bonus.paused_at - bonus.activated_at).total_seconds()
+        else:
+            open_seconds = (timezone.now() - bonus.activated_at).total_seconds()
+    else:
+        open_seconds = 0
+    duration_seconds = bonus.duration_minutes * 60
+    time_remaining_seconds = max(0, int(duration_seconds - open_seconds))
+    winners_so_far = BonusSubmission.objects.filter(bonus=bonus, is_correct=True).count()
+    already_submitted = BonusSubmission.objects.filter(bonus=bonus, team=request.user).exists()
+    already_solved = BonusSubmission.objects.filter(bonus=bonus, team=request.user, is_correct=True).exists()
+    expired = open_seconds >= duration_seconds or winners_so_far >= bonus.max_winners
+    return render(request, 'bonus.html', {
+        'bonus': bonus,
+        'time_remaining_seconds': time_remaining_seconds,
+        'winners_so_far': winners_so_far,
+        'already_submitted': already_submitted,
+        'already_solved': already_solved,
+        'expired': expired,
+        'points_if_next': max(0, bonus.max_points - (winners_so_far * bonus.points_step)),
+    })
+
+
 @login_required
 def check_hackathon_status(request):
     state = HackathonState.objects.first()
@@ -653,6 +743,7 @@ def admin_end_bonus(request):
         bonus.is_paused = False
         bonus.paused_at = None
         bonus.activated_at = None
+        bonus.auto_start_triggered = True
         bonus.save()
     return redirect('/admin/')
 
@@ -678,6 +769,14 @@ def admin_reset_hackathon(request):
         state.start_time = None
         state.paused_at = None
         state.save()
+    bonus = BonusQuestion.objects.first()
+    if bonus:
+        bonus.is_active = False
+        bonus.is_paused = False
+        bonus.paused_at = None
+        bonus.activated_at = None
+        bonus.auto_start_triggered = False
+        bonus.save()
     return redirect('/admin/')
 
 @login_required
@@ -689,3 +788,21 @@ def admin_toggle_tour(request):
         state.onboarding_tour_enabled = not state.onboarding_tour_enabled
         state.save()
     return redirect('/admin/')
+
+@login_required
+def admin_adjust_points(request):
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Forbidden'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
+    from django.contrib.auth.models import User
+    team_id = request.POST.get('team_id')
+    delta_raw = request.POST.get('delta', '0')
+    reason = request.POST.get('reason', '').strip()
+    try:
+        delta = int(delta_raw)
+    except ValueError:
+        return JsonResponse({'error': 'Invalid delta'}, status=400)
+    team = get_object_or_404(User, id=team_id, is_staff=False)
+    PointAdjustment.objects.create(team=team, delta=delta, reason=reason, adjusted_by=request.user)
+    return JsonResponse({'status': 'ok', 'team': team.username, 'delta': delta})

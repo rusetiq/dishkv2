@@ -5,7 +5,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DIS Hackathon — Dominate the Leaderboard</title>
+  <title>DIS Hackathon</title>
   <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
   <style>
     :root {
@@ -353,8 +353,15 @@
     }
 
     @keyframes shimmerLine {
-      0%, 100% { left: -100%; }
-      50% { left: 0%; }
+
+      0%,
+      100% {
+        left: -100%;
+      }
+
+      50% {
+        left: 0%;
+      }
     }
 
     .hero-card {
@@ -374,8 +381,11 @@
     .hero-card::before {
       content: '';
       position: absolute;
-      top: 0; left: -100%; width: 200%; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), rgba(179,75,244,0.3), rgba(225,48,108,0.2), transparent);
+      top: 0;
+      left: -100%;
+      width: 200%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), rgba(179, 75, 244, 0.3), rgba(225, 48, 108, 0.2), transparent);
       animation: shimmerLine 6s ease-in-out infinite;
     }
 
@@ -524,8 +534,11 @@
     .score-card::before {
       content: '';
       position: absolute;
-      top: 0; left: -100%; width: 200%; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), rgba(179,75,244,0.3), rgba(225,48,108,0.2), transparent);
+      top: 0;
+      left: -100%;
+      width: 200%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), rgba(179, 75, 244, 0.3), rgba(225, 48, 108, 0.2), transparent);
       animation: shimmerLine 6s ease-in-out infinite;
       animation-delay: -2s;
     }
@@ -660,8 +673,11 @@
     .challenge-card::before {
       content: '';
       position: absolute;
-      top: 0; left: -100%; width: 200%; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), rgba(179,75,244,0.3), rgba(225,48,108,0.2), transparent);
+      top: 0;
+      left: -100%;
+      width: 200%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), rgba(179, 75, 244, 0.3), rgba(225, 48, 108, 0.2), transparent);
       animation: shimmerLine 6s ease-in-out infinite;
     }
 
@@ -919,16 +935,20 @@
       width: 52px;
       height: 52px;
       border-radius: 50%;
-      border: none;
+      border: 1px solid rgba(255, 138, 76, 0.4);
+      border-top: 1px solid rgba(255, 255, 255, 0.3);
+      border-left: 1px solid rgba(255, 255, 255, 0.2);
       cursor: pointer;
-      background: linear-gradient(135deg, #b34bf4, #e1306c);
-      box-shadow: 0 8px 28px rgba(225, 48, 108, 0.35);
+      background: linear-gradient(135deg, rgba(255, 138, 76, 0.8), rgba(255, 80, 40, 0.8));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 8px 28px rgba(255, 138, 76, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.2);
       display: none;
       align-items: center;
       justify-content: center;
       font-size: 22px;
       animation: bonusPulse 2.5s ease-in-out infinite;
-      transition: transform 0.2s;
+      transition: transform 0.2s, background 0.2s;
       color: #fff;
     }
 
@@ -940,11 +960,11 @@
 
       0%,
       100% {
-        box-shadow: 0 8px 28px rgba(225, 48, 108, 0.35)
+        box-shadow: 0 8px 28px rgba(255, 138, 76, 0.35)
       }
 
       50% {
-        box-shadow: 0 8px 44px rgba(225, 48, 108, 0.6)
+        box-shadow: 0 8px 44px rgba(255, 138, 76, 0.6)
       }
     }
 
@@ -1328,32 +1348,43 @@
   </nav>
   <main>
     <section class="hero-grid">
-      <div class="hero-card">
-        <span class="live-badge"><span class="live-dot"></span>Hackathon Live</span>
-        <div class="hero-title">Time to<br><span class="amber">Code.</span></div>
-        <p class="hero-sub">Fifteen problems. Two hours. Every second and every submission counts.</p>
-        <div class="cta-row">
-          <a href="/problem/1/" class="btn btn-primary">Start Solving ↗</a>
-          <a href="/leaderboard/" class="btn btn-ghost">Leaderboard</a>
+      <div class="hero-card" style="display:flex; flex-direction:column; justify-content:between;">
+        <div>
+          <span class="live-badge"><span class="live-dot"></span>Hackathon Live</span>
+          <div class="hero-title">Time to<br><span class="amber">Code.</span></div>
+          <p class="hero-sub">Fifteen problems. Two hours. Every second and every submission counts.</p>
+          <div class="cta-row" style="margin-bottom: 24px;">
+            <a href="/problem/1/" class="btn btn-primary">Start Solving ↗</a>
+            <a href="/leaderboard/" class="btn btn-ghost">Leaderboard</a>
+          </div>
+        </div>
+        <div style="display:flex; gap:32px; border-top:1px solid var(--wire); padding-top:20px; align-items:center;">
+          <div>
+            <span style="font-size:10px; text-transform:uppercase; color:var(--fog); display:block; margin-bottom:4px; letter-spacing:0.1em;">Solved</span>
+            <span style="font-size:18px; font-weight:700; color:var(--text);">{{ solved_count }} <span style="font-size:12px; color:var(--fog);">/ 15</span></span>
+          </div>
+          <div style="flex:1; max-width:240px;">
+            <span style="font-size:10px; text-transform:uppercase; color:var(--fog); display:block; margin-bottom:4px; letter-spacing:0.1em;">Time Left</span>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span id="problem-timer" style="font-size:18px; font-weight:700; color:var(--amber); white-space:nowrap;">00:00:00</span>
+              <div class="progress-track" style="height:4px; background:rgba(255, 255, 255, 0.05); border-radius:999px; overflow:hidden; flex:1;">
+                <div id="timer-progress-fill" style="height:100%; width:100%; background:linear-gradient(90deg, #b34bf4, #e1306c 50%, #ff7a00); border-radius:999px; transition:width 1s linear;"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="score-card">
-        <div class="score-top">
-          <div class="score-eyebrow">// Your Score</div>
-          <div class="score-num">{{ total_score }}<span class="score-unit">pts</span></div>
-        </div>
-        <div class="score-rule"></div>
-        <div class="stats-grid">
-          <div class="stat-cell">
-            <div class="lbl">✅ Solved</div>
-            <div class="val">{{ solved_count }} <span style="font-size:11px;color:var(--fog);">/ 15</span></div>
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="score-card" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; flex:1;">
+          <div class="score-top" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:32px 24px; width:100%;">
+            <div class="score-eyebrow" style="font-size:11px; letter-spacing:0.25em; text-transform:uppercase; color:var(--fog); margin-bottom:8px;">// Your Score</div>
+            <div class="score-num" style="font-size:clamp(48px, 6vw, 64px);">{{ total_score }}<span class="score-unit" style="font-size:14px; margin-left:4px; color:var(--fog); font-family:'DM Mono',monospace;">pts</span></div>
           </div>
-          <div class="stat-cell">
-            <div class="lbl">⏳ Time Left</div>
-            <div class="val timer" id="problem-timer" style="margin-bottom: 6px;">00:00:00</div>
-            <div class="progress-track" style="height: 3px; background: rgba(255, 255, 255, 0.05); border-radius: 999px; overflow: hidden; width: 100%;">
-              <div id="timer-progress-fill" style="height: 100%; width: 100%; background: linear-gradient(90deg, #b34bf4, #e1306c 50%, #ff7a00); border-radius: 999px; transition: width 1s linear;"></div>
-            </div>
+        </div>
+        <div class="score-card" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; flex:1;">
+          <div class="score-top" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:32px 24px; width:100%;">
+            <div class="score-eyebrow" style="font-size:11px; letter-spacing:0.25em; text-transform:uppercase; color:var(--fog); margin-bottom:8px;">// Your Rank</div>
+            <div class="score-num" style="font-size:clamp(48px, 6vw, 64px); color:var(--cyber-orange);">#{{ rank }}</div>
           </div>
         </div>
       </div>
@@ -1446,52 +1477,58 @@
     </div>
   </div>
   <button id="bonus-btn" title="Bonus Round!">⚡</button>
-  <div id="bonus-overlay" onclick="closeBonus()"></div>
-  <div id="bonus-panel">
-    <div class="bonus-panel-header">
-      <div class="bonus-title-row">
-        <span style="font-size:20px;">⚡</span>
-        <span class="bonus-panel-title" id="bonus-panel-title">Bonus Round</span>
+
+  <div id="bonus-popup-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(7,5,11,0.85); backdrop-filter:blur(15px); align-items:center; justify-content:center; padding:20px;">
+    <div style="background:linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(14,10,22,0.55) 50%, rgba(225,48,108,0.04) 100%); border:1px solid rgba(225, 48, 108, 0.25); border-top:1px solid rgba(255,255,255,0.2); border-left:1px solid rgba(255,255,255,0.13); border-radius:20px; max-width:480px; width:100%; padding:36px 30px; text-align:center; box-shadow:0 32px 80px rgba(0,0,0,0.6), inset 0 0 60px rgba(225, 48, 108, 0.03), 0 0 30px rgba(225, 48, 108, 0.08); backdrop-filter:blur(40px) saturate(160%); -webkit-backdrop-filter:blur(40px) saturate(160%); animation:bonusPopupIn 0.5s cubic-bezier(0.16,1,0.3,1) both; position:relative; overflow:hidden;">
+      <div style="position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, #fec053, #f47b20, #d62976, #962fbf);"></div>
+      <div style="display:flex; justify-content:center; margin-bottom:18px;">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="url(#ig-grad-popup)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 10px rgba(225,48,108,0.6));">
+          <defs>
+            <linearGradient id="ig-grad-popup" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#fec053" />
+              <stop offset="30%" stop-color="#f47b20" />
+              <stop offset="70%" stop-color="#d62976" />
+              <stop offset="100%" stop-color="#962fbf" />
+            </linearGradient>
+          </defs>
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
       </div>
-      <button class="bonus-close-btn" onclick="closeBonus()">✕</button>
-    </div>
-    <div class="bonus-timer-bar">
-      <div class="bonus-timer-row">
-        <span class="bonus-timer-label">Time Remaining</span>
-        <span id="bonus-countdown">07:00</span>
+      <h2 class="ig-gradient-text" style="font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:0.06em;line-height:1.1;margin-bottom:12px;">BONUS ROUND LIVE!</h2>
+      <p style="font-size:13px;color:#8b8599;font-family:'DM Mono',monospace;line-height:1.6;margin-bottom:24px;" id="popup-description">
+        A new coding challenge is active. Solve it in 10 minutes to score massive points!
+      </p>
+      <div style="display:flex;gap:12px;justify-content:center;">
+        <button onclick="closeBonusPopup()" style="flex:1; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.04); color:#e2dfe6; font-family:'DM Mono',monospace; font-size:12px; cursor:pointer; transition:all 0.2s;">Dismiss</button>
+        <a href="/bonus/" style="flex:1; padding:12px; border-radius:8px; border:none; background:linear-gradient(135deg,#b34bf4,#e1306c,#ff7a00); color:#fff; font-family:'Instrument Sans',system-ui,sans-serif; font-weight:800; font-size:13px; text-decoration:none; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(225,48,108,0.3); transition:all 0.2s;">Join Round →</a>
       </div>
-      <div class="bonus-progress-track">
-        <div id="bonus-progress-fill" style="width:100%"></div>
-      </div>
-    </div>
-    <div class="bonus-slots" id="bonus-slots">
-      <div class="slot" id="slot-1"><span class="slot-pts">200</span>1st</div>
-      <div class="slot" id="slot-2"><span class="slot-pts">185</span>2nd</div>
-      <div class="slot" id="slot-3"><span class="slot-pts">170</span>3rd</div>
-      <div class="slot" id="slot-4"><span class="slot-pts">155</span>4th</div>
-    </div>
-    <div class="bonus-body">
-      <div>
-        <div class="bonus-section-label">Mission</div>
-        <div class="bonus-description" id="bonus-desc">Loading...</div>
-      </div>
-      <div class="bonus-hint">
-        <span style="font-size:14px;flex-shrink:0;margin-top:1px;">💡</span>
-        <span id="bonus-hint-text">Loading...</span>
-      </div>
-      <div>
-        <div class="bonus-section-label">Your Code</div>
-        <textarea class="bonus-input" id="bonus-code-editor" rows="4"></textarea>
-      </div>
-      <div id="bonus-input-section">
-        <div class="bonus-section-label">Your Input</div>
-        <textarea class="bonus-input" id="bonus-input" rows="3" placeholder="Type your input here..."></textarea>
-        <button class="bonus-submit-btn" id="bonus-submit-btn" onclick="submitBonus()" style="margin-top:8px;">Submit
-          Answer ↗</button>
-      </div>
-      <div class="bonus-result" id="bonus-result"></div>
     </div>
   </div>
+
+  <style>
+  .ig-gradient-text {
+    background: linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00, #b34bf4);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+    animation: gradShift 4s linear infinite;
+  }
+  @keyframes gradShift {
+    0%{background-position:0% center}
+    100%{background-position:200% center}
+  }
+  @keyframes bonusPopupIn {
+    from { opacity:0; transform:scale(0.9) translateY(20px); }
+    to { opacity:1; transform:scale(1) translateY(0); }
+  }
+  </style>
+
+  <script>
+    function closeBonusPopup() {
+      document.getElementById('bonus-popup-modal').style.display = 'none';
+    }
+  </script>
   <script>
     const endTime = new Date("{{ end_time }}").getTime();
     function updateTimer() {
@@ -1507,7 +1544,7 @@
       const s = Math.floor((distance % 60000) / 1000);
       document.getElementById("problem-timer").innerHTML =
         `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-      
+
       const totalDuration = 2 * 60 * 60 * 1000;
       const pct = Math.max(0, Math.min(100, (distance / totalDuration) * 100));
       const fill = document.getElementById("timer-progress-fill");
@@ -1528,118 +1565,36 @@
     document.getElementById('how-to-overlay').addEventListener('click', function (e) {
       if (e.target === this) closeHowToPlay();
     });
-    let bonusData = null;
-    let bonusCountdownInterval = null;
-    let bonusTotalSeconds = 0;
     let bonusPermanentlyHidden = false;
+    let hasShownPopupThisSession = false;
     const bonusBtn = document.getElementById('bonus-btn');
-    bonusBtn.addEventListener('click', openBonus);
-    function openBonus() {
-      document.getElementById('bonus-panel').classList.add('open');
-      document.getElementById('bonus-overlay').classList.add('open');
-    }
-    function closeBonus() {
-      document.getElementById('bonus-panel').classList.remove('open');
-      document.getElementById('bonus-overlay').classList.remove('open');
-    }
-    function hideBonusPermanently() {
-      bonusPermanentlyHidden = true;
-      bonusBtn.style.display = 'none';
-      closeBonus();
-      if (bonusCountdownInterval) clearInterval(bonusCountdownInterval);
-    }
-    function updateSlots(data) {
-      for (let i = 1; i <= 4; i++) {
-        const slot = document.getElementById('slot-' + i);
-        if (!slot) continue;
-        const pts = Math.max(0, data.max_points - (i - 1) * data.points_step);
-        slot.querySelector('.slot-pts').textContent = pts;
-        if (i <= data.winners_so_far) slot.classList.add('taken');
-        else slot.classList.remove('taken');
-        if (i > data.max_winners) slot.style.display = 'none';
-      }
-    }
-    function startBonusCountdown(seconds) {
-      bonusTotalSeconds = seconds;
-      if (bonusCountdownInterval) clearInterval(bonusCountdownInterval);
-      bonusCountdownInterval = setInterval(() => {
-        bonusTotalSeconds = Math.max(0, bonusTotalSeconds - 1);
-        const m = Math.floor(bonusTotalSeconds / 60);
-        const s = bonusTotalSeconds % 60;
-        document.getElementById('bonus-countdown').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-        const pct = (bonusTotalSeconds / (bonusData.duration_minutes * 60)) * 100;
-        document.getElementById('bonus-progress-fill').style.width = pct + '%';
-        if (bonusTotalSeconds <= 0) {
-          clearInterval(bonusCountdownInterval);
-          document.getElementById('bonus-input-section').style.display = 'none';
-          showBonusResult('info', '⏰ Bonus round has ended!');
-          setTimeout(() => hideBonusPermanently(), 3000);
-        }
-      }, 1000);
-    }
-    function showBonusResult(type, msg) {
-      const el = document.getElementById('bonus-result');
-      el.className = 'bonus-result ' + type;
-      el.textContent = msg;
-      el.style.display = 'block';
-    }
+    bonusBtn.addEventListener('click', () => {
+      window.location.href = '/bonus/';
+    });
     async function loadBonusData() {
       if (bonusPermanentlyHidden) return;
       try {
         const res = await fetch('/api/bonus/status/');
         const data = await res.json();
-        if (!data.available && !data.expired && !data.already_submitted) { bonusBtn.style.display = 'none'; return; }
-        if (data.expired || data.already_submitted) {
-          if (data.already_solved) {
-            bonusBtn.style.display = 'none';
-            document.getElementById('bonus-input-section').style.display = 'none';
-            document.getElementById('bonus-countdown').textContent = '00:00';
-            showBonusResult('correct', '✅ You already solved this bonus!');
-          } else { hideBonusPermanently(); }
+        if (!data.active) {
+          bonusBtn.style.display = 'none';
+          document.getElementById('bonus-popup-modal').style.display = 'none';
           return;
         }
-        bonusData = data;
+        if (data.expired || data.already_submitted) {
+          bonusBtn.style.display = 'none';
+          return;
+        }
         bonusBtn.style.display = 'flex';
-        document.getElementById('bonus-panel-title').textContent = data.title || 'Bonus Round';
-        document.getElementById('bonus-desc').textContent = data.description || '';
-        document.getElementById('bonus-hint-text').textContent = data.input_type_hint
-          ? 'Input type: ' + data.input_type_hint
-          : 'Provide the correct input to produce the expected output.';
-        document.getElementById('bonus-code-editor').value = data.starter_code || '';
-        updateSlots(data);
-        startBonusCountdown(data.time_remaining_seconds);
+        if (data.available && !hasShownPopupThisSession) {
+          document.getElementById('bonus-popup-modal').style.display = 'flex';
+          document.getElementById('popup-description').textContent = (data.title || 'Bonus Round') + ' is active now! Solve the challenge in ' + (data.duration_minutes || 10) + ' minutes to win bonus points.';
+          hasShownPopupThisSession = true;
+        }
       } catch (e) { }
     }
-    async function submitBonus() {
-      const input = document.getElementById('bonus-input').value.trim();
-      if (!input) { showBonusResult('wrong', 'Please enter your input value.'); return; }
-      const btn = document.getElementById('bonus-submit-btn');
-      btn.disabled = true; btn.textContent = 'Checking...';
-      try {
-        const fd = new FormData();
-        fd.append('user_input', input);
-        fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-        const res = await fetch('/api/bonus/submit/', { method: 'POST', body: fd });
-        const data = await res.json();
-        if (data.status === 'Correct!') {
-          showBonusResult('correct', `✅ Correct! +${data.points_awarded} pts awarded!`);
-          document.getElementById('bonus-input-section').style.display = 'none';
-          if (bonusCountdownInterval) clearInterval(bonusCountdownInterval);
-          bonusPermanentlyHidden = true;
-        } else if (data.status.includes('Wrong Answer')) {
-          showBonusResult('wrong', '❌ Wrong input — the output didn\'t match.');
-          setTimeout(() => hideBonusPermanently(), 2000);
-        } else {
-          showBonusResult('wrong', '❌ ' + data.status);
-          btn.disabled = false; btn.textContent = 'Submit Answer ↗';
-        }
-      } catch (e) {
-        showBonusResult('wrong', 'Network error — try again.');
-        btn.disabled = false; btn.textContent = 'Submit Answer ↗';
-      }
-    }
     loadBonusData();
-    setInterval(loadBonusData, 15000);
+    setInterval(loadBonusData, 2000);
     const canvas = document.getElementById('bg-canvas');
     const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));

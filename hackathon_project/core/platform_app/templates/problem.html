@@ -1570,6 +1570,76 @@
       });
     })();
   </script>
+  <style>
+  .bonus-global-toast { position:fixed; bottom:28px; right:28px; z-index:99999; background:linear-gradient(135deg,rgba(255,255,255,0.08) 0%,rgba(14,10,22,0.7) 100%); border:1px solid rgba(255,255,255,0.15); border-top:1px solid rgba(255,255,255,0.3); border-left:1px solid rgba(255,255,255,0.2); border-radius:16px; padding:18px 22px; display:flex; align-items:center; gap:14px; backdrop-filter:blur(30px) saturate(180%); -webkit-backdrop-filter:blur(30px) saturate(180%); box-shadow:0 32px 80px rgba(0,0,0,0.6), inset 0 0 40px rgba(255,255,255,0.02); max-width:320px; cursor:pointer; animation:bonusToastIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards; pointer-events:all; text-decoration:none; overflow:hidden; }
+  @keyframes bonusToastIn { from{opacity:0;transform:translateX(40px) scale(0.92);} to{opacity:1;transform:translateX(0) scale(1);} }
+  .bonus-global-toast.out { animation:bonusToastOut 0.35s ease-in forwards; }
+  @keyframes bonusToastOut { to{opacity:0;transform:translateX(40px) scale(0.9);} }
+  .bgt-icon { width:42px;height:42px;border-radius:12px;flex-shrink:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center; }
+  .ig-gradient-text {
+    background: linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00, #b34bf4);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+    animation: gradShift 4s linear infinite;
+  }
+  @keyframes gradShift {
+    0%{background-position:0% center}
+    100%{background-position:200% center}
+  }
+  .bgt-title { font-family:'Instrument Sans',system-ui,sans-serif;font-weight:800;font-size:13px;margin-bottom:2px; }
+  .bgt-sub { font-size:11px;color:var(--fog);font-family:'DM Mono',monospace; }
+  .bgt-cta { font-size:10px;color:#fff;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:4px 10px;background:rgba(255,255,255,0.06);white-space:nowrap;font-family:'DM Mono',monospace; }
+  </style>
+  <script>
+  (function(){
+    let toastEl = null, wasActive = false;
+    async function checkBonus() {
+      try {
+        const r = await fetch('/api/bonus/status/');
+        const d = await r.json();
+        if (d.available && !wasActive) {
+          if (toastEl) return;
+          wasActive = true;
+          const a = document.createElement('a');
+          a.href = '/bonus/';
+          a.className = 'bonus-global-toast';
+          const m = Math.floor((d.time_remaining_seconds||120)/60), s = (d.time_remaining_seconds||120)%60;
+          a.innerHTML = `
+            <div style="position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, #fec053, #f47b20, #d62976, #962fbf);"></div>
+            <div class="bgt-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="url(#ig-grad-toast-prob)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 6px rgba(214, 41, 118, 0.3));">
+                <defs>
+                  <linearGradient id="ig-grad-toast-prob" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#fec053" />
+                    <stop offset="30%" stop-color="#f47b20" />
+                    <stop offset="70%" stop-color="#d62976" />
+                    <stop offset="100%" stop-color="#962fbf" />
+                  </linearGradient>
+                </defs>
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+            </div>
+            <div style="flex:1">
+              <div class="bgt-title ig-gradient-text">Bonus Round Active!</div>
+              <div class="bgt-sub">${d.title||'Bonus'} — ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} left</div>
+            </div>
+            <div class="bgt-cta">Enter →</div>
+          `;
+          document.body.appendChild(a);
+          toastEl = a;
+          setTimeout(() => { if(toastEl){toastEl.classList.add('out');setTimeout(()=>{if(toastEl){toastEl.remove();toastEl=null;}},350);} }, 10000);
+        } else if (!d.available) {
+          wasActive = false;
+          if (toastEl) { toastEl.classList.add('out'); setTimeout(()=>{if(toastEl){toastEl.remove();toastEl=null;}},350); }
+        }
+      } catch(e) {}
+    }
+    checkBonus();
+    setInterval(checkBonus, 2000);
+  })();
+  </script>
 </body>
 
 </html>

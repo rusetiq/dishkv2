@@ -1,0 +1,125 @@
+<style>
+.bonus-global-toast {
+  position:fixed; bottom:28px; right:28px; z-index:99999;
+  background:linear-gradient(135deg,rgba(255,255,255,0.06) 0%,rgba(14,10,22,0.55) 50%,rgba(225,48,108,0.04) 100%);
+  border:1px solid rgba(225,48,108,0.25);
+  border-top:1px solid rgba(255,255,255,0.2);
+  border-left:1px solid rgba(255,255,255,0.13);
+  border-radius:16px; padding:18px 22px;
+  display:flex; align-items:center; gap:14px;
+  backdrop-filter:blur(40px) saturate(160%);
+  -webkit-backdrop-filter:blur(40px) saturate(160%);
+  box-shadow:0 32px 80px rgba(0,0,0,0.6), inset 0 0 40px rgba(225,48,108,0.03), 0 0 20px rgba(225,48,108,0.06);
+  max-width:340px; cursor:pointer;
+  animation:bonusToastIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
+  pointer-events:all;
+  text-decoration:none;
+  overflow:hidden;
+}
+@keyframes bonusToastIn {
+  from { opacity:0; transform:translateX(40px) scale(0.92); }
+  to   { opacity:1; transform:translateX(0) scale(1); }
+}
+.bonus-global-toast.out {
+  animation:bonusToastOut 0.35s ease-in forwards;
+}
+@keyframes bonusToastOut {
+  to { opacity:0; transform:translateX(40px) scale(0.9); }
+}
+.bonus-toast-icon {
+  width:42px; height:42px; border-radius:12px; flex-shrink:0;
+  background:rgba(225,48,108,0.15);
+  border:1px solid rgba(225,48,108,0.3);
+  display:flex; align-items:center; justify-content:center;
+}
+.bonus-toast-body { flex:1; }
+.bonus-toast-title {
+  font-family:'Instrument Sans',system-ui,sans-serif;
+  font-weight:800; font-size:13px; margin-bottom:3px;
+}
+.bonus-toast-sub {
+  font-size:11px; color:rgba(225,48,108,0.8);
+  font-family:'DM Mono',monospace;
+}
+.bonus-toast-cta {
+  font-size:10px; color:#e1306c; font-weight:700;
+  letter-spacing:0.08em; text-transform:uppercase;
+  border:1px solid rgba(225,48,108,0.3);
+  border-radius:6px; padding:4px 10px;
+  background:rgba(225,48,108,0.08);
+  white-space:nowrap;
+  font-family:'DM Mono',monospace;
+}
+.ig-gradient-text {
+  background: linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00, #b34bf4);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  animation: gradShift 4s linear infinite;
+}
+@keyframes gradShift {
+  0%{background-position:0% center}
+  100%{background-position:200% center}
+}
+</style>
+
+<script>
+(function() {
+  let bonusToastEl = null;
+  let bonusWasActive = false;
+  let bonusCheckTimer = null;
+
+  function showBonusToast(title, timeRemaining) {
+    if (bonusToastEl) return;
+    const a = document.createElement('a');
+    a.href = '/bonus/';
+    a.className = 'bonus-global-toast';
+    a.style.position = 'fixed';
+    const mins = Math.floor(timeRemaining / 60);
+    const secs = timeRemaining % 60;
+    const timeStr = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')} left`;
+    a.innerHTML = `
+      <div style="position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, #fec053, #f47b20, #d62976, #962fbf);"></div>
+      <div class="bonus-toast-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#e1306c;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+      </div>
+      <div class="bonus-toast-body">
+        <div class="bonus-toast-title ig-gradient-text">Bonus Round Active!</div>
+        <div class="bonus-toast-sub">${title} — ${timeStr}</div>
+      </div>
+      <div class="bonus-toast-cta">Join →</div>
+    `;
+    document.body.appendChild(a);
+    bonusToastEl = a;
+    setTimeout(() => {
+      if (bonusToastEl) {
+        bonusToastEl.classList.add('out');
+        setTimeout(() => { if (bonusToastEl) { bonusToastEl.remove(); bonusToastEl = null; } }, 350);
+      }
+    }, 8000);
+  }
+
+  async function checkBonus() {
+    try {
+      const res = await fetch('/api/bonus/status/');
+      const d = await res.json();
+      if (d.available && !bonusWasActive) {
+        showBonusToast(d.title || 'Bonus Round', d.time_remaining_seconds || 600);
+        bonusWasActive = true;
+      } else if (!d.available) {
+        bonusWasActive = false;
+        if (bonusToastEl) {
+          bonusToastEl.classList.add('out');
+          setTimeout(() => { if (bonusToastEl) { bonusToastEl.remove(); bonusToastEl = null; } }, 350);
+        }
+      }
+    } catch(e) {}
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    checkBonus();
+    bonusCheckTimer = setInterval(checkBonus, 5000);
+  });
+})();
+</script>

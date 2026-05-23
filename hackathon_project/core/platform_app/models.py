@@ -48,11 +48,6 @@ class TeamProgress(models.Model):
     class Meta:
         unique_together = ('team', 'problem')
 class BonusQuestion(models.Model):
-    APPEAR_CHOICES = [
-        (60,  'After 1 hour'),
-        (90,  'After 1.5 hours'),
-        (120, 'After 2 hours'),
-    ]
     title = models.CharField(max_length=200, default="Bonus Round")
     description = models.TextField()
     starter_code = models.TextField()
@@ -61,12 +56,13 @@ class BonusQuestion(models.Model):
     max_points = models.IntegerField(default=200)
     points_step = models.IntegerField(default=15)
     max_winners = models.IntegerField(default=4)
-    duration_minutes = models.IntegerField(default=7)
-    appear_after_minutes = models.IntegerField(default=120, choices=APPEAR_CHOICES)
+    duration_minutes = models.IntegerField(default=10)
+    appear_after_minutes = models.IntegerField(default=120)
     is_active = models.BooleanField(default=False)
     is_paused = models.BooleanField(default=False)
     paused_at = models.DateTimeField(null=True, blank=True)
     activated_at = models.DateTimeField(null=True, blank=True)
+    auto_start_triggered = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Bonus Question"
@@ -86,3 +82,20 @@ class BonusSubmission(models.Model):
 
     class Meta:
         unique_together = ('team', 'bonus')
+
+
+class PointAdjustment(models.Model):
+    team = models.ForeignKey(User, on_delete=models.CASCADE, related_name='point_adjustments')
+    delta = models.IntegerField(help_text='Positive to add points, negative to remove points')
+    reason = models.CharField(max_length=255, blank=True, default='')
+    adjusted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='adjustments_made')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Point Adjustment'
+        verbose_name_plural = 'Point Adjustments'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        sign = '+' if self.delta >= 0 else ''
+        return f'{self.team.username} {sign}{self.delta} pts'

@@ -18,7 +18,7 @@ urlpatterns = [
     path('api/load/<int:problem_id>/', views.load_code),
     path('api/run-custom/', views.run_code_custom, name='run_custom'),
     path('api/submit/', views.submit_code, name='submit_code'),
-    path('check-status/', views.check_hackathon_status, name='check_status'),
+    path('check-status/', views.check_hackathon_status, name='check_status_page'),
     path('logout/', views.logout_view, name='logout'),
     path('accounts/logout/', views.logout_view),
     path('accounts/', include('django.contrib.auth.urls')),

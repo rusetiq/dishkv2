@@ -1,8 +1,6 @@
 import os
 from pathlib import Path
 
-LOGIN_REDIRECT_URL = '/accounts/profile/'
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 try:

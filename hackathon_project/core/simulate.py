@@ -55,7 +55,7 @@ except Exception:
 results_lock = threading.Lock()
 print_lock = threading.Lock()
 request_records = []
-start_barrier = threading.Barrier(60)
+start_barrier = threading.Barrier(100)
 
 def log_event(message):
     timestamp = time.strftime("%H:%M:%S")
@@ -264,7 +264,7 @@ def main():
     print("\n" + "="*80)
     print("                      CONCURRENCY SIMULATION REPORT")
     print("="*80)
-    print(f"Total Simulated Teams:  60")
+    print(f"Total Simulated Teams:  100")
     print(f"Total Requests Made:    {total_reqs}")
     print(f"Successful Requests:    {success_reqs}")
     print(f"Failed Requests:        {failed_reqs}")

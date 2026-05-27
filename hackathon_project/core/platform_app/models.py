@@ -66,7 +66,7 @@ class BonusQuestion(models.Model):
 
     class Meta:
         verbose_name = "Bonus Question"
-        verbose_name_plural = "Bonus Question"
+        verbose_name_plural = "Bonus Questions"
 
     def __str__(self):
         return self.title

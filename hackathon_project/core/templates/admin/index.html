@@ -38,7 +38,7 @@
                     <span>🛑</span> End
                 </a>
             {% endif %}
-            {% if h_state and h_state.is_started or h_state.is_finished %}
+            {% if h_state and h_state.is_started or h_state and h_state.is_finished %}
                 <a href="/admin-api/reset-hackathon/" class="qa-btn danger" onclick="return confirm('Are you sure you want to reset the hackathon to Standby?');">
                     <span>🔄</span> Reset
                 </a>

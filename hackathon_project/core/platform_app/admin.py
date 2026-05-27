@@ -70,8 +70,9 @@ class ProgressAdmin(admin.ModelAdmin):
     actions = ['reset_progress_action']
 
     def reset_progress_action(self, request, queryset):
+        count = queryset.count()
         queryset.update(points=0, is_solved=False, current_code='')
-        self.message_user(request, f'Reset {queryset.count()} progress entries.', messages.WARNING)
+        self.message_user(request, f'Reset {count} progress entries.', messages.WARNING)
     reset_progress_action.short_description = '🔄 Reset selected progress'
 
 @admin.register(BonusQuestion)

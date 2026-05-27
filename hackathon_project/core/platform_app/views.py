@@ -1,8 +1,6 @@
-import os
 import json
 import urllib.request as urlreq
 import urllib.error
-from urllib import request as urllib_request
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -194,6 +192,7 @@ def save_code(request):
         code = request.POST.get('code')
         TeamProgress.objects.filter(team=request.user, problem_id=p_id).update(current_code=code)
         return JsonResponse({'status': 'Saved'})
+    return JsonResponse({'error': 'POST only'}, status=405)
 
 @login_required
 def load_code(request, problem_id):
@@ -284,52 +283,53 @@ if __name__ == "__main__":
 
 @login_required
 def submit_code(request):
-    if request.method == "POST":
-        p_id = request.POST.get('problem_id')
-        user_code = request.POST.get('code')
-        problem = get_object_or_404(Problem, id=p_id)
-        progress = get_object_or_404(TeamProgress, team=request.user, problem=problem)
-        state = HackathonState.objects.first()
-        if not state or not state.is_started or state.is_finished or state.is_paused:
-            return JsonResponse({'status': 'Hackathon is not active.'})
-        
-        for case in problem.hidden_test_cases:
-            try:
-                input_data = case['input']
-                expected = case['expected']
+    if request.method != "POST":
+        return JsonResponse({'error': 'POST only'}, status=405)
+    p_id = request.POST.get('problem_id')
+    user_code = request.POST.get('code')
+    problem = get_object_or_404(Problem, id=p_id)
+    progress = get_object_or_404(TeamProgress, team=request.user, problem=problem)
+    state = HackathonState.objects.first()
+    if not state or not state.is_started or state.is_finished or state.is_paused:
+        return JsonResponse({'status': 'Hackathon is not active.'})
+    
+    for case in problem.hidden_test_cases:
+        try:
+            input_data = case['input']
+            expected = case['expected']
 
-                output, error = run_leetcode_code(user_code, input_data, problem)
+            output, error = run_leetcode_code(user_code, input_data, problem)
 
-                if error:
-                    return JsonResponse({
-                        'status': 'Runtime Error',
-                        'error': error
-                    })
-
-                if output.strip() != str(expected).strip():
-                    return JsonResponse({'status': 'Wrong Answer'})
-
-            except Exception as e:
+            if error:
                 return JsonResponse({
                     'status': 'Runtime Error',
-                    'error': str(e)
+                    'error': error
                 })
 
-        if not progress.is_solved:
-            elapsed = (timezone.now() - state.start_time).total_seconds()
-            time_penalty = int(elapsed / 120)
-            final_points = max(20, problem.base_points - time_penalty)
-            
-            progress.points = final_points
-            progress.is_solved = True
-            progress.save()
+            if output.strip() != str(expected).strip():
+                return JsonResponse({'status': 'Wrong Answer'})
 
-        new_total = sum(tp.points for tp in TeamProgress.objects.filter(team=request.user))
+        except Exception as e:
+            return JsonResponse({
+                'status': 'Runtime Error',
+                'error': str(e)
+            })
+
+    if not progress.is_solved:
+        elapsed = (timezone.now() - state.start_time).total_seconds()
+        time_penalty = int(elapsed / 120)
+        final_points = max(20, problem.base_points - time_penalty)
         
-        return JsonResponse({
-            'status': 'Correct Answer!', 
-            'new_total': new_total
-        })
+        progress.points = final_points
+        progress.is_solved = True
+        progress.save()
+
+    new_total = sum(tp.points for tp in TeamProgress.objects.filter(team=request.user))
+    
+    return JsonResponse({
+        'status': 'Correct Answer!', 
+        'new_total': new_total
+    })
 
 @login_required
 def bonus_status(request):
@@ -516,43 +516,44 @@ def check_hackathon_status(request):
     })
 @login_required
 def run_code_custom(request):
-    if request.method == "POST":
-        p_id = request.POST.get('problem_id')
-        user_code = request.POST.get('code')
-        problem = get_object_or_404(Problem, id=p_id)
-        cases = problem.hidden_test_cases[:3]
-        results = []
-        overall_status = "Accepted"
-        for case in cases:
-            input_data = case.get('input', '')
-            expected = case.get('expected', '')
-            try:
-                output, error = run_leetcode_code(user_code, input_data, problem)
-                if error:
-                    status = "Runtime Error"
-                    overall_status = "Runtime Error"
-                elif output.strip() != str(expected).strip():
-                    status = "Wrong Answer"
-                    if overall_status == "Accepted":
-                        overall_status = "Wrong Answer"
-                else:
-                    status = "Accepted"
-            except Exception as e:
-                output = ""
-                error = str(e)
+    if request.method != "POST":
+        return JsonResponse({'error': 'POST only'}, status=405)
+    p_id = request.POST.get('problem_id')
+    user_code = request.POST.get('code')
+    problem = get_object_or_404(Problem, id=p_id)
+    cases = problem.hidden_test_cases[:3]
+    results = []
+    overall_status = "Accepted"
+    for case in cases:
+        input_data = case.get('input', '')
+        expected = case.get('expected', '')
+        try:
+            output, error = run_leetcode_code(user_code, input_data, problem)
+            if error:
                 status = "Runtime Error"
                 overall_status = "Runtime Error"
-            results.append({
-                'input': input_data,
-                'expected': expected,
-                'output': output,
-                'error': error,
-                'status': status
-            })
-        return JsonResponse({
-            'status': overall_status,
-            'results': results
+            elif output.strip() != str(expected).strip():
+                status = "Wrong Answer"
+                if overall_status == "Accepted":
+                    overall_status = "Wrong Answer"
+            else:
+                status = "Accepted"
+        except Exception as e:
+            output = ""
+            error = str(e)
+            status = "Runtime Error"
+            overall_status = "Runtime Error"
+        results.append({
+            'input': input_data,
+            'expected': expected,
+            'output': output,
+            'error': error,
+            'status': status
         })
+    return JsonResponse({
+        'status': overall_status,
+        'results': results
+    })
 @login_required
 def ai_hint(request):
     if request.method != 'POST':

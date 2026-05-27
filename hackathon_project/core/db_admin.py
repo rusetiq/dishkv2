@@ -99,7 +99,7 @@ def main():
         print("\nDIS Database Administrator Panel")
         print("1. Empty database (except aarush)")
         print("2. Add superuser")
-        print("3. Add nomal user")
+        print("3. Add normal user")
         print("4. Add multiple users via csv")
         print("5. Exit")
         

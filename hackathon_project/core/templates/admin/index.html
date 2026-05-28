@@ -21,46 +21,46 @@
         </h3>
         <div style="display:flex;flex-wrap:wrap;gap:8px;">
             {% if not h_state or not h_state.is_started or h_state.is_finished %}
-                <a href="/admin-api/start-hackathon/" class="qa-btn success-btn">
-                    <span>🚀</span> Start
-                </a>
+                <form method="post" action="/admin-api/start-hackathon/" style="display:inline;">{% csrf_token %}
+                    <button type="submit" class="qa-btn success-btn" style="border:none;cursor:pointer;"><span>🚀</span> Start</button>
+                </form>
             {% else %}
                 {% if h_state.is_paused %}
-                    <a href="/admin-api/resume-hackathon/" class="qa-btn success-btn">
-                        <span>▶️</span> Resume
-                    </a>
+                    <form method="post" action="/admin-api/resume-hackathon/" style="display:inline;">{% csrf_token %}
+                        <button type="submit" class="qa-btn success-btn" style="border:none;cursor:pointer;"><span>▶️</span> Resume</button>
+                    </form>
                 {% else %}
-                    <a href="/admin-api/pause-hackathon/" class="qa-btn">
-                        <span>⏸️</span> Pause
-                    </a>
+                    <form method="post" action="/admin-api/pause-hackathon/" style="display:inline;">{% csrf_token %}
+                        <button type="submit" class="qa-btn" style="border:none;cursor:pointer;"><span>⏸️</span> Pause</button>
+                    </form>
                 {% endif %}
-                <a href="/admin-api/end-hackathon/" class="qa-btn danger" onclick="return confirm('Are you sure you want to end the hackathon?');">
-                    <span>🛑</span> End
-                </a>
+                <form method="post" action="/admin-api/end-hackathon/" style="display:inline;" onsubmit="return confirm('Are you sure you want to end the hackathon?');">{% csrf_token %}
+                    <button type="submit" class="qa-btn danger" style="border:none;cursor:pointer;"><span>🛑</span> End</button>
+                </form>
             {% endif %}
             {% if h_state and h_state.is_started or h_state and h_state.is_finished %}
-                <a href="/admin-api/reset-hackathon/" class="qa-btn danger" onclick="return confirm('Are you sure you want to reset the hackathon to Standby?');">
-                    <span>🔄</span> Reset
-                </a>
+                <form method="post" action="/admin-api/reset-hackathon/" style="display:inline;" onsubmit="return confirm('Are you sure you want to reset the hackathon to Standby?');">{% csrf_token %}
+                    <button type="submit" class="qa-btn danger" style="border:none;cursor:pointer;"><span>🔄</span> Reset</button>
+                </form>
             {% endif %}
             {% if h_state %}
                 {% if h_state.hints_enabled %}
-                    <a href="/admin-api/toggle-hints/" class="qa-btn danger">
-                        <span>📴</span> Disable Hints
-                    </a>
+                    <form method="post" action="/admin-api/toggle-hints/" style="display:inline;">{% csrf_token %}
+                        <button type="submit" class="qa-btn danger" style="border:none;cursor:pointer;"><span>📴</span> Disable Hints</button>
+                    </form>
                 {% else %}
-                    <a href="/admin-api/toggle-hints/" class="qa-btn success-btn">
-                        <span>💡</span> Enable Hints
-                    </a>
+                    <form method="post" action="/admin-api/toggle-hints/" style="display:inline;">{% csrf_token %}
+                        <button type="submit" class="qa-btn success-btn" style="border:none;cursor:pointer;"><span>💡</span> Enable Hints</button>
+                    </form>
                 {% endif %}
                 {% if h_state.onboarding_tour_enabled %}
-                    <a href="/admin-api/toggle-tour/" class="qa-btn danger">
-                        <span>🚫</span> Disable Tour
-                    </a>
+                    <form method="post" action="/admin-api/toggle-tour/" style="display:inline;">{% csrf_token %}
+                        <button type="submit" class="qa-btn danger" style="border:none;cursor:pointer;"><span>🚫</span> Disable Tour</button>
+                    </form>
                 {% else %}
-                    <a href="/admin-api/toggle-tour/" class="qa-btn success-btn">
-                        <span>❓</span> Enable Tour
-                    </a>
+                    <form method="post" action="/admin-api/toggle-tour/" style="display:inline;">{% csrf_token %}
+                        <button type="submit" class="qa-btn success-btn" style="border:none;cursor:pointer;"><span>❓</span> Enable Tour</button>
+                    </form>
                 {% endif %}
             {% endif %}
         </div>
@@ -86,22 +86,22 @@
         <div style="display:flex;flex-wrap:wrap;gap:8px;">
             {% if b_state %}
                 {% if not b_state.is_active %}
-                    <a href="/admin-api/start-bonus/" class="qa-btn success-btn">
-                        <span>⚡</span> Activate
-                    </a>
+                    <form method="post" action="/admin-api/start-bonus/" style="display:inline;">{% csrf_token %}
+                        <button type="submit" class="qa-btn success-btn" style="border:none;cursor:pointer;"><span>⚡</span> Activate</button>
+                    </form>
                 {% else %}
                     {% if b_state.is_paused %}
-                        <a href="/admin-api/resume-bonus/" class="qa-btn success-btn">
-                            <span>▶️</span> Resume
-                        </a>
+                        <form method="post" action="/admin-api/resume-bonus/" style="display:inline;">{% csrf_token %}
+                            <button type="submit" class="qa-btn success-btn" style="border:none;cursor:pointer;"><span>▶️</span> Resume</button>
+                        </form>
                     {% else %}
-                        <a href="/admin-api/pause-bonus/" class="qa-btn">
-                            <span>⏸️</span> Pause
-                        </a>
+                        <form method="post" action="/admin-api/pause-bonus/" style="display:inline;">{% csrf_token %}
+                            <button type="submit" class="qa-btn" style="border:none;cursor:pointer;"><span>⏸️</span> Pause</button>
+                        </form>
                     {% endif %}
-                    <a href="/admin-api/end-bonus/" class="qa-btn danger">
-                        <span>🛑</span> Deactivate
-                    </a>
+                    <form method="post" action="/admin-api/end-bonus/" style="display:inline;">{% csrf_token %}
+                        <button type="submit" class="qa-btn danger" style="border:none;cursor:pointer;"><span>🛑</span> Deactivate</button>
+                    </form>
                 {% endif %}
             {% else %}
                 <span style="font-size:11px;color:var(--muted);align-self:center;">Create a Bonus Question model instance first.</span>

@@ -239,5 +239,71 @@ LEETCODE_PROBLEMS = [
             {"input": "[1,8,6,2,5,4,8,3,7]", "expected": "49"},
             {"input": "[1,1]", "expected": "1"}
         ]
+    },
+    {
+        "id": 15,
+        "title": "Longest Consecutive Sequence",
+        "difficulty": "Medium",
+        "function_name": "longestConsecutive",
+        "base_points": 100,
+        "starter_code": "class Solution:\n    def longestConsecutive(self, nums: List[int]) -> int:\n        pass",
+        "description": "Given an unsorted array of integers nums, return the length of the longest consecutive elements sequence.\n\nYou must write an algorithm that runs in O(n) time.",
+        "examples": "Input: nums = [100,4,200,1,3,2]\nOutput: 4\nExplanation: The longest consecutive elements sequence is [1, 2, 3, 4]. Therefore its length is 4.",
+        "input_variable": "nums",
+        "hidden_test_cases": [
+            {"input": "[100,4,200,1,3,2]", "expected": "4"},
+            {"input": "[0,3,7,2,5,8,4,6,0,1]", "expected": "9"},
+            {"input": "[]", "expected": "0"},
+            {"input": "[1,2,0,1]", "expected": "3"}
+        ]
+    },
+    {
+        "id": 16,
+        "title": "Trapping Rain Water",
+        "difficulty": "Hard",
+        "function_name": "trap",
+        "base_points": 150,
+        "starter_code": "class Solution:\n    def trap(self, height: List[int]) -> int:\n        pass",
+        "description": "Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it can trap after raining.",
+        "examples": "Input: height = [0,1,0,2,1,0,1,3,2,1,2,1]\nOutput: 6",
+        "input_variable": "height",
+        "hidden_test_cases": [
+            {"input": "[0,1,0,2,1,0,1,3,2,1,2,1]", "expected": "6"},
+            {"input": "[4,2,0,3,2,5]", "expected": "9"},
+            {"input": "[]", "expected": "0"},
+            {"input": "[3]", "expected": "0"},
+            {"input": "[2,0,2]", "expected": "2"}
+        ]
     }
 ]
+
+BONUS_QUESTIONS = [
+    {
+        "title": "Bonus Challenge 1: Find the Secret Key",
+        "description": "Submit an integer x such that the function outputs 'SUCCESS'. The script checks if x^2 - 12x + 35 = 0 and x > 6.",
+        "starter_code": "try:\n    val = int(input().strip())\n    if val**2 - 12*val + 35 == 0 and val > 6:\n        print(\"SUCCESS\")\n    else:\n        print(\"TRY AGAIN\")\nexcept Exception:\n    print(\"INVALID INPUT\")",
+        "expected_output": "SUCCESS",
+        "input_type_hint": "An integer x",
+        "order": 1,
+        "duration_minutes": 15
+    },
+    {
+        "title": "Bonus Challenge 2: Word Play",
+        "description": "Find a word containing exactly three 'a's and of length 7 that prints 'FOUND'.",
+        "starter_code": "word = input().strip().lower()\nif len(word) == 7 and word.count('a') == 3:\n    print(\"FOUND\")\nelse:\n    print(\"NOT FOUND\")",
+        "expected_output": "FOUND",
+        "input_type_hint": "A 7-letter word",
+        "order": 2,
+        "duration_minutes": 15
+    },
+    {
+        "title": "Bonus Challenge 3: Fibonacci Puzzle",
+        "description": "Provide an integer input n such that the n-th Fibonacci number is 55. The Fibonacci sequence starts with F(0)=0, F(1)=1.",
+        "starter_code": "def fib(n):\n    if n <= 0: return 0\n    if n == 1: return 1\n    a, b = 0, 1\n    for _ in range(2, n + 1):\n        a, b = b, a + b\n    return b\n\ntry:\n    val = int(input().strip())\n    if fib(val) == 55:\n        print(\"MATCH\")\n    else:\n        print(\"NOMATCH\")\nexcept Exception:\n    print(\"ERROR\")",
+        "expected_output": "MATCH",
+        "input_type_hint": "Integer n",
+        "order": 3,
+        "duration_minutes": 15
+    }
+]
+

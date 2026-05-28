@@ -140,25 +140,19 @@ def view_leaderboard():
     adj_scores = PointAdjustment.objects.values('team__username').annotate(
         adj_score=Sum('delta')
     )
+    team_scores_map = {t['team__username']: t['problem_score'] or 0 for t in team_scores}
     bonus_map = {b['team__username']: b['bonus_score'] or 0 for b in bonus_scores}
     adj_map = {a['team__username']: a['adj_score'] or 0 for a in adj_scores}
 
+    all_teams = User.objects.filter(is_staff=False)
     teams = []
-    for t in team_scores:
-        username = t['team__username']
-        prob = t['problem_score'] or 0
+    for team in all_teams:
+        username = team.username
+        prob = team_scores_map.get(username, 0)
         bon = bonus_map.get(username, 0)
         adj = adj_map.get(username, 0)
         total = prob + bon + adj
         teams.append({'username': username, 'problem': prob, 'bonus': bon, 'adj': adj, 'total': total})
-
-    # Include teams with no progress but with adjustments or bonus
-    all_usernames = set(t['username'] for t in teams)
-    for username in set(bonus_map.keys()) | set(adj_map.keys()):
-        if username not in all_usernames:
-            bon = bonus_map.get(username, 0)
-            adj = adj_map.get(username, 0)
-            teams.append({'username': username, 'problem': 0, 'bonus': bon, 'adj': adj, 'total': bon + adj})
 
     teams = sorted(teams, key=lambda x: x['total'], reverse=True)
 
@@ -228,22 +222,16 @@ def export_results_to_csv():
     )
     bonus_map = {b['team__username']: b['bonus_score'] or 0 for b in bonus_scores}
     adj_map = {a['team__username']: a['adj_score'] or 0 for a in adj_scores}
+    team_scores_map = {t['team__username']: t['problem_score'] or 0 for t in team_scores}
 
+    all_teams = User.objects.filter(is_staff=False)
     teams = []
-    all_usernames = set()
-    for t in team_scores:
-        username = t['team__username']
-        all_usernames.add(username)
-        prob = t['problem_score'] or 0
+    for team in all_teams:
+        username = team.username
+        prob = team_scores_map.get(username, 0)
         bon = bonus_map.get(username, 0)
         adj = adj_map.get(username, 0)
         teams.append({'username': username, 'problem': prob, 'bonus': bon, 'adj': adj, 'total': prob + bon + adj})
-
-    for username in set(bonus_map.keys()) | set(adj_map.keys()):
-        if username not in all_usernames:
-            bon = bonus_map.get(username, 0)
-            adj = adj_map.get(username, 0)
-            teams.append({'username': username, 'problem': 0, 'bonus': bon, 'adj': adj, 'total': bon + adj})
 
     teams = sorted(teams, key=lambda x: x['total'], reverse=True)
 
@@ -280,6 +268,83 @@ def view_bonus_status():
     
     print(f"\nFirst finisher: {first_finisher}")
 
+def adjust_points():
+    username = input("Enter team username: ").strip()
+    if not username:
+        print("Username cannot be empty.")
+        return
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        print(f"User '{username}' not found.")
+        return
+
+    try:
+        delta_str = input("Enter points delta (e.g. 50 or -50): ").strip()
+        delta = int(delta_str)
+    except ValueError:
+        print("Invalid number.")
+        return
+
+    reason = input("Enter reason for adjustment: ").strip()
+    
+    admin_user = User.objects.filter(is_superuser=True).first()
+    PointAdjustment.objects.create(
+        team=user,
+        delta=delta,
+        reason=reason,
+        adjusted_by=admin_user
+    )
+    print(f"Adjusted points for '{username}' by {delta:+} points.")
+
+def put_user_solutions():
+    username = input("Enter team username: ").strip()
+    if not username:
+        print("Username cannot be empty.")
+        return
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        print(f"User '{username}' not found.")
+        return
+
+    from platform_app.models import Problem
+    problems = Problem.objects.all().order_by('id')
+    if not problems.exists():
+        print("No problems configured in the database.")
+        return
+
+    print("\nProblems:")
+    for p in problems:
+        print(f"  {p.id}. {p.title} ({p.difficulty}, {p.base_points} base points)")
+    
+    choice = input("\nEnter problem ID to solve, or 'all' to solve all: ").strip().lower()
+    
+    if choice == 'all':
+        for p in problems:
+            progress, created = TeamProgress.objects.get_or_create(team=user, problem=p)
+            if not progress.is_solved:
+                progress.is_solved = True
+                progress.points = p.base_points
+                progress.save()
+        print(f"Successfully solved all {problems.count()} problems for team '{username}'.")
+    else:
+        try:
+            p_id = int(choice)
+            p = Problem.objects.get(id=p_id)
+        except (ValueError, Problem.DoesNotExist):
+            print("Invalid problem ID.")
+            return
+
+        progress, created = TeamProgress.objects.get_or_create(team=user, problem=p)
+        if progress.is_solved:
+            print(f"Problem '{p.title}' already solved by '{username}' with {progress.points} points.")
+            return
+        progress.is_solved = True
+        progress.points = p.base_points
+        progress.save()
+        print(f"Successfully solved problem '{p.title}' for team '{username}' with {p.base_points} points.")
+
 def main():
     while True:
         print("\nDIS Database Administrator Panel")
@@ -297,9 +362,9 @@ def main():
         print("  8.  View leaderboard")
         print("  9.  Reset all progress (keep users)")
         print("  10. Export results to CSV")
-        print("")
-        print("  Bonus Round")
         print("  11. View bonus status")
+        print("  12. Adjust points (add/remove)")
+        print("  13. Put solutions for a specific user")
         print("")
         print("  0.  Exit")
         print("─" * 38)
@@ -327,6 +392,10 @@ def main():
             export_results_to_csv()
         elif choice == '11':
             view_bonus_status()
+        elif choice == '12':
+            adjust_points()
+        elif choice == '13':
+            put_user_solutions()
         elif choice == '0':
             print("Exiting.")
             break

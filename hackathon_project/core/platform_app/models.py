@@ -16,6 +16,7 @@ class HackathonState(models.Model):
     onboarding_tour_enabled = models.BooleanField(default=True, help_text='Show the guided UI tour to teams on their first visit to a problem')
     ai_model = models.CharField(max_length=100, choices=AI_MODEL_CHOICES, default='llama-3.3-70b-versatile', help_text='Groq model used for AI hints — change takes effect immediately')
     bonus_first_finisher = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='bonus_first_finish', help_text='First team to solve all bonus questions')
+    duration_minutes = models.IntegerField(default=120, help_text='Duration of the hackathon in minutes')
 
     class Meta:
         verbose_name_plural = "Hackathon State"
@@ -79,7 +80,7 @@ class BonusSubmission(models.Model):
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        pass
+        unique_together = ('team', 'bonus')
 
 
 class PointAdjustment(models.Model):

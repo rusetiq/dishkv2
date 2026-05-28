@@ -95,19 +95,19 @@ class AdminTestCase(TestCase):
 
     def test_admin_toggle_hints_as_staff(self):
         self.client.login(username="admin", password="password")
-        response = self.client.get("/admin-api/toggle-hints/")
+        response = self.client.post("/admin-api/toggle-hints/")
         self.assertEqual(response.status_code, 302)
         self.state.refresh_from_db()
         self.assertFalse(self.state.hints_enabled)
 
-        response = self.client.get("/admin-api/toggle-hints/")
+        response = self.client.post("/admin-api/toggle-hints/")
         self.assertEqual(response.status_code, 302)
         self.state.refresh_from_db()
         self.assertTrue(self.state.hints_enabled)
 
     def test_admin_toggle_hints_as_normal_user(self):
         self.client.login(username="testteam", password="password")
-        response = self.client.get("/admin-api/toggle-hints/")
+        response = self.client.post("/admin-api/toggle-hints/")
         self.assertEqual(response.status_code, 302)
         self.state.refresh_from_db()
         self.assertTrue(self.state.hints_enabled)

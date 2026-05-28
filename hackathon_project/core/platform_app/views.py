@@ -7,13 +7,24 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.models import User
 from django.http import JsonResponse
-from django.db.models import Sum
+from django.db.models import Sum, Count
+from django.db import transaction
+from django.views.decorators.http import require_POST
 from .models import Problem, TeamProgress, HackathonState, BonusQuestion, BonusSubmission, PointAdjustment
 from .utils import run_python_code
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Case, When, IntegerField
 
+
+def _get_total_score(user):
+    problem_pts = sum(tp.points for tp in TeamProgress.objects.filter(team=user))
+    bonus_pts = BonusSubmission.objects.filter(team=user, is_correct=True).aggregate(s=Sum('points_awarded'))['s'] or 0
+    adj_pts = PointAdjustment.objects.filter(team=user).aggregate(s=Sum('delta'))['s'] or 0
+    return problem_pts + bonus_pts + adj_pts
+
+
+@require_POST
 def logout_view(request):
     auth_logout(request)
     return redirect('/login/')
@@ -38,20 +49,23 @@ def leaderboard(request):
         adj_score=Sum('delta')
     )
 
-    bonus_map = {b['team__username']: b['bonus_score'] for b in bonus_scores}
-    adj_map = {a['team__username']: a['adj_score'] for a in adjustment_scores}
+    team_scores_map = {t['team__username']: t['problem_score'] or 0 for t in team_scores}
+    bonus_map = {b['team__username']: b['bonus_score'] or 0 for b in bonus_scores}
+    adj_map = {a['team__username']: a['adj_score'] or 0 for a in adjustment_scores}
 
+    all_teams = User.objects.filter(is_staff=False)
     teams = []
-    for t in team_scores:
-        username = t['team__username']
-        total = (t['problem_score'] or 0) + bonus_map.get(username, 0) + (adj_map.get(username, 0) or 0)
+    for team in all_teams:
+        username = team.username
+        total = team_scores_map.get(username, 0) + bonus_map.get(username, 0) + adj_map.get(username, 0)
         teams.append({'team__username': username, 'total_score': total})
 
     teams = sorted(teams, key=lambda x: x['total_score'], reverse=True)
 
     end_time_iso = None
     if state and state.start_time:
-        end_time_iso = (state.start_time + timedelta(hours=2)).isoformat()
+        dur = state.duration_minutes if state.duration_minutes else 120
+        end_time_iso = (state.start_time + timedelta(minutes=dur)).isoformat()
 
     return render(request, 'leaderboard.html', {
         'teams': teams,
@@ -73,12 +87,16 @@ def leaderboard_data(request):
     adjustment_scores = PointAdjustment.objects.values('team__username').annotate(
         adj_score=Sum('delta')
     )
-    bonus_map = {b['team__username']: b['bonus_score'] for b in bonus_scores}
-    adj_map = {a['team__username']: a['adj_score'] for a in adjustment_scores}
+
+    team_scores_map = {t['team__username']: t['problem_score'] or 0 for t in team_scores}
+    bonus_map = {b['team__username']: b['bonus_score'] or 0 for b in bonus_scores}
+    adj_map = {a['team__username']: a['adj_score'] or 0 for a in adjustment_scores}
+
+    all_teams = User.objects.filter(is_staff=False)
     teams = []
-    for t in team_scores:
-        username = t['team__username']
-        total = (t['problem_score'] or 0) + bonus_map.get(username, 0) + (adj_map.get(username, 0) or 0)
+    for team in all_teams:
+        username = team.username
+        total = team_scores_map.get(username, 0) + bonus_map.get(username, 0) + adj_map.get(username, 0)
         teams.append({'username': username, 'score': total})
     teams = sorted(teams, key=lambda x: x['score'], reverse=True)
     return JsonResponse({'teams': teams})
@@ -117,10 +135,10 @@ def home(request):
     )
 
     solved_problem_ids = set(TeamProgress.objects.filter(team=request.user, is_solved=True).values_list('problem_id', flat=True))
-    bonus_points = BonusSubmission.objects.filter(team=request.user, is_correct=True).aggregate(s=Sum('points_awarded'))['s'] or 0
-    total_score = sum(tp.points for tp in TeamProgress.objects.filter(team=request.user)) + bonus_points
+    total_score = _get_total_score(request.user)
     solved_count = TeamProgress.objects.filter(team=request.user, is_solved=True).count()
-    end_time = state.start_time + timedelta(hours=2)
+    dur = state.duration_minutes if state.duration_minutes else 120
+    end_time = state.start_time + timedelta(minutes=dur)
 
     all_teams = User.objects.filter(is_staff=False)
     team_scores = {t['team__username']: t['problem_score'] or 0 for t in TeamProgress.objects.filter(team__is_staff=False).values('team__username').annotate(problem_score=Sum('points'))}
@@ -158,7 +176,8 @@ def problem_detail(request, problem_id):
     if not state.is_started or state.is_paused:
         return redirect('waiting_room')
 
-    end_time = state.start_time + timedelta(hours=2)
+    dur = state.duration_minutes if state.duration_minutes else 120
+    end_time = state.start_time + timedelta(minutes=dur)
     problem = get_object_or_404(Problem, id=problem_id)
     progress, created = TeamProgress.objects.get_or_create(
     team=request.user,
@@ -168,10 +187,21 @@ def problem_detail(request, problem_id):
     if created:
         progress.current_code = problem.starter_code
         progress.save()
-    bonus_points = BonusSubmission.objects.filter(team=request.user, is_correct=True).aggregate(s=Sum('points_awarded'))['s'] or 0
-    total_score = sum(tp.points for tp in TeamProgress.objects.filter(team=request.user)) + bonus_points
-    prev_id = problem_id - 1 if problem_id > 1 else None
-    next_id = problem_id + 1 if Problem.objects.filter(id=problem_id+1).exists() else None
+    total_score = _get_total_score(request.user)
+    all_problem_ids = list(Problem.objects.order_by(
+        Case(
+            When(difficulty='Easy', then=0),
+            When(difficulty='Medium', then=1),
+            When(difficulty='Hard', then=2),
+            output_field=IntegerField()
+        ), 'id'
+    ).values_list('id', flat=True))
+    try:
+        current_idx = all_problem_ids.index(problem_id)
+    except ValueError:
+        current_idx = -1
+    prev_id = all_problem_ids[current_idx - 1] if current_idx > 0 else None
+    next_id = all_problem_ids[current_idx + 1] if current_idx >= 0 and current_idx < len(all_problem_ids) - 1 else None
 
     return render(request, 'problem.html', {
         'end_time': end_time.isoformat(),
@@ -184,25 +214,31 @@ def problem_detail(request, problem_id):
         'onboarding_tour_enabled': state.onboarding_tour_enabled,
     })
 
-# API for Save/Load/Submit
 @login_required
+@require_POST
 def save_code(request):
-    if request.method == "POST":
-        p_id = request.POST.get('problem_id')
-        code = request.POST.get('code')
-        TeamProgress.objects.filter(team=request.user, problem_id=p_id).update(current_code=code)
-        return JsonResponse({'status': 'Saved'})
-    return JsonResponse({'error': 'POST only'}, status=405)
+    p_id = request.POST.get('problem_id')
+    code = request.POST.get('code', '')
+    if len(code) > 50000:
+        return JsonResponse({'error': 'Code too large'}, status=400)
+    updated = TeamProgress.objects.filter(team=request.user, problem_id=p_id).update(current_code=code)
+    if not updated:
+        return JsonResponse({'error': 'Progress not found'}, status=404)
+    return JsonResponse({'status': 'Saved'})
 
 @login_required
 def load_code(request, problem_id):
-    progress = TeamProgress.objects.get(team=request.user, problem_id=problem_id)
+    try:
+        progress = TeamProgress.objects.get(team=request.user, problem_id=problem_id)
+    except TeamProgress.DoesNotExist:
+        problem = get_object_or_404(Problem, id=problem_id)
+        return JsonResponse({'code': problem.starter_code})
     return JsonResponse({'code': progress.current_code})
 
-def run_leetcode_code(user_code, input_data, problem):
+def run_leetcode_code(user_code, input_data_list, problem):
     driver = f"""
 import json
-import inspect
+import ast
 
 def _run_leetcode_style():
     func_name = {repr(problem.function_name)}
@@ -217,74 +253,97 @@ def _run_leetcode_style():
             func = getattr(sol_inst, func_name)
     
     if not func:
-        print(f"Error: Function '{{func_name}}' not found.", file=sys.stderr)
-        sys.exit(1)
+        raise AttributeError(f"Error: Function '{{func_name}}' not found.")
         
-    input_str = sys.stdin.read().strip()
+    lines = []
+    while True:
+        try:
+            lines.append(input())
+        except EOFError:
+            break
+    input_str = "\\n".join(lines).strip()
     if not input_str:
         return
         
-    try:
-        parsed_input = eval(input_str)
-    except Exception:
-        lines = [line.strip() for line in input_str.split('\\n') if line.strip()]
-        parsed_input = []
-        for line in lines:
-            try:
-                parsed_input.append(eval(line))
-            except Exception:
-                parsed_input.append(line)
-                
-    sig = inspect.signature(func)
-    params = list(sig.parameters.values())
-    expected_args_count = len([p for p in params if p.name != 'self' and p.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)])
+    inputs = json.loads(input_str)
+    expected_args_count = func.__code__.co_argcount - (1 if hasattr(func, '__self__') else 0)
     
-    if expected_args_count > 1:
-        if isinstance(parsed_input, tuple):
-            args = parsed_input
-        elif isinstance(parsed_input, list) and len(parsed_input) == expected_args_count:
-            args = tuple(parsed_input)
-        else:
-            args = (parsed_input,)
-    else:
-        args = (parsed_input,)
-        
-    if func_name == "firstBadVersion" or "firstBadVersion" in g or "First Bad Version" in {repr(problem.title)}:
-        bad_version = 0
-        lines = [line.strip() for line in input_str.split('\\n') if line.strip()]
-        if len(lines) >= 2:
+    res_list = []
+    for inp in inputs:
+        try:
             try:
-                bad_version = int(lines[1])
-            except:
-                pass
-        g['isBadVersion'] = lambda v: v >= bad_version
-        
-    try:
-        res = func(*args)
-        if res is True:
-            print("True")
-        elif res is False:
-            print("False")
-        elif res is None:
-            print("None")
-        elif isinstance(res, (list, dict, tuple)):
-            print(json.dumps(res))
-        else:
-            print(str(res))
-    except Exception as e:
-        print(f"Runtime Error: {{type(e).__name__}}: {{e}}", file=sys.stderr)
-        sys.exit(1)
+                parsed_input = ast.literal_eval(inp)
+            except Exception:
+                lines_split = [line.strip() for line in inp.split('\\n') if line.strip()]
+                parsed_input = []
+                for line in lines_split:
+                    try:
+                        parsed_input.append(ast.literal_eval(line))
+                    except Exception:
+                        parsed_input.append(line)
+            
+            if expected_args_count > 1:
+                if isinstance(parsed_input, tuple):
+                    args = parsed_input
+                elif isinstance(parsed_input, list) and len(parsed_input) == expected_args_count:
+                    args = tuple(parsed_input)
+                else:
+                    args = (parsed_input,)
+            else:
+                args = (parsed_input,)
+                
+            if func_name == "firstBadVersion" or "firstBadVersion" in g or "First Bad Version" in {repr(problem.title)}:
+                bad_version = 0
+                lines_split = [line.strip() for line in inp.split('\\n') if line.strip()]
+                if len(lines_split) >= 2:
+                    try:
+                        bad_version = int(lines_split[1])
+                    except:
+                        pass
+                g['isBadVersion'] = lambda v: v >= bad_version
+                
+            res = func(*args)
+            if res is True:
+                out = "True"
+            elif res is False:
+                out = "False"
+            elif res is None:
+                out = "None"
+            elif isinstance(res, (list, dict, tuple)):
+                out = json.dumps(res)
+            else:
+                out = str(res)
+            res_list.append({{'output': out, 'error': '', 'status': 'Accepted'}})
+        except Exception as e:
+            res_list.append({{'output': '', 'error': f"{{type(e).__name__}}: {{e}}", 'status': 'Runtime Error'}})
+            
+    print("RESULT:" + json.dumps(res_list))
 
 if __name__ == "__main__":
     _run_leetcode_style()
 """
     full_code = user_code + "\n" + driver
-    return run_python_code(full_code, input_data, inject_var=None)
+    stdout, stderr = run_python_code(full_code, json.dumps(input_data_list), inject_var=None)
+    if stderr:
+        return None, stderr
+    result_prefix = "RESULT:"
+    result_line = None
+    for line in stdout.split('\n'):
+        if line.startswith(result_prefix):
+            result_line = line[len(result_prefix):]
+            break
+    if result_line is None:
+        return None, stdout or "Unknown error occurred"
+    try:
+        return json.loads(result_line), None
+    except Exception as e:
+        return None, f"JSON parse error of driver output: {e}"
 
 @login_required
+@require_POST
 def submit_code(request):
-    if request.method != "POST":
-        return JsonResponse({'error': 'POST only'}, status=405)
+    if request.user.is_staff:
+        return JsonResponse({'status': 'Staff accounts cannot submit.'})
     p_id = request.POST.get('problem_id')
     user_code = request.POST.get('code')
     problem = get_object_or_404(Problem, id=p_id)
@@ -293,27 +352,25 @@ def submit_code(request):
     if not state or not state.is_started or state.is_finished or state.is_paused:
         return JsonResponse({'status': 'Hackathon is not active.'})
     
-    for case in problem.hidden_test_cases:
-        try:
-            input_data = case['input']
-            expected = case['expected']
+    input_list = [case['input'] for case in problem.hidden_test_cases]
+    results, error = run_leetcode_code(user_code, input_list, problem)
 
-            output, error = run_leetcode_code(user_code, input_data, problem)
+    if error:
+        return JsonResponse({
+            'status': 'Runtime Error',
+            'error': error
+        })
 
-            if error:
-                return JsonResponse({
-                    'status': 'Runtime Error',
-                    'error': error
-                })
-
-            if output.strip() != str(expected).strip():
-                return JsonResponse({'status': 'Wrong Answer'})
-
-        except Exception as e:
+    for case, res in zip(problem.hidden_test_cases, results):
+        if res['status'] == 'Runtime Error':
             return JsonResponse({
                 'status': 'Runtime Error',
-                'error': str(e)
+                'error': res['error']
             })
+        expected = case['expected']
+        output = res['output']
+        if output is None or output.strip() != str(expected).strip():
+            return JsonResponse({'status': 'Wrong Answer'})
 
     if not progress.is_solved:
         elapsed = (timezone.now() - state.start_time).total_seconds()
@@ -324,7 +381,7 @@ def submit_code(request):
         progress.is_solved = True
         progress.save()
 
-    new_total = sum(tp.points for tp in TeamProgress.objects.filter(team=request.user))
+    new_total = _get_total_score(request.user)
     
     return JsonResponse({
         'status': 'Correct Answer!', 
@@ -333,17 +390,15 @@ def submit_code(request):
 
 @login_required
 def bonus_status(request):
-    """Return the status of the bonus round with all questions."""
     questions = BonusQuestion.objects.all().order_by('order')
     if not questions.exists():
         return JsonResponse({
             'active': False,
             'available': False,
-            'expired': True,
+            'expired': False,
             'questions': [],
         })
 
-    # All questions share the same is_active/is_paused/activated_at — use the first one
     first_q = questions.first()
     
     if not first_q.is_active:
@@ -366,7 +421,6 @@ def bonus_status(request):
     state = HackathonState.objects.first()
     first_finisher = state.bonus_first_finisher if state else None
 
-    # Build per-question data for this user
     solved_question_ids = set(
         BonusSubmission.objects.filter(
             team=request.user, is_correct=True, bonus__in=questions
@@ -383,7 +437,6 @@ def bonus_status(request):
             'title': q.title,
             'description': q.description,
             'starter_code': q.starter_code,
-            'expected_output': q.expected_output,
             'input_type_hint': q.input_type_hint,
             'solved': q.id in solved_question_ids,
         })
@@ -408,9 +461,14 @@ def bonus_status(request):
     })
 
 @login_required
+@require_POST
 def bonus_submit(request):
-    if request.method != "POST":
-        return JsonResponse({'status': 'error'})
+    if request.user.is_staff:
+        return JsonResponse({'status': 'Staff accounts cannot submit.'})
+
+    state = HackathonState.objects.first()
+    if not state or not state.is_started or state.is_finished or state.is_paused:
+        return JsonResponse({'status': 'Hackathon is not active.'})
 
     question_id = request.POST.get('question_id')
     if not question_id:
@@ -423,11 +481,9 @@ def bonus_submit(request):
     if bonus.is_paused:
         return JsonResponse({'status': 'Bonus is paused'})
 
-    # Check if already solved this specific question
     if BonusSubmission.objects.filter(bonus=bonus, team=request.user, is_correct=True).exists():
         return JsonResponse({'status': 'Already solved this question'})
 
-    # Check time expiry
     if bonus.activated_at:
         if bonus.is_paused:
             open_seconds = (bonus.paused_at - bonus.activated_at).total_seconds()
@@ -445,49 +501,74 @@ def bonus_submit(request):
     if error:
         return JsonResponse({'status': 'Runtime Error', 'error': error})
 
-    is_correct = output.strip() == bonus.expected_output.strip()
-
-    if not is_correct:
+    if output is None or output.strip() != bonus.expected_output.strip():
         return JsonResponse({'status': 'Wrong Answer — check your input format.'})
 
-    # Correct answer — create submission
-    points_awarded = 0
+    points_awarded = 70
+    finish_rank = None
 
-    # Check if solving this question completes all bonus questions
     all_questions = BonusQuestion.objects.filter(is_active=True).order_by('order')
     already_solved_ids = set(
         BonusSubmission.objects.filter(
             team=request.user, is_correct=True, bonus__in=all_questions
         ).values_list('bonus_id', flat=True)
     )
-    # Add this one (not yet saved)
     already_solved_ids.add(bonus.id)
 
     all_complete = len(already_solved_ids) == all_questions.count()
 
     if all_complete:
-        # Check if this team is the first finisher
-        state = HackathonState.objects.first()
-        if state and state.bonus_first_finisher is None:
-            state.bonus_first_finisher = request.user
-            state.save()
-            points_awarded = 100
+        try:
+            with transaction.atomic():
+                h_state = HackathonState.objects.select_for_update().first()
 
-    BonusSubmission.objects.create(
-        team=request.user, bonus=bonus,
-        submitted_input=user_input,
-        is_correct=True,
-        points_awarded=points_awarded,
-    )
+                finished_teams_count = BonusSubmission.objects.filter(
+                    bonus__in=all_questions,
+                    is_correct=True
+                ).exclude(
+                    team=request.user
+                ).values('team').annotate(
+                    solved_count=Count('bonus', distinct=True)
+                ).filter(
+                    solved_count=all_questions.count()
+                ).count()
 
-    # Calculate new total
-    new_total = (
-        sum(tp.points for tp in TeamProgress.objects.filter(team=request.user))
-        + (BonusSubmission.objects.filter(team=request.user, is_correct=True).aggregate(s=Sum('points_awarded'))['s'] or 0)
-        + (PointAdjustment.objects.filter(team=request.user).aggregate(s=Sum('delta'))['s'] or 0)
-    )
+                if finished_teams_count == 0:
+                    points_awarded += 100
+                    finish_rank = 1
+                    if h_state and not h_state.bonus_first_finisher:
+                        h_state.bonus_first_finisher = request.user
+                        h_state.save()
+                elif finished_teams_count == 1:
+                    points_awarded += 50
+                    finish_rank = 2
+                elif finished_teams_count == 2:
+                    points_awarded += 25
+                    finish_rank = 3
+                else:
+                    finish_rank = finished_teams_count + 1
 
-    # How many solved now
+                BonusSubmission.objects.create(
+                    team=request.user, bonus=bonus,
+                    submitted_input=user_input,
+                    is_correct=True,
+                    points_awarded=points_awarded,
+                )
+        except Exception:
+            return JsonResponse({'status': 'Already solved this question'})
+    else:
+        try:
+            BonusSubmission.objects.create(
+                team=request.user, bonus=bonus,
+                submitted_input=user_input,
+                is_correct=True,
+                points_awarded=points_awarded,
+            )
+        except Exception:
+            return JsonResponse({'status': 'Already solved this question'})
+
+    new_total = _get_total_score(request.user)
+
     solved_count = BonusSubmission.objects.filter(
         team=request.user, is_correct=True, bonus__in=all_questions
     ).count()
@@ -500,13 +581,20 @@ def bonus_submit(request):
         'all_complete': all_complete,
     }
 
-    if all_complete and points_awarded > 0:
-        response_data['status'] = 'Correct! 🏆 You finished first — +100 bonus points!'
+    if all_complete:
+        if finish_rank == 1:
+            response_data['status'] = 'Correct! 🏆 You finished first — +100 bonus points!'
+            response_data['first_finisher'] = True
+        elif finish_rank == 2:
+            response_data['status'] = 'Correct! 🥈 You finished second — +50 bonus points!'
+            response_data['first_finisher'] = False
+        elif finish_rank == 3:
+            response_data['status'] = 'Correct! 🥉 You finished third — +25 bonus points!'
+            response_data['first_finisher'] = False
+        else:
+            response_data['status'] = 'Correct! All questions complete — +70 points!'
+            response_data['first_finisher'] = False
         response_data['points_awarded'] = points_awarded
-        response_data['first_finisher'] = True
-    elif all_complete:
-        response_data['status'] = 'Correct! All questions complete!'
-        response_data['first_finisher'] = False
 
     return JsonResponse(response_data)
 
@@ -580,14 +668,16 @@ def check_hackathon_status(request):
             'is_live': False
         })
 
-    end_time = state.start_time + timedelta(hours=2)
+    dur = state.duration_minutes if state.duration_minutes else 120
+    end_time = state.start_time + timedelta(minutes=dur)
+    is_finished = state.is_finished
 
-    if timezone.now() >= end_time:
+    if not is_finished and timezone.now() >= end_time:
         state.is_finished = True
         state.save()
+        is_finished = True
 
-    is_finished = state.is_finished
-    is_live = state.is_started and not state.is_finished and not state.is_paused
+    is_live = state.is_started and not is_finished and not state.is_paused
 
     return JsonResponse({
         'is_finished': is_finished,
@@ -595,50 +685,65 @@ def check_hackathon_status(request):
         'is_paused': state.is_paused
     })
 @login_required
+@require_POST
 def run_code_custom(request):
-    if request.method != "POST":
-        return JsonResponse({'error': 'POST only'}, status=405)
     p_id = request.POST.get('problem_id')
     user_code = request.POST.get('code')
     problem = get_object_or_404(Problem, id=p_id)
     cases = problem.hidden_test_cases[:3]
-    results = []
+    
+    input_list = [case.get('input', '') for case in cases]
+    results, error = run_leetcode_code(user_code, input_list, problem)
+    
+    if error:
+        results_list = []
+        for case in cases:
+            results_list.append({
+                'input': case.get('input', ''),
+                'expected': case.get('expected', ''),
+                'output': '',
+                'error': error,
+                'status': 'Runtime Error'
+            })
+        return JsonResponse({
+            'status': 'Runtime Error',
+            'results': results_list
+        })
+
     overall_status = "Accepted"
-    for case in cases:
+    results_list = []
+    for case, res in zip(cases, results):
         input_data = case.get('input', '')
         expected = case.get('expected', '')
-        try:
-            output, error = run_leetcode_code(user_code, input_data, problem)
-            if error:
-                status = "Runtime Error"
-                overall_status = "Runtime Error"
-            elif output.strip() != str(expected).strip():
+        status = res['status']
+        output = res['output']
+        err = res['error']
+        
+        if status == 'Accepted':
+            if output is None or output.strip() != str(expected).strip():
                 status = "Wrong Answer"
                 if overall_status == "Accepted":
                     overall_status = "Wrong Answer"
             else:
                 status = "Accepted"
-        except Exception as e:
-            output = ""
-            error = str(e)
-            status = "Runtime Error"
+        else:
             overall_status = "Runtime Error"
-        results.append({
+            
+        results_list.append({
             'input': input_data,
             'expected': expected,
             'output': output,
-            'error': error,
+            'error': err,
             'status': status
         })
+        
     return JsonResponse({
         'status': overall_status,
-        'results': results
+        'results': results_list
     })
 @login_required
+@require_POST
 def ai_hint(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-
     state = HackathonState.objects.first()
     if state and not state.hints_enabled:
         return JsonResponse({'hint': 'AI hints have been disabled by the admin for this event.'}, status=200)
@@ -722,11 +827,11 @@ def finished(request):
         if state.is_paused:
             return redirect('waiting_room')
         return redirect('home')
-    bonus_points = BonusSubmission.objects.filter(team=request.user, is_correct=True).aggregate(s=Sum('points_awarded'))['s'] or 0
-    total_score = sum(tp.points for tp in TeamProgress.objects.filter(team=request.user)) + bonus_points
+    total_score = _get_total_score(request.user)
     return render(request, 'finished.html', {'total_score': total_score})
 
 @login_required
+@require_POST
 def admin_start_hackathon(request):
     if not request.user.is_staff:
         return redirect('waiting_room')
@@ -740,6 +845,7 @@ def admin_start_hackathon(request):
     return redirect('/admin/')
 
 @login_required
+@require_POST
 def admin_pause_hackathon(request):
     if not request.user.is_staff:
         return redirect('waiting_room')
@@ -751,6 +857,7 @@ def admin_pause_hackathon(request):
     return redirect('/admin/')
 
 @login_required
+@require_POST
 def admin_resume_hackathon(request):
     if not request.user.is_staff:
         return redirect('waiting_room')
@@ -765,6 +872,7 @@ def admin_resume_hackathon(request):
     return redirect('/admin/')
 
 @login_required
+@require_POST
 def admin_end_hackathon(request):
     if not request.user.is_staff:
         return redirect('waiting_room')
@@ -777,6 +885,7 @@ def admin_end_hackathon(request):
     return redirect('/admin/')
 
 @login_required
+@require_POST
 def admin_start_bonus(request):
     if not request.user.is_staff:
         return redirect('waiting_room')
@@ -791,6 +900,7 @@ def admin_start_bonus(request):
     return redirect('/admin/')
 
 @login_required
+@require_POST
 def admin_pause_bonus(request):
     if not request.user.is_staff:
         return redirect('waiting_room')
@@ -803,6 +913,7 @@ def admin_pause_bonus(request):
     return redirect('/admin/')
 
 @login_required
+@require_POST
 def admin_resume_bonus(request):
     if not request.user.is_staff:
         return redirect('waiting_room')
@@ -817,6 +928,7 @@ def admin_resume_bonus(request):
     return redirect('/admin/')
 
 @login_required
+@require_POST
 def admin_end_bonus(request):
     if not request.user.is_staff:
         return redirect('waiting_room')
@@ -830,6 +942,7 @@ def admin_end_bonus(request):
     return redirect('/admin/')
 
 @login_required
+@require_POST
 def admin_toggle_hints(request):
     if not request.user.is_staff:
         return redirect('waiting_room')
@@ -840,6 +953,7 @@ def admin_toggle_hints(request):
     return redirect('/admin/')
 
 @login_required
+@require_POST
 def admin_reset_hackathon(request):
     if not request.user.is_staff:
         return redirect('waiting_room')
@@ -862,6 +976,7 @@ def admin_reset_hackathon(request):
     return redirect('/admin/')
 
 @login_required
+@require_POST
 def admin_toggle_tour(request):
     if not request.user.is_staff:
         return redirect('waiting_room')
@@ -872,11 +987,10 @@ def admin_toggle_tour(request):
     return redirect('/admin/')
 
 @login_required
+@require_POST
 def admin_adjust_points(request):
     if not request.user.is_staff:
         return JsonResponse({'error': 'Forbidden'}, status=403)
-    if request.method != 'POST':
-        return JsonResponse({'error': 'POST only'}, status=405)
     from django.contrib.auth.models import User
     team_id = request.POST.get('team_id')
     delta_raw = request.POST.get('delta', '0')

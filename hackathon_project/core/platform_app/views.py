@@ -333,112 +333,145 @@ def submit_code(request):
 
 @login_required
 def bonus_status(request):
-    bonus = BonusQuestion.objects.first()
-    if not bonus:
+    """Return the status of the bonus round with all questions."""
+    questions = BonusQuestion.objects.all().order_by('order')
+    if not questions.exists():
         return JsonResponse({
             'active': False,
             'available': False,
-            'expired': True
+            'expired': True,
+            'questions': [],
         })
 
-    if not bonus.is_active and not bonus.activated_at and not bonus.auto_start_triggered:
-        state = HackathonState.objects.first()
-        if state and state.start_time:
-            elapsed_minutes = (timezone.now() - state.start_time).total_seconds() / 60
-            if elapsed_minutes >= bonus.appear_after_minutes:
-                bonus.is_active = True
-                bonus.activated_at = timezone.now()
-                bonus.auto_start_triggered = True
-                bonus.save()
-
-    if not bonus.is_active:
-        return JsonResponse({
-            'active': False,
-            'available': False,
-            'expired': False
-        })
-
-    if bonus.is_paused:
-        open_seconds = (bonus.paused_at - bonus.activated_at).total_seconds()
-    else:
-        open_seconds = (timezone.now() - bonus.activated_at).total_seconds()
-    duration_seconds = bonus.duration_minutes * 60
-
-    winners_so_far = BonusSubmission.objects.filter(bonus=bonus, is_correct=True).count()
+    # All questions share the same is_active/is_paused/activated_at — use the first one
+    first_q = questions.first()
     
+    if not first_q.is_active:
+        return JsonResponse({
+            'active': False,
+            'available': False,
+            'expired': False,
+            'questions': [],
+        })
+
+    if first_q.is_paused:
+        open_seconds = (first_q.paused_at - first_q.activated_at).total_seconds()
+    else:
+        open_seconds = (timezone.now() - first_q.activated_at).total_seconds()
+    duration_seconds = first_q.duration_minutes * 60
+
     time_expired = open_seconds >= duration_seconds
-    spots_full = winners_so_far >= bonus.max_winners
-    expired = time_expired or spots_full
-
-    already_solved = BonusSubmission.objects.filter(
-        bonus=bonus, team=request.user, is_correct=True
-    ).exists()
-
-    already_submitted = BonusSubmission.objects.filter(
-        bonus=bonus, team=request.user
-    ).exists()
-
     time_remaining_seconds = max(0, int(duration_seconds - open_seconds))
 
-    active = bonus.is_active
-    available = active and not expired and not already_submitted and not bonus.is_paused
+    state = HackathonState.objects.first()
+    first_finisher = state.bonus_first_finisher if state else None
+
+    # Build per-question data for this user
+    solved_question_ids = set(
+        BonusSubmission.objects.filter(
+            team=request.user, is_correct=True, bonus__in=questions
+        ).values_list('bonus_id', flat=True)
+    )
+
+    all_solved = len(solved_question_ids) == questions.count() and questions.count() > 0
+
+    question_list = []
+    for q in questions:
+        question_list.append({
+            'id': q.id,
+            'order': q.order,
+            'title': q.title,
+            'description': q.description,
+            'starter_code': q.starter_code,
+            'expected_output': q.expected_output,
+            'input_type_hint': q.input_type_hint,
+            'solved': q.id in solved_question_ids,
+        })
+
+    active = first_q.is_active
+    expired = time_expired
+    available = active and not expired and not all_solved and not first_q.is_paused
 
     return JsonResponse({
         'active': active,
         'available': available,
         'expired': expired,
-        'already_solved': already_solved,
-        'already_submitted': already_submitted,
-        'is_paused': bonus.is_paused,
-        'title': bonus.title,
-        'description': bonus.description,
-        'starter_code': bonus.starter_code,
-        'input_type_hint': bonus.input_type_hint,
-        'winners_so_far': winners_so_far,
-        'max_winners': bonus.max_winners,
-        'max_points': bonus.max_points,
-        'points_step': bonus.points_step,
-        'points_if_next': max(0, bonus.max_points - (winners_so_far * bonus.points_step)),
+        'all_solved': all_solved,
+        'is_paused': first_q.is_paused,
+        'first_finisher': first_finisher.username if first_finisher else None,
+        'is_first_finisher': first_finisher == request.user if first_finisher else False,
         'time_remaining_seconds': time_remaining_seconds,
-        'duration_minutes': bonus.duration_minutes,
+        'duration_minutes': first_q.duration_minutes,
+        'questions': question_list,
+        'total_questions': questions.count(),
+        'solved_count': len(solved_question_ids),
     })
+
 @login_required
 def bonus_submit(request):
     if request.method != "POST":
         return JsonResponse({'status': 'error'})
 
-    bonus = BonusQuestion.objects.first()
-    if not bonus or not bonus.is_active:
+    question_id = request.POST.get('question_id')
+    if not question_id:
+        return JsonResponse({'status': 'Missing question_id'})
+
+    bonus = get_object_or_404(BonusQuestion, id=question_id)
+    if not bonus.is_active:
         return JsonResponse({'status': 'Bonus not active'})
 
+    if bonus.is_paused:
+        return JsonResponse({'status': 'Bonus is paused'})
+
+    # Check if already solved this specific question
     if BonusSubmission.objects.filter(bonus=bonus, team=request.user, is_correct=True).exists():
-        return JsonResponse({'status': 'Already submitted'})
+        return JsonResponse({'status': 'Already solved this question'})
 
-    winners_so_far = BonusSubmission.objects.filter(bonus=bonus, is_correct=True).count()
-    if winners_so_far >= bonus.max_winners:
-        return JsonResponse({'status': 'Bonus closed — all spots taken'})
-
+    # Check time expiry
     if bonus.activated_at:
-        open_minutes = (timezone.now() - bonus.activated_at).total_seconds() / 60
-        if open_minutes >= bonus.duration_minutes:
+        if bonus.is_paused:
+            open_seconds = (bonus.paused_at - bonus.activated_at).total_seconds()
+        else:
+            open_seconds = (timezone.now() - bonus.activated_at).total_seconds()
+        if open_seconds >= bonus.duration_minutes * 60:
             return JsonResponse({'status': 'Bonus round has expired'})
 
     user_input = request.POST.get('user_input', '').strip()
+    if not user_input:
+        return JsonResponse({'status': 'Please enter an input'})
+
     output, error = run_python_code(bonus.starter_code, user_input)
 
     if error:
         return JsonResponse({'status': 'Runtime Error', 'error': error})
 
     is_correct = output.strip() == bonus.expected_output.strip()
-    points_awarded = 0
-
-    if is_correct:
-        winners_so_far = BonusSubmission.objects.filter(bonus=bonus, is_correct=True).count()
-        if winners_so_far < bonus.max_winners:
-            points_awarded = max(0, bonus.max_points - (winners_so_far * bonus.points_step))
 
     if not is_correct:
         return JsonResponse({'status': 'Wrong Answer — check your input format.'})
+
+    # Correct answer — create submission
+    points_awarded = 0
+
+    # Check if solving this question completes all bonus questions
+    all_questions = BonusQuestion.objects.filter(is_active=True).order_by('order')
+    already_solved_ids = set(
+        BonusSubmission.objects.filter(
+            team=request.user, is_correct=True, bonus__in=all_questions
+        ).values_list('bonus_id', flat=True)
+    )
+    # Add this one (not yet saved)
+    already_solved_ids.add(bonus.id)
+
+    all_complete = len(already_solved_ids) == all_questions.count()
+
+    if all_complete:
+        # Check if this team is the first finisher
+        state = HackathonState.objects.first()
+        if state and state.bonus_first_finisher is None:
+            state.bonus_first_finisher = request.user
+            state.save()
+            points_awarded = 100
 
     BonusSubmission.objects.create(
         team=request.user, bonus=bonus,
@@ -447,46 +480,93 @@ def bonus_submit(request):
         points_awarded=points_awarded,
     )
 
-    if is_correct and points_awarded > 0:
-        new_total = (
-            sum(tp.points for tp in TeamProgress.objects.filter(team=request.user))
-            + (BonusSubmission.objects.filter(team=request.user, is_correct=True).aggregate(s=Sum('points_awarded'))['s'] or 0)
-        )
-        return JsonResponse({'status': 'Correct!', 'points_awarded': points_awarded, 'new_total': new_total})
-    elif is_correct:
-        return JsonResponse({'status': 'Correct! But all point slots were just taken.'})
-    else:
-        return JsonResponse({'status': 'Wrong Answer — check your input format.'})
+    # Calculate new total
+    new_total = (
+        sum(tp.points for tp in TeamProgress.objects.filter(team=request.user))
+        + (BonusSubmission.objects.filter(team=request.user, is_correct=True).aggregate(s=Sum('points_awarded'))['s'] or 0)
+        + (PointAdjustment.objects.filter(team=request.user).aggregate(s=Sum('delta'))['s'] or 0)
+    )
+
+    # How many solved now
+    solved_count = BonusSubmission.objects.filter(
+        team=request.user, is_correct=True, bonus__in=all_questions
+    ).count()
+
+    response_data = {
+        'status': 'Correct!',
+        'new_total': new_total,
+        'solved_count': solved_count,
+        'total_questions': all_questions.count(),
+        'all_complete': all_complete,
+    }
+
+    if all_complete and points_awarded > 0:
+        response_data['status'] = 'Correct! 🏆 You finished first — +100 bonus points!'
+        response_data['points_awarded'] = points_awarded
+        response_data['first_finisher'] = True
+    elif all_complete:
+        response_data['status'] = 'Correct! All questions complete!'
+        response_data['first_finisher'] = False
+
+    return JsonResponse(response_data)
 
 @login_required
 def bonus_page(request):
-    bonus = BonusQuestion.objects.first()
-    if not bonus or not bonus.is_active:
+    questions = BonusQuestion.objects.filter(is_active=True).order_by('order')
+    if not questions.exists():
         return redirect('home')
+
+    first_q = questions.first()
     state = HackathonState.objects.first()
     if not state or not state.start_time:
         return redirect('home')
-    if bonus.activated_at:
-        if bonus.is_paused:
-            open_seconds = (bonus.paused_at - bonus.activated_at).total_seconds()
+
+    if first_q.activated_at:
+        if first_q.is_paused:
+            open_seconds = (first_q.paused_at - first_q.activated_at).total_seconds()
         else:
-            open_seconds = (timezone.now() - bonus.activated_at).total_seconds()
+            open_seconds = (timezone.now() - first_q.activated_at).total_seconds()
     else:
         open_seconds = 0
-    duration_seconds = bonus.duration_minutes * 60
+    duration_seconds = first_q.duration_minutes * 60
     time_remaining_seconds = max(0, int(duration_seconds - open_seconds))
-    winners_so_far = BonusSubmission.objects.filter(bonus=bonus, is_correct=True).count()
-    already_submitted = BonusSubmission.objects.filter(bonus=bonus, team=request.user).exists()
-    already_solved = BonusSubmission.objects.filter(bonus=bonus, team=request.user, is_correct=True).exists()
-    expired = open_seconds >= duration_seconds or winners_so_far >= bonus.max_winners
+    expired = open_seconds >= duration_seconds
+
+    # Per-question solved status
+    solved_ids = set(
+        BonusSubmission.objects.filter(
+            team=request.user, is_correct=True, bonus__in=questions
+        ).values_list('bonus_id', flat=True)
+    )
+
+    question_data = []
+    for q in questions:
+        question_data.append({
+            'id': q.id,
+            'order': q.order,
+            'title': q.title,
+            'description': q.description,
+            'starter_code': q.starter_code,
+            'expected_output': q.expected_output,
+            'input_type_hint': q.input_type_hint,
+            'solved': q.id in solved_ids,
+        })
+
+    all_solved = len(solved_ids) == questions.count()
+    first_finisher = state.bonus_first_finisher
+    is_first_finisher = first_finisher == request.user if first_finisher else False
+
     return render(request, 'bonus.html', {
-        'bonus': bonus,
+        'questions': question_data,
+        'total_questions': questions.count(),
+        'solved_count': len(solved_ids),
+        'all_solved': all_solved,
         'time_remaining_seconds': time_remaining_seconds,
-        'winners_so_far': winners_so_far,
-        'already_submitted': already_submitted,
-        'already_solved': already_solved,
+        'duration_minutes': first_q.duration_minutes,
         'expired': expired,
-        'points_if_next': max(0, bonus.max_points - (winners_so_far * bonus.points_step)),
+        'is_paused': first_q.is_paused,
+        'first_finisher': first_finisher.username if first_finisher else None,
+        'is_first_finisher': is_first_finisher,
     })
 
 
@@ -700,52 +780,53 @@ def admin_end_hackathon(request):
 def admin_start_bonus(request):
     if not request.user.is_staff:
         return redirect('waiting_room')
-    bonus = BonusQuestion.objects.first()
-    if bonus:
-        bonus.is_active = True
-        bonus.is_paused = False
-        bonus.paused_at = None
-        bonus.activated_at = timezone.now()
-        bonus.save()
+    now = timezone.now()
+    questions = BonusQuestion.objects.all()
+    for q in questions:
+        q.is_active = True
+        q.is_paused = False
+        q.paused_at = None
+        q.activated_at = now
+        q.save()
     return redirect('/admin/')
 
 @login_required
 def admin_pause_bonus(request):
     if not request.user.is_staff:
         return redirect('waiting_room')
-    bonus = BonusQuestion.objects.first()
-    if bonus and bonus.is_active and not bonus.is_paused:
-        bonus.is_paused = True
-        bonus.paused_at = timezone.now()
-        bonus.save()
+    now = timezone.now()
+    questions = BonusQuestion.objects.filter(is_active=True, is_paused=False)
+    for q in questions:
+        q.is_paused = True
+        q.paused_at = now
+        q.save()
     return redirect('/admin/')
 
 @login_required
 def admin_resume_bonus(request):
     if not request.user.is_staff:
         return redirect('waiting_room')
-    bonus = BonusQuestion.objects.first()
-    if bonus and bonus.is_active and bonus.is_paused:
-        if bonus.paused_at and bonus.activated_at:
-            duration = timezone.now() - bonus.paused_at
-            bonus.activated_at = bonus.activated_at + duration
-        bonus.is_paused = False
-        bonus.paused_at = None
-        bonus.save()
+    questions = BonusQuestion.objects.filter(is_active=True, is_paused=True)
+    for q in questions:
+        if q.paused_at and q.activated_at:
+            duration = timezone.now() - q.paused_at
+            q.activated_at = q.activated_at + duration
+        q.is_paused = False
+        q.paused_at = None
+        q.save()
     return redirect('/admin/')
 
 @login_required
 def admin_end_bonus(request):
     if not request.user.is_staff:
         return redirect('waiting_room')
-    bonus = BonusQuestion.objects.first()
-    if bonus:
-        bonus.is_active = False
-        bonus.is_paused = False
-        bonus.paused_at = None
-        bonus.activated_at = None
-        bonus.auto_start_triggered = True
-        bonus.save()
+    questions = BonusQuestion.objects.all()
+    for q in questions:
+        q.is_active = False
+        q.is_paused = False
+        q.paused_at = None
+        q.activated_at = None
+        q.save()
     return redirect('/admin/')
 
 @login_required
@@ -769,15 +850,15 @@ def admin_reset_hackathon(request):
         state.is_paused = False
         state.start_time = None
         state.paused_at = None
+        state.bonus_first_finisher = None
         state.save()
-    bonus = BonusQuestion.objects.first()
-    if bonus:
-        bonus.is_active = False
-        bonus.is_paused = False
-        bonus.paused_at = None
-        bonus.activated_at = None
-        bonus.auto_start_triggered = False
-        bonus.save()
+    questions = BonusQuestion.objects.all()
+    for q in questions:
+        q.is_active = False
+        q.is_paused = False
+        q.paused_at = None
+        q.activated_at = None
+        q.save()
     return redirect('/admin/')
 
 @login_required

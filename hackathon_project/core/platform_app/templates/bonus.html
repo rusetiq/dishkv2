@@ -227,8 +227,57 @@ main { max-width:900px; margin:0 auto; padding:48px 24px 96px; position:relative
 @keyframes urgentPulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
 .timer-bar-track { flex:1; height:4px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden; }
 .timer-bar-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#b34bf4,#e1306c,#ff7a00); transition:width 1s linear; }
-.spots-badge { font-size:11px; color:var(--fog); white-space:nowrap; }
-.spots-val { color:var(--lime); font-weight:700; }
+.progress-badge { font-size:11px; color:var(--fog); white-space:nowrap; }
+.progress-val { color:var(--success); font-weight:700; }
+
+/* Question tabs */
+.question-tabs {
+  display: flex; gap: 8px; margin-bottom: 24px;
+  animation: fadeUp 0.5s 0.12s ease-out backwards;
+}
+.q-tab {
+  flex: 1;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--wire);
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--fog);
+  position: relative;
+  overflow: hidden;
+}
+.q-tab:hover { border-color: var(--wire-bright); color: var(--text); }
+.q-tab.active {
+  border-color: rgba(225, 48, 108, 0.4);
+  background: rgba(225, 48, 108, 0.06);
+  color: var(--text);
+  box-shadow: 0 0 20px rgba(225, 48, 108, 0.08);
+}
+.q-tab.solved {
+  border-color: rgba(60, 208, 112, 0.3);
+  background: rgba(60, 208, 112, 0.06);
+}
+.q-tab-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  display: block;
+  margin-bottom: 2px;
+}
+.q-tab.solved .q-tab-num { color: var(--success); }
+.q-tab.active .q-tab-num { color: var(--lime); }
+.q-tab-label { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; }
+.q-tab-check {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 14px;
+}
+
+/* Challenge card */
 .challenge-card {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(179, 75, 244, 0.04) 50%, rgba(225, 48, 108, 0.03) 100%);
   border: 1px solid rgba(255, 255, 255, 0.07);
@@ -239,7 +288,9 @@ main { max-width:900px; margin:0 auto; padding:48px 24px 96px; position:relative
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(179, 75, 244, 0.03);
   animation:fadeUp 0.5s 0.15s ease-out backwards;
   margin-bottom:24px;
+  display: none;
 }
+.challenge-card.visible { display: block; }
 .card-section { padding:24px; border-bottom:1px solid var(--wire); }
 .card-section:last-child { border-bottom:none; }
 .section-eyebrow { font-size:9px; letter-spacing:0.22em; text-transform:uppercase; color:var(--amber); margin-bottom:10px; }
@@ -291,6 +342,7 @@ main { max-width:900px; margin:0 auto; padding:48px 24px 96px; position:relative
   border:1px solid rgba(60,208,112,0.3);
   border-radius:16px; padding:32px; text-align:center;
   animation:fadeUp 0.5s ease-out backwards;
+  margin-bottom:24px;
 }
 .solved-icon { font-size:48px; margin-bottom:12px; }
 .solved-title { font-family:'Bebas Neue',sans-serif; font-size:36px; color:#3cd070; letter-spacing:0.05em; }
@@ -300,6 +352,62 @@ main { max-width:900px; margin:0 auto; padding:48px 24px 96px; position:relative
   border-radius:16px; padding:32px; text-align:center;
   animation:fadeUp 0.5s ease-out backwards;
 }
+
+/* First finisher celebration */
+.first-finisher-banner {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), rgba(255, 122, 0, 0.06), rgba(225, 48, 108, 0.04));
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  animation: fadeUp 0.5s ease-out backwards;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.first-finisher-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.03), transparent);
+  pointer-events: none;
+}
+.trophy-icon { font-size: 56px; margin-bottom: 12px; animation: trophyBounce 1s ease-out; }
+@keyframes trophyBounce {
+  0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.first-finisher-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 42px;
+  background: linear-gradient(90deg, #ffd700, #ff7a00, #e1306c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 0.05em;
+}
+.first-finisher-sub { font-size: 14px; color: var(--fog); margin-top: 8px; }
+.first-finisher-pts {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: #ffd700;
+  margin-top: 12px;
+}
+
+.question-solved-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  background: rgba(60, 208, 112, 0.06);
+  border: 1px solid rgba(60, 208, 112, 0.2);
+  border-radius: 10px;
+  color: var(--success);
+  font-size: 13px;
+  font-weight: 600;
+}
+.question-solved-inline svg { flex-shrink: 0; }
+
 .points-info { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--fog); }
 .points-val { font-size:24px; font-weight:800; color:var(--lime); font-family:'Bebas Neue',sans-serif; }
 </style>
@@ -335,16 +443,29 @@ main { max-width:900px; margin:0 auto; padding:48px 24px 96px; position:relative
 <main>
   <div class="bonus-header">
     <div class="bonus-eyebrow"><div class="bonus-eyebrow-pulse"></div> Bonus Round</div>
-    <div class="bonus-title">{{ bonus.title }}</div>
+    <div class="bonus-title">Bonus Challenge</div>
   </div>
 
-  {% if already_solved %}
+  {% if is_first_finisher %}
+  <div class="first-finisher-banner">
+    <div class="trophy-icon">🏆</div>
+    <div class="first-finisher-title">First Finisher!</div>
+    <div class="first-finisher-sub">You solved all {{ total_questions }} questions first!</div>
+    <div class="first-finisher-pts">+100 Bonus Points</div>
+  </div>
+  {% elif all_solved %}
   <div class="solved-banner">
     <div style="display:flex; justify-content:center; align-items:center;">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#3cd070" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
     </div>
-    <div class="solved-title">You Solved It!</div>
-    <div class="solved-sub">Your answer was correct. Points have been added to your score.</div>
+    <div class="solved-title">All Questions Solved!</div>
+    <div class="solved-sub">
+      {% if first_finisher %}
+        {{ first_finisher }} finished first and earned the 100pt bonus.
+      {% else %}
+        Great work completing all bonus questions!
+      {% endif %}
+    </div>
   </div>
   {% elif expired %}
   <div class="expired-banner">
@@ -352,9 +473,10 @@ main { max-width:900px; margin:0 auto; padding:48px 24px 96px; position:relative
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
     </div>
     <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--danger);">Round Closed</div>
-    <div style="font-size:13px;color:var(--fog);margin-top:6px;">All spots have been taken or time has expired.</div>
+    <div style="font-size:13px;color:var(--fog);margin-top:6px;">Time has expired for the bonus round.</div>
   </div>
   {% else %}
+
   <div class="timer-strip">
     <div>
       <div class="timer-label">Time Remaining</div>
@@ -363,49 +485,76 @@ main { max-width:900px; margin:0 auto; padding:48px 24px 96px; position:relative
     <div class="timer-bar-track">
       <div class="timer-bar-fill" id="timer-bar" style="width:100%;"></div>
     </div>
-    <div class="spots-badge">
-      <span class="spots-val" id="spots-left">{{ bonus.max_winners|add:"-1"|add:"1" }}</span> / {{ bonus.max_winners }} spots •
-      <span class="spots-val">{{ points_if_next }}pts</span> if you're next
+    <div class="progress-badge">
+      <span class="progress-val" id="solved-progress">{{ solved_count }}</span> / {{ total_questions }} solved
+      {% if first_finisher %}
+      • <span style="color:var(--lime);">{{ first_finisher }}</span> finished first
+      {% endif %}
     </div>
   </div>
 
-  <div class="challenge-card">
+  <!-- Question tabs -->
+  <div class="question-tabs">
+    {% for q in questions %}
+    <div class="q-tab{% if forloop.first %} active{% endif %}{% if q.solved %} solved{% endif %}" data-q-id="{{ q.id }}" onclick="switchTab({{ q.id }})">
+      {% if q.solved %}<span class="q-tab-check">✓</span>{% endif %}
+      <span class="q-tab-num">Q{{ q.order }}</span>
+      <span class="q-tab-label">{{ q.title|truncatechars:20 }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Question cards -->
+  {% for q in questions %}
+  <div class="challenge-card{% if forloop.first %} visible{% endif %}" id="card-{{ q.id }}">
+    {% if q.solved %}
     <div class="card-section">
-      <div class="section-eyebrow">The Code</div>
-      <pre class="code-block">{{ bonus.starter_code }}</pre>
+      <div class="question-solved-inline">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        Question {{ q.order }} Solved!
+      </div>
+    </div>
+    {% endif %}
+    <div class="card-section">
+      <div class="section-eyebrow">The Code — Q{{ q.order }}</div>
+      <pre class="code-block">{{ q.starter_code }}</pre>
     </div>
     <div class="card-section">
       <div class="section-eyebrow">Expected Output</div>
-      <div class="output-display">{{ bonus.expected_output }}</div>
-      {% if bonus.description %}
-      <div class="hint-text">{{ bonus.description }}</div>
+      <div class="output-display">{{ q.expected_output }}</div>
+      {% if q.description %}
+      <div class="hint-text">{{ q.description }}</div>
       {% endif %}
     </div>
     <div class="card-section">
       <div class="section-eyebrow">Your Answer — What input produces this output?</div>
-      {% if already_submitted %}
-      <div class="result-box info" style="display:block;">You already submitted an answer for this round.</div>
+      {% if q.solved %}
+      <div class="result-box info" style="display:block;">✓ You already solved this question.</div>
       {% else %}
       <div class="input-area">
-        <textarea id="answer-input" class="input-field" rows="2" placeholder="{{ bonus.input_type_hint|default:'Enter your input...' }}"></textarea>
-        <button class="submit-btn" id="submit-btn" onclick="submitBonus()">Submit →</button>
+        <textarea id="answer-{{ q.id }}" class="input-field" rows="2" placeholder="{{ q.input_type_hint|default:'Enter your input...' }}"></textarea>
+        <button class="submit-btn" id="submit-btn-{{ q.id }}" onclick="submitBonus({{ q.id }})">Submit →</button>
       </div>
-      <div class="result-box" id="result-box"></div>
+      <div class="result-box" id="result-{{ q.id }}"></div>
       {% endif %}
     </div>
   </div>
+  {% endfor %}
 
   <div style="display:flex;gap:8px;align-items:center;" class="points-info">
-    <span>First to answer correctly earns</span>
-    <span class="points-val">{{ bonus.max_points }}</span>
-    <span>pts — {{ bonus.points_step }}pts less per solver after that</span>
+    <span>First team to solve all {{ total_questions }} questions earns</span>
+    <span class="points-val">100</span>
+    <span>bonus pts</span>
+    {% if first_finisher %}
+    <span>— claimed by <strong style="color:var(--lime);">{{ first_finisher }}</strong></span>
+    {% endif %}
   </div>
   {% endif %}
 </main>
 
 <script>
 const totalSeconds = {{ time_remaining_seconds }};
-const duration = {{ bonus.duration_minutes }} * 60;
+const duration = {{ duration_minutes }} * 60;
 let remaining = totalSeconds;
 
 async function checkBonusActive() {
@@ -418,47 +567,82 @@ async function checkBonusActive() {
   } catch (e) {}
 }
 checkBonusActive();
-setInterval(checkBonusActive, 2000);
+setInterval(checkBonusActive, 5000);
 
 function tick() {
+  const timerEl = document.getElementById('timer-val');
+  const barEl = document.getElementById('timer-bar');
+  if (!timerEl || !barEl) return;
   if (remaining <= 0) {
-    document.getElementById('timer-val').textContent = '00:00';
-    document.getElementById('timer-val').classList.add('urgent');
-    document.getElementById('timer-bar').style.width = '0%';
+    timerEl.textContent = '00:00';
+    timerEl.classList.add('urgent');
+    barEl.style.width = '0%';
     return;
   }
   const m = Math.floor(remaining / 60);
   const s = remaining % 60;
-  const el = document.getElementById('timer-val');
-  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  if (remaining <= 60) el.classList.add('urgent');
+  timerEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  if (remaining <= 60) timerEl.classList.add('urgent');
   const pct = (remaining / duration) * 100;
-  document.getElementById('timer-bar').style.width = pct + '%';
-  if (pct < 20) document.getElementById('timer-bar').style.background = 'var(--danger)';
+  barEl.style.width = pct + '%';
+  if (pct < 20) barEl.style.background = 'var(--danger)';
   remaining--;
 }
 tick();
 const tickInterval = setInterval(tick, 1000);
 
-async function submitBonus() {
-  const input = document.getElementById('answer-input').value.trim();
+function switchTab(qId) {
+  document.querySelectorAll('.q-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.challenge-card').forEach(c => c.classList.remove('visible'));
+  document.querySelector(`.q-tab[data-q-id="${qId}"]`).classList.add('active');
+  document.getElementById(`card-${qId}`).classList.add('visible');
+}
+
+async function submitBonus(questionId) {
+  const input = document.getElementById(`answer-${questionId}`).value.trim();
   if (!input) return;
-  const btn = document.getElementById('submit-btn');
+  const btn = document.getElementById(`submit-btn-${questionId}`);
   btn.disabled = true;
   btn.textContent = 'Checking...';
   const fd = new FormData();
+  fd.append('question_id', questionId);
   fd.append('user_input', input);
   fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
   try {
     const res = await fetch('/api/bonus/submit/', { method: 'POST', body: fd });
     const data = await res.json();
-    const box = document.getElementById('result-box');
+    const box = document.getElementById(`result-${questionId}`);
     box.style.display = 'block';
-    if (data.status === 'Correct!' || (data.status && data.status.startsWith('Correct'))) {
+    if (data.status && data.status.startsWith('Correct')) {
       box.className = 'result-box correct';
-      box.textContent = data.points_awarded ? `✓ Correct! You earned ${data.points_awarded} bonus points!` : '✓ Correct! (All spots were just taken)';
+      box.textContent = '✓ ' + data.status;
       btn.disabled = true;
-      clearInterval(tickInterval);
+      // Update tab to show solved
+      const tab = document.querySelector(`.q-tab[data-q-id="${questionId}"]`);
+      tab.classList.add('solved');
+      if (!tab.querySelector('.q-tab-check')) {
+        const check = document.createElement('span');
+        check.className = 'q-tab-check';
+        check.textContent = '✓';
+        tab.appendChild(check);
+      }
+      // Update progress counter
+      const progEl = document.getElementById('solved-progress');
+      if (progEl && data.solved_count) {
+        progEl.textContent = data.solved_count;
+      }
+      // If all complete, reload to show celebration banner
+      if (data.all_complete) {
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        // Auto-switch to next unsolved question
+        setTimeout(() => {
+          const nextTab = document.querySelector('.q-tab:not(.solved)');
+          if (nextTab) {
+            switchTab(nextTab.dataset.qId);
+          }
+        }, 800);
+      }
     } else {
       box.className = 'result-box wrong';
       box.textContent = '✗ ' + data.status;
@@ -466,7 +650,7 @@ async function submitBonus() {
       btn.textContent = 'Submit →';
     }
   } catch(e) {
-    const box = document.getElementById('result-box');
+    const box = document.getElementById(`result-${questionId}`);
     box.style.display = 'block';
     box.className = 'result-box wrong';
     box.textContent = 'Network error — try again.';
@@ -476,7 +660,13 @@ async function submitBonus() {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && e.ctrlKey) submitBonus();
+  if (e.key === 'Enter' && e.ctrlKey) {
+    const activeCard = document.querySelector('.challenge-card.visible');
+    if (activeCard) {
+      const btn = activeCard.querySelector('.submit-btn');
+      if (btn && !btn.disabled) btn.click();
+    }
+  }
 });
 
 const canvas = document.getElementById('bg-canvas');

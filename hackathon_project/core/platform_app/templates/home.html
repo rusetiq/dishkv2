@@ -1462,9 +1462,9 @@
           </div>
           <div class="htp-item">
             <div class="htp-item-icon">⚡</div>
-            <div class="htp-item-title">Bonus Rounds</div>
-            <div class="htp-item-desc">A timed bonus challenge may appear mid-event. Only 4 spots — first correct
-              answers win big points.</div>
+            <div class="htp-item-title">Bonus Round</div>
+            <div class="htp-item-desc">A timed bonus round with 3 questions may appear mid-event. The first team to
+              solve all 3 earns 100 bonus points!</div>
           </div>
           <div class="htp-item">
             <div class="htp-item-icon">🏆</div>
@@ -1581,20 +1581,22 @@
           document.getElementById('bonus-popup-modal').style.display = 'none';
           return;
         }
-        if (data.expired || data.already_submitted) {
+        if (data.expired || data.all_solved) {
           bonusBtn.style.display = 'none';
           return;
         }
         bonusBtn.style.display = 'flex';
         if (data.available && !hasShownPopupThisSession) {
           document.getElementById('bonus-popup-modal').style.display = 'flex';
-          document.getElementById('popup-description').textContent = (data.title || 'Bonus Round') + ' is active now! Solve the challenge in ' + (data.duration_minutes || 10) + ' minutes to win bonus points.';
+          const qCount = data.total_questions || 3;
+          const mins = data.duration_minutes || 10;
+          document.getElementById('popup-description').textContent = qCount + ' bonus questions are live! Solve all ' + qCount + ' in ' + mins + ' minutes — first team to finish wins 100 bonus points!';
           hasShownPopupThisSession = true;
         }
       } catch (e) { }
     }
     loadBonusData();
-    setInterval(loadBonusData, 2000);
+    setInterval(loadBonusData, 5000);
     const canvas = document.getElementById('bg-canvas');
     const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));

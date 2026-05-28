@@ -70,7 +70,7 @@
   let bonusWasActive = false;
   let bonusCheckTimer = null;
 
-  function showBonusToast(title, timeRemaining) {
+  function showBonusToast(timeRemaining, totalQ, solvedQ) {
     if (bonusToastEl) return;
     const a = document.createElement('a');
     a.href = '/bonus/';
@@ -79,6 +79,7 @@
     const mins = Math.floor(timeRemaining / 60);
     const secs = timeRemaining % 60;
     const timeStr = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')} left`;
+    const qInfo = totalQ > 0 ? `${totalQ} questions` : 'Bonus Round';
     a.innerHTML = `
       <div style="position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, #fec053, #f47b20, #d62976, #962fbf);"></div>
       <div class="bonus-toast-icon">
@@ -86,7 +87,7 @@
       </div>
       <div class="bonus-toast-body">
         <div class="bonus-toast-title ig-gradient-text">Bonus Round Active!</div>
-        <div class="bonus-toast-sub">${title} — ${timeStr}</div>
+        <div class="bonus-toast-sub">${qInfo} — ${timeStr}</div>
       </div>
       <div class="bonus-toast-cta">Join →</div>
     `;
@@ -105,7 +106,7 @@
       const res = await fetch('/api/bonus/status/');
       const d = await res.json();
       if (d.available && !bonusWasActive) {
-        showBonusToast(d.title || 'Bonus Round', d.time_remaining_seconds || 600);
+        showBonusToast(d.time_remaining_seconds || 600, d.total_questions || 0, d.solved_count || 0);
         bonusWasActive = true;
       } else if (!d.available) {
         bonusWasActive = false;

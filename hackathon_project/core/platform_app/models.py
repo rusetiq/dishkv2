@@ -15,6 +15,7 @@ class HackathonState(models.Model):
     hints_enabled = models.BooleanField(default=True, help_text='Allow teams to request AI hints on problem pages')
     onboarding_tour_enabled = models.BooleanField(default=True, help_text='Show the guided UI tour to teams on their first visit to a problem')
     ai_model = models.CharField(max_length=100, choices=AI_MODEL_CHOICES, default='llama-3.3-70b-versatile', help_text='Groq model used for AI hints — change takes effect immediately')
+    bonus_first_finisher = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='bonus_first_finish', help_text='First team to solve all bonus questions')
 
     class Meta:
         verbose_name_plural = "Hackathon State"
@@ -53,23 +54,20 @@ class BonusQuestion(models.Model):
     starter_code = models.TextField()
     expected_output = models.CharField(max_length=500)
     input_type_hint = models.CharField(max_length=200, blank=True, default="")
-    max_points = models.IntegerField(default=200)
-    points_step = models.IntegerField(default=15)
-    max_winners = models.IntegerField(default=4)
+    order = models.IntegerField(default=1, help_text="Question order (1, 2, 3)")
     duration_minutes = models.IntegerField(default=10)
-    appear_after_minutes = models.IntegerField(default=120)
     is_active = models.BooleanField(default=False)
     is_paused = models.BooleanField(default=False)
     paused_at = models.DateTimeField(null=True, blank=True)
     activated_at = models.DateTimeField(null=True, blank=True)
-    auto_start_triggered = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Bonus Question"
         verbose_name_plural = "Bonus Questions"
+        ordering = ['order']
 
     def __str__(self):
-        return self.title
+        return f"Q{self.order}: {self.title}"
 
 
 class BonusSubmission(models.Model):
@@ -81,7 +79,7 @@ class BonusSubmission(models.Model):
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('team', 'bonus')
+        pass
 
 
 class PointAdjustment(models.Model):

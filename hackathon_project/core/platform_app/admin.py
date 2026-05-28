@@ -17,7 +17,7 @@ class HackathonStateForm(forms.ModelForm):
 @admin.register(HackathonState)
 class StateAdmin(admin.ModelAdmin):
     form = HackathonStateForm
-    list_display = ('is_started', 'is_finished', 'is_paused', 'hints_enabled', 'ai_model', 'start_time')
+    list_display = ('is_started', 'is_finished', 'is_paused', 'hints_enabled', 'ai_model', 'start_time', 'bonus_first_finisher')
     actions = ['start_hackathon_action', 'stop_hackathon_action']
     fieldsets = (
         ('Event Control', {'fields': ('is_started', 'is_finished', 'is_paused', 'start_time', 'paused_at')}),
@@ -25,8 +25,9 @@ class StateAdmin(admin.ModelAdmin):
             'description': 'Toggle these at any time — changes take effect immediately for all teams.',
             'fields': ('hints_enabled', 'onboarding_tour_enabled', 'ai_model'),
         }),
+        ('Bonus Round', {'fields': ('bonus_first_finisher',)}),
     )
-    readonly_fields = ('paused_at',)
+    readonly_fields = ('paused_at', 'bonus_first_finisher')
 
     def has_add_permission(self, request):
         return not HackathonState.objects.exists()
@@ -77,18 +78,15 @@ class ProgressAdmin(admin.ModelAdmin):
 
 @admin.register(BonusQuestion)
 class BonusAdmin(admin.ModelAdmin):
-    list_display = ('title', 'is_active', 'appear_after_minutes', 'max_points', 'max_winners', 'duration_minutes')
-    list_editable = ('is_active',)
+    list_display = ('title', 'order', 'is_active', 'duration_minutes')
+    list_editable = ('is_active', 'order')
+    ordering = ('order',)
     fieldsets = (
-        ('Question', {'fields': ('title', 'description', 'starter_code', 'expected_output', 'input_type_hint')}),
-        ('Timing', {'fields': ('appear_after_minutes', 'duration_minutes')}),
-        ('Scoring', {'fields': ('max_points', 'points_step', 'max_winners')}),
+        ('Question', {'fields': ('title', 'order', 'description', 'starter_code', 'expected_output', 'input_type_hint')}),
+        ('Timing', {'fields': ('duration_minutes',)}),
         ('Status', {'fields': ('is_active', 'activated_at')}),
     )
     readonly_fields = ('activated_at',)
-
-    def has_add_permission(self, request):
-        return not BonusQuestion.objects.exists()
 
 @admin.register(BonusSubmission)
 class BonusSubmissionAdmin(admin.ModelAdmin):
@@ -120,6 +118,7 @@ def custom_index(request, extra_context=None):
         extra_context = {}
     extra_context['h_state'] = HackathonState.objects.first()
     extra_context['b_state'] = BonusQuestion.objects.first()
+    extra_context['b_questions'] = BonusQuestion.objects.all().order_by('order')
     extra_context['teams'] = User.objects.filter(is_staff=False).order_by('username')
     return original_index(request, extra_context)
 admin.site.index = custom_index

@@ -1623,7 +1623,7 @@
             </div>
             <div style="flex:1">
               <div class="bgt-title ig-gradient-text">Bonus Round Active!</div>
-              <div class="bgt-sub">${d.title||'Bonus'} — ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} left</div>
+              <div class="bgt-sub">${d.total_questions||3} questions — ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} left</div>
             </div>
             <div class="bgt-cta">Enter →</div>
           `;
@@ -1637,7 +1637,7 @@
       } catch(e) {}
     }
     checkBonus();
-    setInterval(checkBonus, 2000);
+    setInterval(checkBonus, 5000);
   })();
   </script>
 </body>

@@ -682,8 +682,14 @@ setInterval(pollLeaderboard, 3000);
   function showBanner(data) {
     const banner = document.getElementById('bonus-leaderboard-banner');
     banner.style.display = 'block';
-    document.getElementById('blb-title').textContent = (data.title || 'BONUS ROUND') + ' ACTIVE NOW';
-    document.getElementById('blb-sub').textContent = `${data.winners_so_far}/${data.max_winners} spots taken — up to ${data.max_points} pts · Go to /bonus/ to enter`;
+    document.getElementById('blb-title').textContent = 'BONUS ROUND ACTIVE NOW';
+    const qTotal = data.total_questions || 3;
+    const firstFinisher = data.first_finisher;
+    if (firstFinisher) {
+      document.getElementById('blb-sub').textContent = `${qTotal} questions — ${firstFinisher} finished first! 100 bonus pts claimed. Go to /bonus/ to try`;
+    } else {
+      document.getElementById('blb-sub').textContent = `${qTotal} questions — first team to solve all wins 100 pts · Go to /bonus/ to enter`;
+    }
     blbRemaining = data.time_remaining_seconds || 120;
     if (blbInterval) clearInterval(blbInterval);
     blbInterval = setInterval(tickBanner, 1000);
@@ -712,7 +718,7 @@ setInterval(pollLeaderboard, 3000);
   }
 
   checkBonus();
-  setInterval(checkBonus, 2000);
+  setInterval(checkBonus, 5000);
 })();
 </script>
 </body>

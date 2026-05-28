@@ -7,7 +7,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 django.setup()
 
 from django.contrib.auth.models import User
-from platform_app.models import TeamProgress, BonusSubmission, PointAdjustment
+from platform_app.models import TeamProgress, BonusSubmission, PointAdjustment, BonusQuestion, HackathonState
+from django.db.models import Sum
 
 def empty_database():
     TeamProgress.objects.all().delete()
@@ -94,16 +95,216 @@ def add_users_from_csv():
     except Exception as e:
         print(f"Error reading CSV: {e}")
 
+def list_all_users():
+    users = User.objects.all().order_by('username')
+    if not users.exists():
+        print("No users found.")
+        return
+    print(f"\n{'Username':<25} {'Staff':<8} {'Superuser':<12}")
+    print("-" * 45)
+    for u in users:
+        staff = "Yes" if u.is_staff else "No"
+        superuser = "Yes" if u.is_superuser else "No"
+        print(f"{u.username:<25} {staff:<8} {superuser:<12}")
+    print(f"\nTotal: {users.count()} users ({users.filter(is_staff=False).count()} teams, {users.filter(is_staff=True).count()} staff)")
+
+def delete_user():
+    username = input("Enter username to delete: ").strip()
+    if not username:
+        print("Username cannot be empty.")
+        return
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        print(f"User '{username}' not found.")
+        return
+    if user.is_superuser:
+        confirm = input(f"WARNING: '{username}' is a superuser. Are you sure? (yes/no): ").strip().lower()
+        if confirm != 'yes':
+            print("Cancelled.")
+            return
+    user.delete()
+    print(f"User '{username}' deleted successfully.")
+
+def view_leaderboard():
+    team_scores = TeamProgress.objects.filter(
+        team__is_staff=False
+    ).values('team__username').annotate(
+        problem_score=Sum('points')
+    )
+    bonus_scores = BonusSubmission.objects.filter(
+        is_correct=True
+    ).values('team__username').annotate(
+        bonus_score=Sum('points_awarded')
+    )
+    adj_scores = PointAdjustment.objects.values('team__username').annotate(
+        adj_score=Sum('delta')
+    )
+    bonus_map = {b['team__username']: b['bonus_score'] or 0 for b in bonus_scores}
+    adj_map = {a['team__username']: a['adj_score'] or 0 for a in adj_scores}
+
+    teams = []
+    for t in team_scores:
+        username = t['team__username']
+        prob = t['problem_score'] or 0
+        bon = bonus_map.get(username, 0)
+        adj = adj_map.get(username, 0)
+        total = prob + bon + adj
+        teams.append({'username': username, 'problem': prob, 'bonus': bon, 'adj': adj, 'total': total})
+
+    # Include teams with no progress but with adjustments or bonus
+    all_usernames = set(t['username'] for t in teams)
+    for username in set(bonus_map.keys()) | set(adj_map.keys()):
+        if username not in all_usernames:
+            bon = bonus_map.get(username, 0)
+            adj = adj_map.get(username, 0)
+            teams.append({'username': username, 'problem': 0, 'bonus': bon, 'adj': adj, 'total': bon + adj})
+
+    teams = sorted(teams, key=lambda x: x['total'], reverse=True)
+
+    if not teams:
+        print("No scores yet.")
+        return
+
+    print(f"\n{'Rank':<6} {'Team':<25} {'Problems':<10} {'Bonus':<8} {'Adj':<8} {'Total':<8}")
+    print("-" * 65)
+    for i, t in enumerate(teams, 1):
+        adj_str = f"+{t['adj']}" if t['adj'] >= 0 else str(t['adj'])
+        print(f"{i:<6} {t['username']:<25} {t['problem']:<10} {t['bonus']:<8} {adj_str:<8} {t['total']:<8}")
+
+def reset_all_progress():
+    confirm = input("This will delete all TeamProgress and BonusSubmission records (users kept). Continue? (yes/no): ").strip().lower()
+    if confirm != 'yes':
+        print("Cancelled.")
+        return
+    tp_count = TeamProgress.objects.count()
+    bs_count = BonusSubmission.objects.count()
+    pa_count = PointAdjustment.objects.count()
+    TeamProgress.objects.all().delete()
+    BonusSubmission.objects.all().delete()
+    PointAdjustment.objects.all().delete()
+    # Reset bonus first finisher
+    state = HackathonState.objects.first()
+    if state:
+        state.bonus_first_finisher = None
+        state.save()
+    print(f"Deleted {tp_count} progress entries, {bs_count} bonus submissions, {pa_count} point adjustments.")
+
+def change_user_password():
+    username = input("Enter username: ").strip()
+    if not username:
+        print("Username cannot be empty.")
+        return
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        print(f"User '{username}' not found.")
+        return
+    new_password = input("Enter new password: ").strip()
+    if not new_password:
+        print("Password cannot be empty.")
+        return
+    user.set_password(new_password)
+    user.save()
+    print(f"Password for '{username}' changed successfully.")
+
+def export_results_to_csv():
+    path = input("Enter output CSV file path (default: results.csv): ").strip()
+    if not path:
+        path = "results.csv"
+
+    team_scores = TeamProgress.objects.filter(
+        team__is_staff=False
+    ).values('team__username').annotate(
+        problem_score=Sum('points')
+    )
+    bonus_scores = BonusSubmission.objects.filter(
+        is_correct=True
+    ).values('team__username').annotate(
+        bonus_score=Sum('points_awarded')
+    )
+    adj_scores = PointAdjustment.objects.values('team__username').annotate(
+        adj_score=Sum('delta')
+    )
+    bonus_map = {b['team__username']: b['bonus_score'] or 0 for b in bonus_scores}
+    adj_map = {a['team__username']: a['adj_score'] or 0 for a in adj_scores}
+
+    teams = []
+    all_usernames = set()
+    for t in team_scores:
+        username = t['team__username']
+        all_usernames.add(username)
+        prob = t['problem_score'] or 0
+        bon = bonus_map.get(username, 0)
+        adj = adj_map.get(username, 0)
+        teams.append({'username': username, 'problem': prob, 'bonus': bon, 'adj': adj, 'total': prob + bon + adj})
+
+    for username in set(bonus_map.keys()) | set(adj_map.keys()):
+        if username not in all_usernames:
+            bon = bonus_map.get(username, 0)
+            adj = adj_map.get(username, 0)
+            teams.append({'username': username, 'problem': 0, 'bonus': bon, 'adj': adj, 'total': bon + adj})
+
+    teams = sorted(teams, key=lambda x: x['total'], reverse=True)
+
+    try:
+        with open(path, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(['Rank', 'Team', 'Problem Points', 'Bonus Points', 'Adjustments', 'Total'])
+            for i, t in enumerate(teams, 1):
+                writer.writerow([i, t['username'], t['problem'], t['bonus'], t['adj'], t['total']])
+        print(f"Results exported to '{path}' ({len(teams)} teams).")
+    except Exception as e:
+        print(f"Error writing CSV: {e}")
+
+def view_bonus_status():
+    questions = BonusQuestion.objects.all().order_by('order')
+    if not questions.exists():
+        print("No bonus questions configured.")
+        return
+    state = HackathonState.objects.first()
+    first_finisher = state.bonus_first_finisher.username if state and state.bonus_first_finisher else "None"
+
+    print(f"\n{'#':<4} {'Title':<30} {'Active':<8} {'Paused':<8}")
+    print("-" * 50)
+    for q in questions:
+        active = "Yes" if q.is_active else "No"
+        paused = "Yes" if q.is_paused else "No"
+        print(f"{q.order:<4} {q.title:<30} {active:<8} {paused:<8}")
+
+    # Show solve counts per question
+    print(f"\nSolve counts:")
+    for q in questions:
+        count = BonusSubmission.objects.filter(bonus=q, is_correct=True).count()
+        print(f"  Q{q.order} ({q.title}): {count} teams solved")
+    
+    print(f"\nFirst finisher: {first_finisher}")
+
 def main():
     while True:
         print("\nDIS Database Administrator Panel")
-        print("1. Empty database (except aarush)")
-        print("2. Add superuser")
-        print("3. Add normal user")
-        print("4. Add multiple users via csv")
-        print("5. Exit")
+        print("─" * 38)
+        print("  Users")
+        print("  1.  Empty database (except aarush)")
+        print("  2.  Add superuser")
+        print("  3.  Add normal user")
+        print("  4.  Add multiple users via CSV")
+        print("  5.  List all users")
+        print("  6.  Delete a user")
+        print("  7.  Change user password")
+        print("")
+        print("  Scores & Data")
+        print("  8.  View leaderboard")
+        print("  9.  Reset all progress (keep users)")
+        print("  10. Export results to CSV")
+        print("")
+        print("  Bonus Round")
+        print("  11. View bonus status")
+        print("")
+        print("  0.  Exit")
+        print("─" * 38)
         
-        choice = input("Select an option (1-5): ").strip()
+        choice = input("Select an option: ").strip()
         if choice == '1':
             empty_database()
         elif choice == '2':
@@ -113,10 +314,24 @@ def main():
         elif choice == '4':
             add_users_from_csv()
         elif choice == '5':
+            list_all_users()
+        elif choice == '6':
+            delete_user()
+        elif choice == '7':
+            change_user_password()
+        elif choice == '8':
+            view_leaderboard()
+        elif choice == '9':
+            reset_all_progress()
+        elif choice == '10':
+            export_results_to_csv()
+        elif choice == '11':
+            view_bonus_status()
+        elif choice == '0':
             print("Exiting.")
             break
         else:
-            print("Invalid selection. Please choose between 1 and 5.")
+            print("Invalid selection.")
 
 if __name__ == "__main__":
     main()

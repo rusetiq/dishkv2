@@ -1,0 +1,491 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Reference Keys - DIS Hackathon</title>
+  <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+  <style>
+    :root {
+      --ink: #07050b;
+      --ink-1: #0e0a16;
+      --ink-2: #161122;
+      --ink-3: #221a33;
+      --wire: rgba(179, 75, 244, 0.08);
+      --wire-bright: rgba(179, 75, 244, 0.18);
+      --cyber-cyan: #b34bf4;
+      --cyber-orange: #ff7a00;
+      --amber: #b34bf4;
+      --amber-dim: rgba(179, 75, 244, 0.12);
+      --lime: #e1306c;
+      --lime-dim: rgba(225, 48, 108, 0.12);
+      --fog: #8b8599;
+      --text: #e2dfe6;
+      --danger: #ff5577;
+      --success: #3cd070;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      background: var(--ink);
+      color: var(--text);
+      min-height: 100vh;
+      font-family: 'DM Mono', monospace;
+      overflow-x: hidden;
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(179, 75, 244, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(179, 75, 244, 0.02) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    .aurora {
+      position: fixed;
+      z-index: 0;
+      pointer-events: none;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+    }
+
+    .aurora-1 {
+      width: 600px;
+      height: 300px;
+      top: -100px;
+      right: -100px;
+      background: linear-gradient(135deg, var(--cyber-cyan), var(--lime));
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      border-bottom: 1px solid var(--wire-bright);
+      padding-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .brand-bracket {
+      color: var(--cyber-cyan);
+    }
+
+    .back-link {
+      color: var(--fog);
+      text-decoration: none;
+      transition: color 0.2s;
+      font-size: 14px;
+    }
+
+    .back-link:hover {
+      color: var(--text);
+    }
+
+    .page-title {
+      font-size: 28px;
+      margin-bottom: 30px;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: -0.02em;
+      text-shadow: 0 0 20px rgba(179, 75, 244, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .page-title span {
+      color: var(--cyber-cyan);
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 250px;
+      background: var(--ink-2);
+      border: 1px solid var(--wire-bright);
+      border-radius: 4px;
+      padding: 12px 18px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--cyber-cyan);
+      box-shadow: 0 0 10px rgba(179, 75, 244, 0.2);
+    }
+
+    .filter-btn {
+      background: var(--ink-2);
+      border: 1px solid var(--wire-bright);
+      color: var(--fog);
+      border-radius: 4px;
+      padding: 12px 20px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover {
+      color: var(--text);
+      border-color: var(--cyber-cyan);
+    }
+
+    .filter-btn.active {
+      background: var(--amber-dim);
+      border-color: var(--cyber-cyan);
+      color: var(--text);
+      box-shadow: 0 0 10px rgba(179, 75, 244, 0.15);
+    }
+
+    .problem-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .problem-card {
+      background: rgba(22, 17, 34, 0.65);
+      border: 1px solid var(--wire);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+
+    .problem-card:hover {
+      border-color: var(--wire-bright);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    }
+
+    .card-header {
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+
+    .card-header:hover {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .problem-number {
+      color: var(--cyber-cyan);
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .problem-name {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .diff-tag {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+    }
+
+    .diff-easy {
+      background: rgba(60, 208, 112, 0.12);
+      color: var(--success);
+      border: 1px solid rgba(60, 208, 112, 0.25);
+    }
+
+    .diff-medium {
+      background: rgba(179, 75, 244, 0.12);
+      color: var(--cyber-cyan);
+      border: 1px solid rgba(179, 75, 244, 0.25);
+    }
+
+    .diff-hard {
+      background: rgba(255, 122, 0, 0.12);
+      color: var(--cyber-orange);
+      border: 1px solid rgba(255, 122, 0, 0.25);
+    }
+
+    .chevron {
+      transition: transform 0.3s;
+      fill: var(--fog);
+    }
+
+    .problem-card.expanded .chevron {
+      transform: rotate(180deg);
+    }
+
+    .card-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease-out;
+      border-top: 1px solid transparent;
+      background: rgba(7, 5, 11, 0.4);
+    }
+
+    .problem-card.expanded .card-body {
+      max-height: 1000px;
+      border-color: var(--wire);
+      transition: max-height 0.5s ease-in;
+    }
+
+    .body-content {
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      color: var(--fog);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--wire);
+    }
+
+    .method-name {
+      color: var(--cyber-cyan);
+      font-size: 14px;
+      background: var(--ink-3);
+      padding: 6px 12px;
+      border-radius: 4px;
+      display: inline-block;
+      border: 1px solid var(--wire-bright);
+    }
+
+    .explanation-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .code-container {
+      position: relative;
+      border-radius: 4px;
+      border: 1px solid var(--wire-bright);
+      background: var(--ink-1);
+      overflow: hidden;
+    }
+
+    .code-header {
+      padding: 10px 15px;
+      background: var(--ink-2);
+      border-bottom: 1px solid var(--wire);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .lang-label {
+      font-size: 11px;
+      color: var(--fog);
+      text-transform: uppercase;
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--fog);
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+      transition: color 0.15s;
+    }
+
+    .copy-btn:hover {
+      color: var(--text);
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #a9b2c3;
+    }
+
+    code {
+      font-family: 'DM Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="aurora aurora-1"></div>
+  <div class="container">
+    <header>
+      <a href="/home/" class="brand">
+        <span class="brand-bracket">{ }</span> DIS Admin Keys
+      </a>
+      <a href="/home/" class="back-link">← Back to Workspace</a>
+    </header>
+
+    <h1 class="page-title"><span>#</span> Reference Solutions</h1>
+
+    <div class="controls">
+      <input type="text" id="searchInput" class="search-input" placeholder="Search by title or method name...">
+      <button class="filter-btn active" onclick="filterDifficulty('all')">All</button>
+      <button class="filter-btn" onclick="filterDifficulty('Easy')">Easy</button>
+      <button class="filter-btn" onclick="filterDifficulty('Medium')">Medium</button>
+      <button class="filter-btn" onclick="filterDifficulty('Hard')">Hard</button>
+    </div>
+
+    <div class="problem-list">
+      {% for s in solutions %}
+      <div class="problem-card" data-title="{{ s.title }}" data-method="{{ s.method_name }}" data-difficulty="{{ s.difficulty }}">
+        <div class="card-header" onclick="toggleCard(this)">
+          <div class="header-left">
+            <span class="problem-number">#{{ s.id }}</span>
+            <span class="problem-name">{{ s.title }}</span>
+          </div>
+          <div class="header-right">
+            <span class="diff-tag {% if s.difficulty == 'Easy' %}diff-easy{% elif s.difficulty == 'Medium' %}diff-medium{% else %}diff-hard{% endif %}">
+              {{ s.difficulty }}
+            </span>
+            <svg class="chevron" width="12" height="12" viewBox="0 0 24 24">
+              <path d="M7 10l5 5 5-5H7z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="body-content">
+            <div>
+              <div class="section-title">Method Signature</div>
+              <div class="method-name">{{ s.method_name }}</div>
+            </div>
+            <div>
+              <div class="section-title">Explanation</div>
+              <div class="explanation-text">{{ s.explanation }}</div>
+            </div>
+            <div>
+              <div class="section-title">Python Implementation</div>
+              <div class="code-container">
+                <div class="code-header">
+                  <span class="lang-label">Python</span>
+                  <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                </div>
+                <pre><code>{{ s.solution_code }}</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <script>
+    function toggleCard(header) {
+      const card = header.parentElement;
+      const allCards = document.querySelectorAll('.problem-card');
+      card.classList.toggle('expanded');
+    }
+
+    let activeDifficulty = 'all';
+
+    function filterDifficulty(diff) {
+      activeDifficulty = diff;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      applyFilters();
+    }
+
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', applyFilters);
+
+    function applyFilters() {
+      const query = searchInput.value.toLowerCase().strip ? searchInput.value.toLowerCase().trim() : searchInput.value.toLowerCase();
+      document.querySelectorAll('.problem-card').forEach(card => {
+        const title = card.getAttribute('data-title').toLowerCase();
+        const method = card.getAttribute('data-method').toLowerCase();
+        const diff = card.getAttribute('data-difficulty');
+        const matchesSearch = title.includes(query) || method.includes(query);
+        const matchesDiff = activeDifficulty === 'all' || diff === activeDifficulty;
+        if (matchesSearch && matchesDiff) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    function copyCode(btn) {
+      const pre = btn.parentElement.nextElementSibling;
+      const code = pre.textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => {
+          btn.textContent = originalText;
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

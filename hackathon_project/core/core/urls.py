@@ -13,6 +13,7 @@ urlpatterns = [
     path('home/', views.home, name='home'),
     path('problem/<int:problem_id>/', views.problem_detail, name='problem_detail'),
     path('api/save/', views.save_code),
+    path('api/record-tab-switch/', views.record_tab_switch, name='record_tab_switch'),
     path('leaderboard/', views.leaderboard, name='leaderboard'),
     path('api/leaderboard-data/', views.leaderboard_data, name='leaderboard_data'),
     path('api/load/<int:problem_id>/', views.load_code),
@@ -29,6 +30,8 @@ urlpatterns = [
     path('api/bonus/submit/', views.bonus_submit, name='bonus_submit'),
     path('api/hint/', views.ai_hint, name='ai_hint'),
     path('api/features/', views.features, name='features'),
+    path('api/hint-tokens/', views.get_hint_tokens, name='get_hint_tokens'),
+    path('api/earn-hint/', views.earn_hint_token, name='earn_hint_token'),
     path('admin-api/start-hackathon/', views.admin_start_hackathon, name='admin_start_hackathon'),
     path('admin-api/pause-hackathon/', views.admin_pause_hackathon, name='admin_pause_hackathon'),
     path('admin-api/resume-hackathon/', views.admin_resume_hackathon, name='admin_resume_hackathon'),
@@ -41,4 +44,5 @@ urlpatterns = [
     path('admin-api/reset-hackathon/', views.admin_reset_hackathon, name='admin_reset_hackathon'),
     path('admin-api/toggle-tour/', views.admin_toggle_tour, name='admin_toggle_tour'),
     path('admin-api/adjust-points/', views.admin_adjust_points, name='admin_adjust_points'),
+    path('admin-answers/', views.admin_answers, name='admin_answers'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

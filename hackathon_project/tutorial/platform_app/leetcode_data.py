@@ -91,7 +91,7 @@ BONUS_QUESTIONS = [
         "description": "Challenge: Determine if an input integer is 'EVEN' or 'ODD'.\n\nclass Solution:\n    def even_or_odd(self, n: int) -> str:\n        return \"EVEN\" if n % 2 == 0 else \"ODD\"\n\nTarget Output: EVEN\nInput (n): ?",
         "starter_code": "try:\n    val = int(input().strip())\n    if val % 2 == 0:\n        print(\"EVEN\")\n    else:\n        print(\"ODD\")\nexcept Exception:\n    print(\"ERROR\")",
         "expected_output": "EVEN",
-        "input_type_hint": "An even integer, e.g. 2",
+        "input_type_hint": "Enter an integer",
         "order": 1,
         "duration_minutes": 10
     }

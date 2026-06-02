@@ -1329,7 +1329,7 @@
       <div class="nav-links">
         <a href="/leaderboard/" class="nav-link">🏆 Leaderboard</a>
         <button onclick="openHowToPlay()" class="nav-link btn-ghost" style="cursor:pointer;">📖 How to Play</button>
-        <a href="/logout/" class="nav-link alt">Logout</a>
+        <button onclick="openMinigame()" class="nav-link btn-ghost" style="cursor:pointer;">🎮 Minigame</button>
       </div>
     </div>
   </nav>
@@ -1350,7 +1350,7 @@
             <span
               style="font-size:10px; text-transform:uppercase; color:var(--fog); display:block; margin-bottom:4px; letter-spacing:0.1em;">Solved</span>
             <span style="font-size:18px; font-weight:700; color:var(--text);">{{ solved_count }} <span
-                style="font-size:12px; color:var(--fog);">/ 15</span></span>
+                style="font-size:12px; color:var(--fog);">/ 20</span></span>
           </div>
           <div style="flex:1; max-width:240px;">
             <span
@@ -1399,7 +1399,7 @@
       <div class="section-head">
         <div>
           <h2>Challenges</h2>
-          <p>Pick your battles — higher difficulty, higher reward.</p>
+          <p>Pick your battles - higher difficulty, higher reward.</p>
         </div>
       </div>
       <div class="cards-grid">
@@ -1478,7 +1478,7 @@
             <div class="htp-item-desc">Real-time rankings. Check regularly to see where you stand.</div>
           </div>
         </div>
-        <button class="htp-close" onclick="closeHowToPlay()">Got it — Let's Code!</button>
+        <button class="htp-close" onclick="closeHowToPlay()">Got it - Let's Code!</button>
       </div>
     </div>
   </div>
@@ -1621,7 +1621,7 @@
           document.getElementById('bonus-popup-modal').style.display = 'flex';
           const qCount = data.total_questions || 3;
           const mins = data.duration_minutes || 10;
-          document.getElementById('popup-description').textContent = qCount + ' bonus questions are live! Solve all ' + qCount + ' in ' + mins + ' minutes — first team to finish wins 100 bonus points!';
+          document.getElementById('popup-description').textContent = qCount + ' bonus questions are live! Solve all ' + qCount + ' in ' + mins + ' minutes - first team to finish wins 100 bonus points!';
           hasShownPopupThisSession = true;
         }
       } catch (e) { }
@@ -1875,6 +1875,373 @@
       }
       checkRank();
       setInterval(checkRank, 6000);
+    })();
+  </script>
+
+  <div id="minigame-modal"
+    style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(7,5,11,0.8); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:20px;">
+    <div id="minigame-container"
+      style="position:relative; width:100%; max-width:800px; height:320px; background:#07050b; border:1px solid rgba(179,75,244,0.3); border-radius:12px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 24px 64px rgba(0,0,0,0.8);">
+      <div id="gs-hud"
+        style="position:absolute;top:0;left:0;right:0;height:44px;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:rgba(7,5,11,0.75);backdrop-filter:blur(8px);border-bottom:1px solid rgba(179,75,244,0.15);">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:4px;height:22px;background:linear-gradient(180deg,#b34bf4,#e1306c);border-radius:2px;">
+          </div>
+          <span
+            style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.1em;background:linear-gradient(90deg,#b34bf4,#e1306c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">G-SWITCH</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:18px;">
+          <span style="font-family:'DM Mono',monospace;font-size:11px;color:#8b8599;">Press <kbd
+              style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:3px;padding:1px 6px;color:#e2dfe6;font-family:'DM Mono',monospace;">X</kbd>
+            or <kbd
+              style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:3px;padding:1px 6px;color:#e2dfe6;font-family:'DM Mono',monospace;">Space</kbd>
+            to flip gravity</span>
+          <span style="font-family:'DM Mono',monospace;font-size:12px;color:#8b8599;">Distance: <span id="gs-dist"
+              style="color:#b34bf4;font-weight:bold;">0%</span></span>
+          <span id="gs-msg"
+            style="font-family:'DM Mono',monospace;font-size:12px;color:#ff5577;min-width:120px;text-align:right;"></span>
+        </div>
+        <button onclick="closeMinigame()"
+          style="padding:5px 14px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#8b8599;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;">&#x2715;
+          Close</button>
+      </div>
+      <canvas id="gs-canvas" style="display:block;position:absolute;top:44px;left:0;"></canvas>
+      <div id="gs-overlay"
+        style="display:none;position:absolute;inset:0;z-index:20;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgba(7,5,11,0.85);backdrop-filter:blur(12px);">
+        <div id="gs-overlay-title"
+          style="font-family:'Bebas Neue',sans-serif;font-size:72px;letter-spacing:0.06em;background:linear-gradient(90deg,#b34bf4,#e1306c,#ff7a00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;text-align:center;">
+        </div>
+        <div id="gs-overlay-sub"
+          style="font-family:'DM Mono',monospace;font-size:14px;color:#8b8599;text-align:center;max-width:380px;line-height:1.7;">
+        </div>
+        <div style="display:flex;gap:12px;">
+          <button onclick="gsRestart()"
+            style="padding:12px 30px;border-radius:8px;border:none;background:linear-gradient(135deg,#b34bf4,#e1306c);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.08em;cursor:pointer;box-shadow:0 4px 20px rgba(179,75,244,0.4);">PLAY
+            AGAIN</button>
+          <button onclick="closeMinigame()"
+            style="padding:12px 30px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#8b8599;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.08em;cursor:pointer;">CLOSE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var canvas, ctx, W, H, raf, hasEarned = false, running = false;
+      var px, py, pvy, gravDir, spd, camX, dead, won, deathTimer, startTime, flipCD;
+      var shieldActive = false, speedBoostTimer = 0;
+      var PW = 14, PH = 14, GRAV = 0.48, MAXVY = 12, FT = 22, TOTAL = 22000;
+      var obs = [], trail = [];
+
+      function ri(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+
+      function buildLevel() {
+        obs = []; var x = 1000;
+        while (x < TOTAL - 600) {
+          var t = ri(0, 6);
+          if (t === 0) { var g = ri(80, 130); obs.push({ k: 'gap', x: x, w: g, fl: true }); x += g + ri(200, 320); }
+          else if (t === 1) { var g2 = ri(80, 130); obs.push({ k: 'gap', x: x, w: g2, fl: false }); x += g2 + ri(200, 320); }
+          else if (t === 2) { var n = ri(1, 3); for (var i = 0; i < n; i++) { obs.push({ k: 'sp', x: x + i * 60, fl: true }); obs.push({ k: 'sp', x: x + i * 60, fl: false }); } x += n * 60 + ri(220, 340); }
+          else if (t === 3) { var n2 = ri(1, 2); for (var j = 0; j < n2; j++) { obs.push({ k: 'sp', x: x + j * 65, fl: ri(0, 1) === 0 }); } x += n2 * 65 + ri(200, 340); }
+          else if (t === 4) { var bh = ri(40, Math.max(45, (H || 276) / 2 - 30)); var bw = ri(20, 32); obs.push({ k: 'bl', x: x, y: (H || 276) - FT - bh, w: bw, h: bh }); x += bw + ri(220, 360); }
+          else if (t === 5) { var bh2 = ri(40, Math.max(45, (H || 276) / 2 - 30)); var bw2 = ri(20, 32); obs.push({ k: 'bl', x: x, y: 0, w: bw2, h: bh2 + FT }); x += bw2 + ri(220, 360); }
+          else {
+            var sy = (H || 276) / 2 + ri(-30, 30);
+            obs.push({ k: 'fsp', x: x, y: sy });
+            x += 200 + ri(100, 200);
+          }
+          if (ri(0, 2) === 0) {
+            var pType = ri(0, 2) === 0 ? 'shield' : (ri(0, 1) === 0 ? 'speed' : 'token');
+            var pyPos = ri(0, 1) === 0 ? FT + 30 : (H || 276) - FT - 30;
+            obs.push({ k: pType, x: x - 100, y: pyPos, w: 16, h: 16, active: true });
+          }
+        }
+      }
+
+      function resize() {
+        var container = document.getElementById('minigame-container');
+        W = canvas.width = container ? container.clientWidth : window.innerWidth;
+        H = canvas.height = (container ? container.clientHeight : window.innerHeight) - 44;
+        canvas.style.position = 'absolute';
+        canvas.style.top = '44px';
+        canvas.style.left = '0';
+        buildLevel();
+      }
+
+      function initRun() {
+        py = H / 2 - PH / 2; px = 160; pvy = 0; gravDir = 1; spd = 5; camX = 0;
+        dead = false; won = false; deathTimer = 0; flipCD = 0; running = true; trail = [];
+        shieldActive = false; speedBoostTimer = 0;
+        startTime = performance.now();
+        document.getElementById('gs-overlay').style.display = 'none';
+        document.getElementById('gs-msg').textContent = '';
+        document.getElementById('gs-dist').textContent = '0%';
+      }
+
+      function flip() {
+        if (dead || won || flipCD > 0) return;
+        gravDir *= -1; pvy *= -0.3; flipCD = 6;
+      }
+
+      function rHit(ax, ay, aw, ah, bx2, by2, bw2, bh2) {
+        return ax < bx2 + bw2 && ax + aw > bx2 && ay < by2 + bh2 && ay + ah > by2;
+      }
+
+      function update() {
+        if (!running) return;
+        if (dead) { deathTimer++; if (deathTimer > 55) showOverlay(false); return; }
+        if (won) return;
+        if (flipCD > 0) flipCD--;
+        if (speedBoostTimer > 0) speedBoostTimer--;
+        var el = (performance.now() - startTime) / 1000;
+        var baseSpd = Math.min(10, 5 + el * 0.05);
+        spd = speedBoostTimer > 0 ? baseSpd * 1.6 : baseSpd;
+        camX += spd;
+        pvy += GRAV * gravDir;
+        if (pvy > MAXVY) pvy = MAXVY;
+        if (pvy < -MAXVY) pvy = -MAXVY;
+        py += pvy;
+        if (py >= H - FT - PH) { py = H - FT - PH; pvy = 0; }
+        if (py <= FT) { py = FT; pvy = 0; }
+        if (!dead && !won) { trail.push({ wx: camX + px, y: py, t: performance.now() }); }
+        if (trail.length > 40) trail.shift();
+        var wx = camX + px;
+        for (var i = 0; i < obs.length; i++) {
+          var o = obs[i];
+          if (o.x > wx + PW + 400) break;
+          if (o.x + (o.w || 18) < wx - 40) continue;
+          if (o.k === 'gap') {
+            if (wx + PW > o.x && wx < o.x + o.w) {
+              if (o.fl && py + PH >= H - FT) {
+                if (shieldActive) { shieldActive = false; o.x = -9999; }
+                else { dead = true; deathTimer = 0; return; }
+              }
+              if (!o.fl && py <= FT) {
+                if (shieldActive) { shieldActive = false; o.x = -9999; }
+                else { dead = true; deathTimer = 0; return; }
+              }
+            }
+          } else if (o.k === 'sp') {
+            var sw = 16, sh = 20, sy = o.fl ? H - FT - sh : FT;
+            if (rHit(wx, py, PW, PH, o.x, sy, sw, sh)) {
+              if (shieldActive) { shieldActive = false; o.x = -9999; }
+              else { dead = true; deathTimer = 0; return; }
+            }
+          } else if (o.k === 'fsp') {
+            if (rHit(wx, py, PW, PH, o.x, o.y, 16, 16)) {
+              if (shieldActive) { shieldActive = false; o.x = -9999; }
+              else { dead = true; deathTimer = 0; return; }
+            }
+          } else if (o.k === 'bl') {
+            if (rHit(wx, py, PW, PH, o.x, o.y, o.w, o.h)) {
+              if (shieldActive) { shieldActive = false; o.x = -9999; }
+              else { dead = true; deathTimer = 0; return; }
+            }
+          } else if ((o.k === 'shield' || o.k === 'speed' || o.k === 'token') && o.active) {
+            if (rHit(wx, py, PW, PH, o.x, o.y, 16, 16)) {
+              o.active = false;
+              if (o.k === 'shield') shieldActive = true;
+              else if (o.k === 'speed') speedBoostTimer = 120;
+              else if (o.k === 'token') camX = Math.min(TOTAL - 100, camX + 300);
+            }
+          }
+        }
+        if (camX + px >= TOTAL) { won = true; showOverlay(true); }
+        var pct = Math.min(100, Math.floor((camX / TOTAL) * 100));
+        document.getElementById('gs-dist').textContent = pct + '%';
+      }
+
+      function drawFloor() {
+        var gF = ctx.createLinearGradient(0, H - FT, 0, H);
+        gF.addColorStop(0, 'rgba(179,75,244,0.5)'); gF.addColorStop(1, 'rgba(100,20,180,0.2)');
+        ctx.fillStyle = gF; ctx.fillRect(0, H - FT, W, FT);
+        ctx.fillStyle = 'rgba(200,140,255,0.65)'; ctx.fillRect(0, H - FT, W, 2);
+        var gC = ctx.createLinearGradient(0, 0, 0, FT);
+        gC.addColorStop(0, 'rgba(100,20,180,0.2)'); gC.addColorStop(1, 'rgba(179,75,244,0.5)');
+        ctx.fillStyle = gC; ctx.fillRect(0, 0, W, FT);
+        ctx.fillStyle = 'rgba(200,140,255,0.65)'; ctx.fillRect(0, FT - 2, W, 2);
+        var tw = 60, off = camX % tw;
+        ctx.strokeStyle = 'rgba(179,75,244,0.1)'; ctx.lineWidth = 1;
+        for (var i = -1; i < W / tw + 2; i++) {
+          var lx = i * tw - off;
+          ctx.beginPath(); ctx.moveTo(lx, H - FT); ctx.lineTo(lx, H); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(lx, 0); ctx.lineTo(lx, FT); ctx.stroke();
+        }
+      }
+
+      function drawGrid() {
+        ctx.strokeStyle = 'rgba(179,75,244,0.04)'; ctx.lineWidth = 1;
+        var gw = 80, off = camX % gw;
+        for (var i = -1; i < W / gw + 2; i++) { var lx = i * gw - off; ctx.beginPath(); ctx.moveTo(lx, FT); ctx.lineTo(lx, H - FT); ctx.stroke(); }
+        var gh = 60;
+        for (var i2 = 0; i2 < (H - FT * 2) / gh + 2; i2++) { var ly = FT + i2 * gh; ctx.beginPath(); ctx.moveTo(0, ly); ctx.lineTo(W, ly); ctx.stroke(); }
+      }
+
+      function drawObs() {
+        for (var i = 0; i < obs.length; i++) {
+          var o = obs[i], ox = o.x - camX;
+          if (ox > W + 80) break;
+          if (ox + (o.w || 20) < -80) continue;
+          if (o.k === 'gap') {
+            var gy = o.fl ? H - FT : 0;
+            ctx.fillStyle = '#07050b'; ctx.fillRect(ox, gy, o.w, FT);
+            var e = ctx.createLinearGradient(ox, 0, ox + o.w, 0);
+            e.addColorStop(0, 'rgba(179,75,244,0.35)'); e.addColorStop(0.3, 'transparent'); e.addColorStop(0.7, 'transparent'); e.addColorStop(1, 'rgba(179,75,244,0.35)');
+            ctx.fillStyle = e; ctx.fillRect(ox, gy, o.w, FT);
+          } else if (o.k === 'sp') {
+            var sw2 = 16, sh2 = 20, sy2 = o.fl ? H - FT - sh2 : FT;
+            ctx.shadowColor = 'rgba(255,51,85,0.7)'; ctx.shadowBlur = 10;
+            ctx.fillStyle = '#ff3355'; ctx.beginPath();
+            if (o.fl) { ctx.moveTo(ox, sy2 + sh2); ctx.lineTo(ox + sw2 / 2, sy2); ctx.lineTo(ox + sw2, sy2 + sh2); }
+            else { ctx.moveTo(ox, sy2); ctx.lineTo(ox + sw2 / 2, sy2 + sh2); ctx.lineTo(ox + sw2, sy2); }
+            ctx.fill(); ctx.shadowBlur = 0;
+          } else if (o.k === 'fsp') {
+            ctx.shadowColor = 'rgba(255,51,85,0.7)'; ctx.shadowBlur = 10;
+            ctx.fillStyle = '#ff3355'; ctx.beginPath();
+            ctx.arc(ox + 8, o.y + 8, 8, 0, Math.PI * 2);
+            ctx.fill(); ctx.shadowBlur = 0;
+          } else if (o.k === 'bl') {
+            var bg = ctx.createLinearGradient(ox, o.y, ox + o.w, o.y + o.h);
+            bg.addColorStop(0, 'rgba(225,48,108,0.9)'); bg.addColorStop(1, 'rgba(120,20,60,0.9)');
+            ctx.shadowColor = 'rgba(225,48,108,0.5)'; ctx.shadowBlur = 10;
+            ctx.fillStyle = bg; ctx.fillRect(ox, o.y, o.w, o.h); ctx.shadowBlur = 0;
+            ctx.strokeStyle = 'rgba(255,100,150,0.45)'; ctx.lineWidth = 1; ctx.strokeRect(ox, o.y, o.w, o.h);
+          } else if (o.k === 'shield' && o.active) {
+            ctx.shadowColor = 'rgba(51,153,255,0.8)'; ctx.shadowBlur = 12;
+            ctx.fillStyle = '#3399ff'; ctx.beginPath();
+            ctx.arc(ox + 8, o.y + 8, 8, 0, Math.PI * 2);
+            ctx.fill(); ctx.shadowBlur = 0;
+          } else if (o.k === 'speed' && o.active) {
+            ctx.shadowColor = 'rgba(255,204,0,0.8)'; ctx.shadowBlur = 12;
+            ctx.fillStyle = '#ffcc00'; ctx.beginPath();
+            ctx.moveTo(ox, o.y + 16); ctx.lineTo(ox + 8, o.y); ctx.lineTo(ox + 16, o.y + 16); ctx.lineTo(ox + 8, o.y + 10);
+            ctx.fill(); ctx.shadowBlur = 0;
+          } else if (o.k === 'token' && o.active) {
+            ctx.shadowColor = 'rgba(60,208,112,0.8)'; ctx.shadowBlur = 12;
+            ctx.fillStyle = '#3cd070'; ctx.beginPath();
+            ctx.arc(ox + 8, o.y + 8, 7, 0, Math.PI * 2);
+            ctx.fill(); ctx.shadowBlur = 0;
+          }
+        }
+      }
+
+      function drawFinish() {
+        var fx = TOTAL - camX;
+        if (fx < -80 || fx > W + 80) return;
+        var t = performance.now() / 1000, pulse = 0.55 + 0.45 * Math.sin(t * 4);
+        ctx.shadowColor = 'rgba(60,208,112,0.8)'; ctx.shadowBlur = 20;
+        ctx.strokeStyle = 'rgba(60,208,112,' + pulse + ')'; ctx.lineWidth = 3;
+        ctx.setLineDash([10, 6]); ctx.beginPath(); ctx.moveTo(fx, FT); ctx.lineTo(fx, H - FT); ctx.stroke();
+        ctx.setLineDash([]); ctx.shadowBlur = 0;
+      }
+
+      function drawPlayer() {
+        var al = dead ? 0.35 : 1;
+        var now = performance.now();
+        for (var i = 0; i < trail.length; i++) {
+          var tr = trail[i];
+          var age = (now - tr.t) / 1000;
+          if (age > 0.6) continue;
+          var p = 1 - (age / 0.6);
+          var sz = PW * 0.9 * p;
+          var sx = (tr.wx - camX) + (PW - sz) / 2;
+          var sy = tr.y + (PH - sz) / 2;
+          ctx.globalAlpha = p * 0.6 * al;
+          ctx.fillStyle = dead ? 'rgba(255,51,85,1)' : 'rgba(179,75,244,1)';
+          ctx.shadowColor = dead ? 'rgba(255,51,85,0.9)' : 'rgba(179,75,244,0.9)';
+          ctx.shadowBlur = 14 * p;
+          ctx.fillRect(sx, sy, sz, sz);
+        }
+        ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+        var gr = ctx.createLinearGradient(px, py, px + PW, py + PH);
+        gr.addColorStop(0, 'rgba(220,180,255,' + al + ')');
+        gr.addColorStop(1, 'rgba(140,40,220,' + al + ')');
+        ctx.shadowColor = dead ? 'rgba(255,51,85,0.8)' : 'rgba(179,75,244,0.9)';
+        ctx.shadowBlur = dead ? 22 : 14;
+        ctx.fillStyle = gr; ctx.fillRect(px, py, PW, PH); ctx.shadowBlur = 0;
+        ctx.strokeStyle = dead ? 'rgba(255,51,85,0.7)' : 'rgba(220,180,255,0.7)';
+        ctx.lineWidth = 1.5; ctx.strokeRect(px, py, PW, PH);
+        ctx.fillStyle = 'rgba(179,75,244,0.5)'; ctx.beginPath();
+        if (gravDir === 1) { ctx.moveTo(px + 2, py + PH + 2); ctx.lineTo(px + PW / 2, py + PH + 9); ctx.lineTo(px + PW - 2, py + PH + 2); }
+        else { ctx.moveTo(px + 2, py - 2); ctx.lineTo(px + PW / 2, py - 9); ctx.lineTo(px + PW - 2, py - 2); }
+        ctx.fill();
+        if (shieldActive) {
+          ctx.strokeStyle = 'rgba(51,153,255,0.8)'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(px + PW / 2, py + PH / 2, PW * 1.2, 0, Math.PI * 2); ctx.stroke();
+        }
+      }
+
+      function drawBar() {
+        var pct = Math.min(1, camX / TOTAL), bw = W - 80, bh = 3, bx2 = 40, by2 = H - 9;
+        ctx.fillStyle = 'rgba(255,255,255,0.05)'; ctx.fillRect(bx2, by2, bw, bh);
+        var pg = ctx.createLinearGradient(bx2, 0, bx2 + bw, 0);
+        pg.addColorStop(0, '#b34bf4'); pg.addColorStop(0.5, '#e1306c'); pg.addColorStop(1, '#ff7a00');
+        ctx.fillStyle = pg; ctx.fillRect(bx2, by2, bw * pct, bh);
+        ctx.fillStyle = 'rgba(200,130,255,0.8)'; ctx.beginPath(); ctx.arc(bx2 + bw, by2 + bh / 2, 4, 0, Math.PI * 2); ctx.fill();
+      }
+
+      function draw() {
+        ctx.fillStyle = '#07050b'; ctx.fillRect(0, 0, W, H);
+        drawGrid(); drawFloor(); drawFinish(); drawObs(); drawPlayer(); drawBar();
+      }
+
+      function loop() { update(); draw(); raf = requestAnimationFrame(loop); }
+
+      function showOverlay(win) {
+        running = false;
+        document.getElementById('gs-overlay').style.display = 'flex';
+        if (win) {
+          document.getElementById('gs-overlay-title').textContent = 'YOU WIN!';
+          document.getElementById('gs-overlay-sub').textContent = 'Incredible! You survived the gauntlet.';
+          if (!hasEarned) { hasEarned = true; earnToken(); }
+        } else {
+          var pct = Math.min(100, Math.floor((camX / TOTAL) * 100));
+          document.getElementById('gs-overlay-title').textContent = 'YOU DIED';
+          document.getElementById('gs-overlay-sub').textContent = 'You made it ' + pct + '% through. No mercy. Try again.';
+        }
+      }
+
+      function openMinigame() {
+        document.getElementById('minigame-modal').style.display = 'flex';
+        canvas = document.getElementById('gs-canvas');
+        ctx = canvas.getContext('2d');
+        resize(); initRun();
+        if (raf) cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(loop);
+        window.addEventListener('keydown', onKey);
+        canvas.addEventListener('pointerdown', flip);
+      }
+
+      function closeMinigame() {
+        document.getElementById('minigame-modal').style.display = 'none';
+        running = false;
+        if (raf) { cancelAnimationFrame(raf); raf = null; }
+        window.removeEventListener('keydown', onKey);
+        if (canvas) canvas.removeEventListener('pointerdown', flip);
+      }
+
+      function gsRestart() { buildLevel(); initRun(); if (raf) cancelAnimationFrame(raf); raf = requestAnimationFrame(loop); }
+
+      function onKey(e) {
+        if (e.key === 'x' || e.key === 'X' || e.key === ' ') { e.preventDefault(); flip(); }
+        if (e.key === 'Escape') closeMinigame();
+      }
+
+      function earnToken() {
+        var fd = new FormData();
+        fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        fetch('/api/earn-hint/', { method: 'POST', body: fd })
+          .then(function (r) { return r.json(); })
+          .then(function (d) { var el = document.getElementById('hint-tokens-count'); if (el) el.textContent = d.hint_tokens; })
+          .catch(function () { });
+      }
+
+      window.openMinigame = openMinigame;
+      window.closeMinigame = closeMinigame;
+      window.gsRestart = gsRestart;
+      window.addEventListener('resize', function () {
+        if (canvas && document.getElementById('minigame-modal').style.display !== 'none') resize();
+      });
     })();
   </script>
 </body>

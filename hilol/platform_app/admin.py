@@ -8,7 +8,7 @@ from django import forms
 class HackathonStateForm(forms.ModelForm):
     ai_model = forms.CharField(
         max_length=100,
-        help_text='Groq model ID — e.g. llama-3.3-70b-versatile, openai/gpt-oss-120b, groq/compound'
+        help_text='Groq model ID - e.g. llama-3.3-70b-versatile, openai/gpt-oss-120b, groq/compound'
     )
     class Meta:
         model = HackathonState
@@ -22,7 +22,7 @@ class StateAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Event Control', {'fields': ('is_started', 'is_finished', 'is_paused', 'start_time', 'paused_at')}),
         ('Feature Flags', {
-            'description': 'Toggle these at any time — changes take effect immediately for all teams.',
+            'description': 'Toggle these at any time - changes take effect immediately for all teams.',
             'fields': ('hints_enabled', 'onboarding_tour_enabled', 'ai_model'),
         }),
         ('Bonus Round', {'fields': ('bonus_first_finisher',)}),

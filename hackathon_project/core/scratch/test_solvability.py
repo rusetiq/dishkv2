@@ -163,13 +163,20 @@ class Solution:
     def findRadius(self, houses: list[int], heaters: list[int]) -> int:
         houses.sort()
         heaters.sort()
-        radius = 0
-        i = 0
+        def bisect_left(a, x):
+            lo, hi = 0, len(a)
+            while lo < hi:
+                mid = (lo + hi) // 2
+                if a[mid] < x: lo = mid + 1
+                else: hi = mid
+            return lo
+        ans = 0
         for house in houses:
-            while i < len(heaters) - 1 and abs(heaters[i+1] - house) <= abs(heaters[i] - house):
-                i += 1
-            radius = max(radius, abs(heaters[i] - house))
-        return radius
+            idx = bisect_left(heaters, house)
+            dist1 = abs(heaters[idx] - house) if idx < len(heaters) else float('inf')
+            dist2 = abs(heaters[idx - 1] - house) if idx > 0 else float('inf')
+            ans = max(ans, min(dist1, dist2))
+        return ans
 
     # 17. Longest Step Path
     def longestIncreasingPath(self, matrix: list[list[int]]) -> int:

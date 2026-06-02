@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DIS Hackathon — Bonus Round</title>
+<title>DIS Hackathon - Bonus Round</title>
 <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
 <style>
 :root {
@@ -424,7 +424,7 @@ main { max-width:900px; margin:0 auto; padding:48px 24px 96px; position:relative
     <div class="nav-links">
       <a href="/home/" class="nav-link">Problems</a>
       <a href="/leaderboard/" class="nav-link">Leaderboard</a>
-      <a href="/logout/" class="nav-link" style="color:var(--fog);">Logout</a>
+      <button onclick="openMinigame()" class="nav-link" style="cursor:pointer;background:none;border:none;color:var(--fog);">🎮 Minigame</button>
     </div>
   </div>
 </nav>
@@ -504,7 +504,7 @@ main { max-width:900px; margin:0 auto; padding:48px 24px 96px; position:relative
     </div>
     {% endif %}
     <div class="card-section">
-      <div class="section-eyebrow">The Code — Q{{ q.order }}</div>
+      <div class="section-eyebrow">The Code - Q{{ q.order }}</div>
       <pre class="code-block">{{ q.starter_code }}</pre>
     </div>
     <div class="card-section">
@@ -515,7 +515,7 @@ main { max-width:900px; margin:0 auto; padding:48px 24px 96px; position:relative
       {% endif %}
     </div>
     <div class="card-section">
-      <div class="section-eyebrow">Your Answer — What input produces this output?</div>
+      <div class="section-eyebrow">Your Answer - What input produces this output?</div>
       {% if q.solved %}
       <div class="result-box info" style="display:block;">✓ You already solved this question.</div>
       {% else %}
@@ -534,7 +534,7 @@ main { max-width:900px; margin:0 auto; padding:48px 24px 96px; position:relative
     <span class="points-val">100</span>
     <span>bonus pts</span>
     {% if first_finisher %}
-    <span>— claimed by <strong style="color:var(--lime);">{{ first_finisher }}</strong></span>
+    <span>- claimed by <strong style="color:var(--lime);">{{ first_finisher }}</strong></span>
     {% endif %}
   </div>
   {% endif %}
@@ -641,7 +641,7 @@ async function submitBonus(questionId) {
     const box = document.getElementById(`result-${questionId}`);
     box.style.display = 'block';
     box.className = 'result-box wrong';
-    box.textContent = 'Network error — try again.';
+    box.textContent = 'Network error - try again.';
     btn.disabled = false;
     btn.textContent = 'Submit →';
   }
@@ -841,6 +841,193 @@ animate();
     checkRank();
     setInterval(checkRank, 6000);
   })();
+  </script>
+
+  <div id="minigame-modal"
+    style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(7,5,11,0.85); backdrop-filter:blur(15px); align-items:center; justify-content:center; padding:20px;">
+    <div
+      style="background:linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(14,10,22,0.55) 50%, rgba(225,48,108,0.04) 100%); border:1px solid rgba(225, 48, 108, 0.25); border-top:1px solid rgba(255,255,255,0.2); border-left:1px solid rgba(255,255,255,0.13); border-radius:20px; max-width:480px; width:100%; padding:30px; text-align:center; box-shadow:0 32px 80px rgba(0,0,0,0.6), inset 0 0 60px rgba(225, 48, 108, 0.03), 0 0 30px rgba(225, 48, 108, 0.08); backdrop-filter:blur(40px) saturate(160%); -webkit-backdrop-filter:blur(40px) saturate(160%); position:relative; overflow:hidden;">
+      <div
+        style="position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, #fec053, #f47b20, #d62976, #962fbf);">
+      </div>
+      <h2 class="ig-gradient-text"
+        style="font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:0.06em;line-height:1.1;margin-bottom:6px;">
+        SNAKE MINIGAME</h2>
+      <p style="font-size:12px;color:#8b8599;font-family:'DM Mono',monospace;line-height:1.4;margin-bottom:15px;">
+        Reach 50 points to earn a Hint Token!
+      </p>
+      <div style="font-size:18px;color:#fff;font-family:'DM Mono',monospace;margin-bottom:10px;">
+        Score: <span id="snake-score" style="font-weight:bold;color:#ff7a00;">0</span> / 50
+      </div>
+      <div id="snake-msg" style="font-size:12px;color:#ff5577;font-family:'DM Mono',monospace;margin-bottom:10px;min-height:16px;">
+        Press Arrow Keys to Start
+      </div>
+      <canvas id="snake-canvas" width="280" height="280" style="background:#0e0a16; border:1px solid rgba(255,255,255,0.1); border-radius:10px; display:block; margin:0 auto; outline:none;"></canvas>
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:20px;">
+        <button onclick="closeMinigame()"
+          style="flex:1; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.04); color:#e2dfe6; font-family:'DM Mono',monospace; font-size:12px; cursor:pointer; transition:all 0.2s;">Close</button>
+        <button onclick="resetSnakeGame()"
+          style="flex:1; padding:10px; border-radius:8px; border:none; background:linear-gradient(135deg,#b34bf4,#e1306c,#ff7a00); color:#fff; font-family:'Instrument Sans',system-ui,sans-serif; font-weight:800; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(225,48,108,0.3); transition:all 0.2s;">Restart</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let snakeCanvas, snakeCtx;
+    let snakeGameInterval;
+    let snake = [];
+    let food = {};
+    let snakeDx = 10;
+    let snakeDy = 0;
+    let snakeScore = 0;
+    let snakeActive = false;
+    let snakeHasEarned = false;
+
+    function openMinigame() {
+      document.getElementById('minigame-modal').style.display = 'flex';
+      snakeCanvas = document.getElementById('snake-canvas');
+      snakeCtx = snakeCanvas.getContext('2d');
+      resetSnakeGame();
+      window.addEventListener('keydown', handleSnakeKey);
+    }
+
+    function closeMinigame() {
+      document.getElementById('minigame-modal').style.display = 'none';
+      clearInterval(snakeGameInterval);
+      snakeActive = false;
+      window.removeEventListener('keydown', handleSnakeKey);
+    }
+
+    function resetSnakeGame() {
+      clearInterval(snakeGameInterval);
+      snake = [
+        {x: 140, y: 140},
+        {x: 130, y: 140},
+        {x: 120, y: 140}
+      ];
+      snakeDx = 10;
+      snakeDy = 0;
+      snakeScore = 0;
+      snakeHasEarned = false;
+      snakeActive = false;
+      document.getElementById('snake-score').textContent = '0';
+      document.getElementById('snake-msg').textContent = 'Press Arrow Keys to Start';
+      document.getElementById('snake-msg').style.color = '#8b8599';
+      generateSnakeFood();
+      drawSnakeGame();
+    }
+
+    function generateSnakeFood() {
+      food.x = Math.floor(Math.random() * 28) * 10;
+      food.y = Math.floor(Math.random() * 28) * 10;
+      snake.forEach(part => {
+        if (part.x === food.x && part.y === food.y) {
+          generateSnakeFood();
+        }
+      });
+    }
+
+    function handleSnakeKey(e) {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+      }
+      if (!snakeActive && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        snakeActive = true;
+        document.getElementById('snake-msg').textContent = 'Game Running';
+        document.getElementById('snake-msg').style.color = '#3cd070';
+        snakeGameInterval = setInterval(snakeGameTick, 100);
+      }
+      const goingUp = snakeDy === -10;
+      const goingDown = snakeDy === 10;
+      const goingRight = snakeDx === 10;
+      const goingLeft = snakeDx === -10;
+      if (e.key === 'ArrowLeft' && !goingRight) {
+        snakeDx = -10;
+        snakeDy = 0;
+      }
+      if (e.key === 'ArrowUp' && !goingDown) {
+        snakeDx = 0;
+        snakeDy = -10;
+      }
+      if (e.key === 'ArrowRight' && !goingLeft) {
+        snakeDx = 10;
+        snakeDy = 0;
+      }
+      if (e.key === 'ArrowDown' && !goingUp) {
+        snakeDx = 0;
+        snakeDy = 10;
+      }
+    }
+
+    function drawSnakeGame() {
+      snakeCtx.fillStyle = '#0e0a16';
+      snakeCtx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
+      
+      snakeCtx.fillStyle = '#ff7a00';
+      snakeCtx.fillRect(food.x, food.y, 10, 10);
+      
+      snake.forEach((part, index) => {
+        snakeCtx.fillStyle = index === 0 ? '#b34bf4' : '#e1306c';
+        snakeCtx.fillRect(part.x, part.y, 10, 10);
+        snakeCtx.strokeStyle = '#0e0a16';
+        snakeCtx.strokeRect(part.x, part.y, 10, 10);
+      });
+    }
+
+    function snakeGameTick() {
+      const head = {x: snake[0].x + snakeDx, y: snake[0].y + snakeDy};
+      
+      if (head.x < 0 || head.x >= 280 || head.y < 0 || head.y >= 280) {
+        endSnakeGame();
+        return;
+      }
+      for (let i = 0; i < snake.length; i++) {
+        if (snake[i].x === head.x && snake[i].y === head.y) {
+          endSnakeGame();
+          return;
+        }
+      }
+      
+      snake.unshift(head);
+      if (head.x === food.x && head.y === food.y) {
+        snakeScore += 1;
+        document.getElementById('snake-score').textContent = snakeScore;
+        generateSnakeFood();
+        if (snakeScore >= 50 && !snakeHasEarned) {
+          snakeHasEarned = true;
+          earnMinigameToken();
+        }
+      } else {
+        snake.pop();
+      }
+      drawSnakeGame();
+    }
+
+    function endSnakeGame() {
+      clearInterval(snakeGameInterval);
+      snakeActive = false;
+      document.getElementById('snake-msg').textContent = 'Game Over!';
+      document.getElementById('snake-msg').style.color = '#ff5577';
+    }
+
+    function earnMinigameToken() {
+      const fd = new FormData();
+      fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+      fetch('/api/earn-hint/', {
+        method: 'POST',
+        body: fd
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('snake-msg').textContent = 'Token Earned! +1 Hint Token';
+        document.getElementById('snake-msg').style.color = '#ff7a00';
+        const tokenCountEl = document.getElementById('hint-tokens-count');
+        if (tokenCountEl) {
+          tokenCountEl.textContent = data.hint_tokens;
+        }
+      })
+      .catch(err => console.error(err));
+    }
   </script>
 </body>
 </html>

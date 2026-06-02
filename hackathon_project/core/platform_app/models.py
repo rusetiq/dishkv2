@@ -17,7 +17,7 @@ class HackathonState(models.Model):
     start_time = models.DateTimeField(null=True, blank=True)
     hints_enabled = models.BooleanField(default=True, help_text='Allow teams to request AI hints on problem pages')
     onboarding_tour_enabled = models.BooleanField(default=True, help_text='Show the guided UI tour to teams on their first visit to a problem')
-    ai_model = models.CharField(max_length=100, choices=AI_MODEL_CHOICES, default='llama-3.3-70b-versatile', help_text='Groq model used for AI hints — change takes effect immediately')
+    ai_model = models.CharField(max_length=100, choices=AI_MODEL_CHOICES, default='llama-3.3-70b-versatile', help_text='Groq model used for AI hints - change takes effect immediately')
     bonus_first_finisher = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='bonus_first_finish', help_text='First team to solve all bonus questions')
     duration_minutes = models.IntegerField(default=120, help_text='Duration of the hackathon in minutes')
 
@@ -50,6 +50,7 @@ class TeamProgress(models.Model):
     is_solved = models.BooleanField(default=False)
     start_time = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     hint_text = models.TextField(blank=True, default="")
+    tab_switches = models.IntegerField(default=0)
 
     class Meta:
         unique_together = ('team', 'problem')

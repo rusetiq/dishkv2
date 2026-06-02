@@ -6,6 +6,9 @@ class HackathonState(models.Model):
         ('llama-3.3-70b-versatile', 'Llama 3.3 70B Versatile'),
         ('openai/gpt-oss-120b', 'GPT OSS 120B'),
         ('groq/compound', 'Groq Compound'),
+        ('ollama/llama3', 'Ollama - Llama 3'),
+        ('ollama/mistral', 'Ollama - Mistral'),
+        ('openai/gpt-4o', 'OpenAI - GPT-4o'),
     ]
     is_started = models.BooleanField(default=False)
     is_finished = models.BooleanField(default=False)
@@ -16,7 +19,7 @@ class HackathonState(models.Model):
     onboarding_tour_enabled = models.BooleanField(default=True, help_text='Show the guided UI tour to teams on their first visit to a problem')
     ai_model = models.CharField(max_length=100, choices=AI_MODEL_CHOICES, default='llama-3.3-70b-versatile', help_text='Groq model used for AI hints — change takes effect immediately')
     bonus_first_finisher = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='bonus_first_finish', help_text='First team to solve all bonus questions')
-    duration_minutes = models.IntegerField(default=20, help_text='Duration of the hackathon in minutes')
+    duration_minutes = models.IntegerField(default=120, help_text='Duration of the hackathon in minutes')
 
     class Meta:
         verbose_name_plural = "Hackathon State"
@@ -46,6 +49,7 @@ class TeamProgress(models.Model):
     points = models.IntegerField(default=0)
     is_solved = models.BooleanField(default=False)
     start_time = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    hint_text = models.TextField(blank=True, default="")
 
     class Meta:
         unique_together = ('team', 'problem')

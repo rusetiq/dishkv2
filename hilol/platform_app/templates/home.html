@@ -1,0 +1,1696 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DIS Hackathon</title>
+  <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+  <style>
+    :root {
+      --ink: #07050b;
+      --ink-1: #0e0a16;
+      --ink-2: #161122;
+      --ink-3: #221a33;
+      --wire: rgba(179, 75, 244, 0.08);
+      --wire-bright: rgba(179, 75, 244, 0.18);
+      --cyber-cyan: #b34bf4;
+      --cyber-orange: #ff7a00;
+      --amber: #b34bf4;
+      --amber-dim: rgba(179, 75, 244, 0.12);
+      --lime: #e1306c;
+      --lime-dim: rgba(225, 48, 108, 0.12);
+      --fog: #8b8599;
+      --text: #e2dfe6;
+      --danger: #ff5577;
+      --success: #3cd070;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      background: var(--ink);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      overflow-x: hidden;
+    }
+
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(179, 75, 244, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(179, 75, 244, 0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      animation: gridShift 20s linear infinite;
+    }
+
+    @keyframes gridShift {
+      0% {
+        background-position: 0 0;
+      }
+
+      100% {
+        background-position: 48px 48px;
+      }
+    }
+
+    .aurora {
+      position: fixed;
+      z-index: 0;
+      pointer-events: none;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0;
+      animation: auroraPulse var(--dur, 8s) ease-in-out infinite;
+    }
+
+    .aurora-1 {
+      width: 700px;
+      height: 300px;
+      top: -80px;
+      left: -100px;
+      background: linear-gradient(135deg, rgba(179, 75, 244, 0.18), rgba(225, 48, 108, 0.08));
+      --dur: 9s;
+    }
+
+    .aurora-2 {
+      width: 500px;
+      height: 400px;
+      bottom: -120px;
+      right: -80px;
+      background: linear-gradient(225deg, rgba(225, 48, 108, 0.14), rgba(255, 122, 0, 0.06));
+      --dur: 12s;
+      animation-delay: -4s;
+    }
+
+    .aurora-3 {
+      width: 400px;
+      height: 400px;
+      top: 30%;
+      left: 40%;
+      background: radial-gradient(circle, rgba(179, 75, 244, 0.07), transparent 70%);
+      --dur: 15s;
+      animation-delay: -7s;
+    }
+
+    @keyframes auroraPulse {
+
+      0%,
+      100% {
+        opacity: 0;
+        transform: scale(1) translateY(0);
+      }
+
+      30% {
+        opacity: 1;
+        transform: scale(1.08) translateY(-20px);
+      }
+
+      60% {
+        opacity: 0.7;
+        transform: scale(0.96) translateY(10px);
+      }
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      animation: orbFloat var(--t, 14s) ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 6px;
+      height: 6px;
+      top: 15%;
+      left: 8%;
+      background: rgba(179, 75, 244, 0.6);
+      box-shadow: 0 0 16px 4px rgba(179, 75, 244, 0.3);
+      --t: 11s;
+    }
+
+    .orb-2 {
+      width: 4px;
+      height: 4px;
+      top: 70%;
+      left: 88%;
+      background: rgba(225, 48, 108, 0.7);
+      box-shadow: 0 0 12px 3px rgba(225, 48, 108, 0.35);
+      --t: 14s;
+      animation-delay: -5s;
+    }
+
+    .orb-3 {
+      width: 5px;
+      height: 5px;
+      top: 45%;
+      left: 55%;
+      background: rgba(255, 122, 0, 0.5);
+      box-shadow: 0 0 14px 3px rgba(255, 122, 0, 0.2);
+      --t: 18s;
+      animation-delay: -9s;
+    }
+
+    .orb-4 {
+      width: 3px;
+      height: 3px;
+      top: 85%;
+      left: 25%;
+      background: rgba(179, 75, 244, 0.5);
+      box-shadow: 0 0 10px 2px rgba(179, 75, 244, 0.25);
+      --t: 9s;
+      animation-delay: -3s;
+    }
+
+    .orb-5 {
+      width: 7px;
+      height: 7px;
+      top: 25%;
+      left: 78%;
+      background: rgba(225, 48, 108, 0.4);
+      box-shadow: 0 0 18px 5px rgba(225, 48, 108, 0.18);
+      --t: 22s;
+      animation-delay: -11s;
+    }
+
+    @keyframes orbFloat {
+
+      0%,
+      100% {
+        transform: translateY(0) translateX(0) scale(1);
+      }
+
+      25% {
+        transform: translateY(-18px) translateX(10px) scale(1.2);
+      }
+
+      50% {
+        transform: translateY(-8px) translateX(-8px) scale(0.9);
+      }
+
+      75% {
+        transform: translateY(14px) translateX(6px) scale(1.1);
+      }
+    }
+
+    .scan-line {
+      position: fixed;
+      left: 0;
+      right: 0;
+      height: 1px;
+      z-index: 1;
+      pointer-events: none;
+      background: linear-gradient(90deg, transparent 0%, rgba(179, 75, 244, 0.15) 30%, rgba(225, 48, 108, 0.1) 70%, transparent 100%);
+      animation: scanDown 8s linear infinite;
+    }
+
+    @keyframes scanDown {
+      0% {
+        top: -2px;
+        opacity: 0;
+      }
+
+      5% {
+        opacity: 1;
+      }
+
+      95% {
+        opacity: 0.4;
+      }
+
+      100% {
+        top: 100vh;
+        opacity: 0;
+      }
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+    }
+
+    .dither-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 15;
+      pointer-events: none;
+      background-image:
+        radial-gradient(rgba(7, 5, 11, 0.35) 25%, transparent 25%),
+        radial-gradient(rgba(7, 5, 11, 0.35) 25%, transparent 25%);
+      background-size: 4px 4px;
+      background-position: 0 0, 2px 2px;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(10, 10, 11, 0.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--wire);
+    }
+
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .nav-bracket {
+      font-size: 18px;
+      color: #e1306c;
+    }
+
+    .nav-name {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--fog);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-link {
+      padding: 6px 12px;
+      border-radius: 3px;
+      border: 1px solid transparent;
+      font-size: 12px;
+      color: var(--fog);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .nav-link:hover {
+      color: var(--text);
+      border-color: var(--wire-bright);
+    }
+
+    .nav-link.alt {
+      color: var(--fog);
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 96px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 16px;
+      margin-bottom: 52px;
+    }
+
+    @media (max-width:860px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @keyframes shimmerLine {
+
+      0%,
+      100% {
+        left: -100%;
+      }
+
+      50% {
+        left: 0%;
+      }
+    }
+
+    .hero-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(179, 75, 244, 0.04) 50%, rgba(225, 48, 108, 0.03) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 36px 32px;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(32px) saturate(150%);
+      -webkit-backdrop-filter: blur(32px) saturate(150%);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(179, 75, 244, 0.03);
+      animation: fadeUp 0.5s ease-out backwards;
+    }
+
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 200%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), rgba(179, 75, 244, 0.3), rgba(225, 48, 108, 0.2), transparent);
+      animation: shimmerLine 6s ease-in-out infinite;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 4px 11px;
+      border-radius: 2px;
+      border: 1px solid rgba(225, 48, 108, 0.2);
+      background: var(--lime-dim);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--lime);
+      margin-bottom: 18px;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--lime);
+      animation: dotPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes dotPulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.3
+      }
+    }
+
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(52px, 7vw, 80px);
+      line-height: 0.9;
+      letter-spacing: 0.02em;
+      margin-bottom: 12px;
+    }
+
+    @keyframes gradShift {
+      0% {
+        background-position: 0% center
+      }
+
+      100% {
+        background-position: 200% center
+      }
+    }
+
+    .hero-title .amber {
+      background: linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00, #b34bf4);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+      animation: gradShift 4s linear infinite;
+    }
+
+    .hero-sub {
+      font-size: 12px;
+      color: var(--fog);
+      line-height: 1.7;
+      max-width: 420px;
+      margin-bottom: 28px;
+    }
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 20px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #b34bf4, #e1306c);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(225, 48, 108, 0.25);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--wire-bright);
+      color: var(--fog);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--wire-bright);
+      color: var(--text);
+      background: var(--ink-2);
+    }
+
+    .score-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(179, 75, 244, 0.04) 50%, rgba(225, 48, 108, 0.03) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(32px) saturate(150%);
+      -webkit-backdrop-filter: blur(32px) saturate(150%);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(179, 75, 244, 0.03);
+      animation: fadeUp 0.5s ease-out 0.08s backwards;
+    }
+
+    .score-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 200%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), rgba(179, 75, 244, 0.3), rgba(225, 48, 108, 0.2), transparent);
+      animation: shimmerLine 6s ease-in-out infinite;
+      animation-delay: -2s;
+    }
+
+    .score-top {
+      padding: 24px 24px 16px;
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .score-top::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #b34bf4, #e1306c 50%, #ff7a00);
+    }
+
+    .score-eyebrow {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--fog);
+      margin-bottom: 10px;
+    }
+
+    .score-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(52px, 7vw, 72px);
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .score-unit {
+      font-size: 12px;
+      color: var(--fog);
+      font-family: 'DM Mono', monospace;
+      margin-left: 4px;
+      vertical-align: baseline;
+    }
+
+    .score-rule {
+      height: 1px;
+      margin: 0 24px;
+      background: linear-gradient(to right, transparent, var(--wire-bright), transparent);
+    }
+
+    .stats-grid {
+      padding: 16px 24px 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat-cell {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .stat-cell .lbl {
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--fog);
+    }
+
+    .stat-cell .val {
+      margin-top: 4px;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .stat-cell .val.timer {
+      color: var(--amber);
+      font-size: 15px;
+    }
+
+    .section-head {
+      margin: 0 0 22px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .section-head h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      letter-spacing: 0.03em;
+    }
+
+    .section-head p {
+      font-size: 12px;
+      color: var(--fog);
+      margin-top: 4px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width:720px) {
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .challenge-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(179, 75, 244, 0.04) 50%, rgba(225, 48, 108, 0.03) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(32px) saturate(150%);
+      -webkit-backdrop-filter: blur(32px) saturate(150%);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(179, 75, 244, 0.03);
+      transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+      animation: fadeUp 0.5s ease-out backwards;
+    }
+
+    .challenge-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 200%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), rgba(179, 75, 244, 0.3), rgba(225, 48, 108, 0.2), transparent);
+      animation: shimmerLine 6s ease-in-out infinite;
+    }
+
+    .challenge-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(179, 75, 244, 0.3);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(179, 75, 244, 0.25), inset 0 0 40px rgba(179, 75, 244, 0.06);
+    }
+
+    .card-shine {
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--amber), transparent);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .challenge-card:hover .card-shine {
+      opacity: 0.5;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .card-tags {
+      display: flex;
+      gap: 6px;
+    }
+
+    .tag {
+      padding: 3px 9px;
+      border-radius: 2px;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+    }
+
+    .tag-idx {
+      background: var(--amber-dim);
+      color: var(--amber);
+      border: 1px solid rgba(179, 75, 244, 0.2);
+    }
+
+    .tag-easy {
+      background: var(--amber-dim);
+      color: var(--amber);
+      border: 1px solid rgba(179, 75, 244, 0.2);
+    }
+
+    .tag-med {
+      background: var(--lime-dim);
+      color: var(--cyber-orange);
+      border: 1px solid rgba(255, 122, 0, 0.2);
+    }
+
+    .tag-hard {
+      background: rgba(255, 85, 119, 0.08);
+      color: var(--danger);
+      border: 1px solid rgba(255, 85, 119, 0.2);
+    }
+
+    .card-id {
+      font-size: 11px;
+      color: var(--fog);
+    }
+
+    .card-title {
+      font-family: 'Instrument Sans', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: var(--fog);
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .card-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-pts {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 16px;
+    }
+
+    .card-pts .bolt {
+      color: var(--amber);
+    }
+
+    .card-pts b {
+      font-weight: 700;
+    }
+
+    .card-pts span {
+      color: var(--fog);
+      font-size: 12px;
+    }
+
+    .solve-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 3px;
+      background: linear-gradient(135deg, #b34bf4, #e1306c);
+      color: #fff;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      font-weight: 800;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .solve-btn:hover {
+      opacity: 0.95;
+      transform: scale(1.03);
+      box-shadow: 0 4px 10px rgba(225, 48, 108, 0.2);
+    }
+
+    #how-to-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(5, 5, 6, 0.88);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #how-to-overlay.hidden {
+      display: none;
+    }
+
+    .htp-card {
+      width: min(520px, 94vw);
+      background: var(--ink-1);
+      border: 1px solid var(--wire-bright);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8);
+      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(28px) scale(0.97)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1)
+      }
+    }
+
+    .htp-topbar {
+      height: 2px;
+      background: linear-gradient(90deg, #b34bf4, #e1306c 50%, #ff7a00);
+    }
+
+    .htp-body {
+      padding: 28px;
+    }
+
+    .htp-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    .htp-sub {
+      font-size: 12px;
+      color: var(--fog);
+      margin-bottom: 24px;
+    }
+
+    .htp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .htp-item {
+      background: var(--ink-2);
+      border: 1px solid var(--wire);
+      border-radius: 3px;
+      padding: 14px;
+    }
+
+    .htp-item-icon {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .htp-item-title {
+      font-family: 'Instrument Sans', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .htp-item-desc {
+      font-size: 11px;
+      color: var(--fog);
+      line-height: 1.6;
+    }
+
+    .htp-close {
+      width: 100%;
+      padding: 12px;
+      border-radius: 3px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #b34bf4, #e1306c);
+      color: #fff;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 0.1em;
+      transition: opacity 0.2s;
+      font-weight: 800;
+    }
+
+    .htp-close:hover {
+      opacity: 0.85;
+    }
+
+    #bonus-btn {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 500;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 138, 76, 0.4);
+      border-top: 1px solid rgba(255, 255, 255, 0.3);
+      border-left: 1px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      background: linear-gradient(135deg, rgba(255, 138, 76, 0.8), rgba(255, 80, 40, 0.8));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 8px 28px rgba(255, 138, 76, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      animation: bonusPulse 2.5s ease-in-out infinite;
+      transition: transform 0.2s, background 0.2s;
+      color: #fff;
+    }
+
+    #bonus-btn:hover {
+      transform: scale(1.1);
+    }
+
+    @keyframes bonusPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 8px 28px rgba(255, 138, 76, 0.35)
+      }
+
+      50% {
+        box-shadow: 0 8px 44px rgba(255, 138, 76, 0.6)
+      }
+    }
+
+    #bonus-btn::after {
+      content: '!';
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--danger);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--ink);
+    }
+
+    #bonus-panel {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 400px;
+      height: 100vh;
+      z-index: 400;
+      transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      background: var(--ink-1);
+      border-left: 1px solid rgba(179, 75, 244, 0.18);
+      box-shadow: -20px 0 60px rgba(0, 0, 0, 0.7);
+    }
+
+    #bonus-panel.open {
+      right: 0;
+    }
+
+    .bonus-panel-header {
+      padding: 18px 18px 14px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--wire);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .bonus-title-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .bonus-panel-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 0.05em;
+    }
+
+    .bonus-close-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 3px;
+      border: 1px solid var(--wire-bright);
+      background: var(--ink-2);
+      color: var(--fog);
+      font-size: 14px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all 0.2s;
+    }
+
+    .bonus-close-btn:hover {
+      background: var(--ink-3);
+      color: var(--text);
+    }
+
+    .bonus-timer-bar {
+      flex-shrink: 0;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--wire);
+      background: rgba(179, 75, 244, 0.03);
+    }
+
+    .bonus-timer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .bonus-timer-label {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--fog);
+    }
+
+    #bonus-countdown {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--amber);
+    }
+
+    .bonus-progress-track {
+      height: 2px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+    }
+
+    #bonus-progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(to right, var(--amber), var(--lime));
+      transition: width 1s linear;
+    }
+
+    .bonus-slots {
+      flex-shrink: 0;
+      padding: 10px 18px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .slot {
+      flex: 1;
+      padding: 6px 6px;
+      border-radius: 3px;
+      text-align: center;
+      border: 1px solid var(--wire);
+      background: var(--ink-2);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--fog);
+      transition: all 0.3s;
+    }
+
+    .slot.taken {
+      background: var(--amber-dim);
+      border-color: rgba(179, 75, 244, 0.25);
+      color: var(--amber);
+    }
+
+    .slot .slot-pts {
+      font-size: 13px;
+      display: block;
+      margin-bottom: 2px;
+      font-weight: 500;
+    }
+
+    .bonus-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .bonus-section-label {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--fog);
+      margin-bottom: 5px;
+    }
+
+    .bonus-description {
+      font-size: 12px;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, 0.6);
+      background: var(--ink-2);
+      border: 1px solid var(--wire);
+      border-radius: 3px;
+      padding: 12px 14px;
+    }
+
+    .bonus-hint {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      background: rgba(179, 75, 244, 0.05);
+      border: 1px solid rgba(179, 75, 244, 0.15);
+      border-radius: 3px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: rgba(179, 75, 244, 0.85);
+      line-height: 1.5;
+    }
+
+    .bonus-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 3px;
+      background: var(--ink-2);
+      border: 1px solid var(--wire-bright);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.2s;
+      resize: none;
+    }
+
+    .bonus-input:focus {
+      border-color: var(--cyber-orange);
+      background: rgba(255, 122, 0, 0.02);
+    }
+
+    .bonus-submit-btn {
+      width: 100%;
+      padding: 11px;
+      border-radius: 3px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #b34bf4, #e1306c);
+      color: #fff;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 17px;
+      letter-spacing: 0.1em;
+      transition: opacity 0.2s, transform 0.15s;
+      font-weight: 800;
+    }
+
+    .bonus-submit-btn:hover {
+      opacity: 0.85;
+      transform: translateY(-1px);
+    }
+
+    .bonus-submit-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .bonus-result {
+      padding: 10px 12px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: 500;
+      text-align: center;
+      display: none;
+    }
+
+    .bonus-result.correct {
+      background: rgba(13, 240, 128, 0.1);
+      border: 1px solid rgba(13, 240, 128, 0.2);
+      color: var(--success);
+    }
+
+    .bonus-result.wrong {
+      background: rgba(255, 85, 119, 0.08);
+      border: 1px solid rgba(255, 85, 119, 0.2);
+      color: var(--danger);
+    }
+
+    .bonus-result.info {
+      background: rgba(179, 75, 244, 0.05);
+      border: 1px solid rgba(179, 75, 244, 0.15);
+      color: var(--amber);
+    }
+
+    #bonus-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 399;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(2px);
+      display: none;
+    }
+
+    #bonus-overlay.open {
+      display: block;
+    }
+
+    .solved-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(14, 10, 22, 0.9);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(60, 208, 112, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      z-index: 15;
+      border-radius: inherit;
+    }
+
+    .solved-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .solved-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(60, 208, 112, 0.1);
+      border: 2px solid var(--success);
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: bold;
+      box-shadow: 0 0 16px rgba(60, 208, 112, 0.2);
+    }
+
+    .solved-text {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: var(--success);
+    }
+
+    .review-btn {
+      padding: 6px 16px;
+      border-radius: 3px;
+      border: 1px solid var(--success);
+      background: rgba(60, 208, 112, 0.05);
+      color: var(--success);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      text-decoration: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s;
+    }
+
+    .challenge-card:hover .solved-badge {
+      transform: translateY(-8px);
+    }
+
+    .challenge-card:hover .review-btn {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .challenge-card:hover .review-btn:hover {
+      background: rgba(60, 208, 112, 0.15);
+    }
+  </style>
+  <script src="{% static 'js/three.min.js' %}"></script>
+</head>
+
+<body>
+  <canvas id="bg-canvas"></canvas>
+  <div class="bg-grid"></div>
+  <div class="aurora aurora-1"></div>
+  <div class="aurora aurora-2"></div>
+  <div class="aurora aurora-3"></div>
+  <div class="scan-line"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+  <div class="orb orb-5"></div>
+  <div class="vignette"></div>
+  <div class="dither-overlay"></div>
+  <nav>
+    <div class="nav-inner">
+      <a href="/home/" class="nav-brand">
+        <span class="nav-bracket">{ }</span>
+        <span class="nav-name">DIS Hackathon</span>
+      </a>
+      <div class="nav-links">
+        <a href="/leaderboard/" class="nav-link">🏆 Leaderboard</a>
+        <button onclick="openHowToPlay()" class="nav-link btn-ghost" style="cursor:pointer;">📖 How to Play</button>
+        <a href="/logout/" class="nav-link alt">Logout</a>
+      </div>
+    </div>
+  </nav>
+  <main>
+    <section class="hero-grid">
+      <div class="hero-card" style="display:flex; flex-direction:column; justify-content:between;">
+        <div>
+          <span class="live-badge"><span class="live-dot"></span>Hackathon Live</span>
+          <div class="hero-title">Time to<br><span class="amber">Code.</span></div>
+          <p class="hero-sub">Fifteen problems. Two hours. Every second and every submission counts.</p>
+          <div class="cta-row" style="margin-bottom: 24px;">
+            <a href="/problem/1/" class="btn btn-primary">Start Solving ↗</a>
+            <a href="/leaderboard/" class="btn btn-ghost">Leaderboard</a>
+          </div>
+        </div>
+        <div style="display:flex; gap:32px; border-top:1px solid var(--wire); padding-top:20px; align-items:center;">
+          <div>
+            <span style="font-size:10px; text-transform:uppercase; color:var(--fog); display:block; margin-bottom:4px; letter-spacing:0.1em;">Solved</span>
+            <span style="font-size:18px; font-weight:700; color:var(--text);">{{ solved_count }} <span style="font-size:12px; color:var(--fog);">/ 15</span></span>
+          </div>
+          <div style="flex:1; max-width:240px;">
+            <span style="font-size:10px; text-transform:uppercase; color:var(--fog); display:block; margin-bottom:4px; letter-spacing:0.1em;">Time Left</span>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span id="problem-timer" style="font-size:18px; font-weight:700; color:var(--amber); white-space:nowrap;">00:00:00</span>
+              <div class="progress-track" style="height:4px; background:rgba(255, 255, 255, 0.05); border-radius:999px; overflow:hidden; flex:1;">
+                <div id="timer-progress-fill" style="height:100%; width:100%; background:linear-gradient(90deg, #b34bf4, #e1306c 50%, #ff7a00); border-radius:999px; transition:width 1s linear;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="score-card" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; flex:1;">
+          <div class="score-top" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:32px 24px; width:100%;">
+            <div class="score-eyebrow" style="font-size:11px; letter-spacing:0.25em; text-transform:uppercase; color:var(--fog); margin-bottom:8px;">// Your Score</div>
+            <div class="score-num" style="font-size:clamp(48px, 6vw, 64px);">{{ total_score }}<span class="score-unit" style="font-size:14px; margin-left:4px; color:var(--fog); font-family:'DM Mono',monospace;">pts</span></div>
+          </div>
+        </div>
+        <div class="score-card" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; flex:1;">
+          <div class="score-top" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:32px 24px; width:100%;">
+            <div class="score-eyebrow" style="font-size:11px; letter-spacing:0.25em; text-transform:uppercase; color:var(--fog); margin-bottom:8px;">// Your Rank</div>
+            <div class="score-num" style="font-size:clamp(48px, 6vw, 64px); color:var(--cyber-orange);">#{{ rank }}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="challenges" style="margin-top:52px;">
+      <div class="section-head">
+        <div>
+          <h2>Challenges</h2>
+          <p>Pick your battles — higher difficulty, higher reward.</p>
+        </div>
+      </div>
+      <div class="cards-grid">
+        {% for problem in problems %}
+        <article class="challenge-card" style="animation-delay:{{ forloop.counter|add:" 0" }}00ms">
+          <div class="card-shine"></div>
+          <div class="card-header">
+            <div class="card-tags">
+              <span class="tag tag-idx">Challenge {{ forloop.counter }}</span>
+              {% if problem.difficulty == "Easy" %}<span class="tag tag-easy">Easy</span>
+              {% elif problem.difficulty == "Medium" %}<span class="tag tag-med">Medium</span>
+              {% else %}<span class="tag tag-hard">Hard</span>{% endif %}
+            </div>
+            <span class="card-id">#{{ problem.id }}</span>
+          </div>
+          <div class="card-title">{{ problem.title }}</div>
+          <p class="card-desc">{{ problem.description|truncatewords:25 }}</p>
+          <div class="card-foot">
+            <div class="card-pts">
+              <span class="bolt">⚡</span><b>{{ problem.points }}</b><span>pts</span>
+            </div>
+            <a class="solve-btn" href="/problem/{{ problem.id }}/">Solve ↗</a>
+          </div>
+          {% if problem.id in solved_problem_ids %}
+          <div class="solved-overlay">
+            <div class="solved-badge">
+              <span class="solved-icon">✓</span>
+              <span class="solved-text">SOLVED</span>
+            </div>
+            <a class="review-btn" href="/problem/{{ problem.id }}/">Review Solution ↗</a>
+          </div>
+          {% endif %}
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+  <div id="how-to-overlay" class="hidden">
+    <div class="htp-card">
+      <div class="htp-topbar"></div>
+      <div class="htp-body">
+        <div class="htp-title">How to Play</div>
+        <p class="htp-sub">Everything you need to know to dominate the leaderboard.</p>
+        <div class="htp-grid">
+          <div class="htp-item">
+            <div class="htp-item-icon">⏱️</div>
+            <div class="htp-item-title">2 Hours</div>
+            <div class="htp-item-desc">The clock runs from admin start. Every 2 minutes elapsed reduces problem points
+              by 1.</div>
+          </div>
+          <div class="htp-item">
+            <div class="htp-item-icon">📋</div>
+            <div class="htp-item-title">15 Problems</div>
+            <div class="htp-item-desc">Easy → Medium → Hard. Solve in any order. All hidden test cases must pass for
+              credit.</div>
+          </div>
+          <div class="htp-item">
+            <div class="htp-item-icon">🐍</div>
+            <div class="htp-item-title">Python Only</div>
+            <div class="htp-item-desc">Write clean Python. No imports allowed. Use RUN to test, SUBMIT to score.</div>
+          </div>
+          <div class="htp-item">
+            <div class="htp-item-icon">💡</div>
+            <div class="htp-item-title">AI Hints</div>
+            <div class="htp-item-desc">Stuck? Click the AI Hint button for a contextual nudge from rtqflash.</div>
+          </div>
+          <div class="htp-item">
+            <div class="htp-item-icon">⚡</div>
+            <div class="htp-item-title">Bonus Round</div>
+            <div class="htp-item-desc">A timed bonus round with 3 questions may appear mid-event. The first team to
+              solve all 3 earns 100 bonus points!</div>
+          </div>
+          <div class="htp-item">
+            <div class="htp-item-icon">🏆</div>
+            <div class="htp-item-title">Leaderboard</div>
+            <div class="htp-item-desc">Real-time rankings. Check regularly to see where you stand.</div>
+          </div>
+        </div>
+        <button class="htp-close" onclick="closeHowToPlay()">Got it — Let's Code!</button>
+      </div>
+    </div>
+  </div>
+  <button id="bonus-btn" title="Bonus Round!">⚡</button>
+
+  <div id="bonus-popup-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(7,5,11,0.85); backdrop-filter:blur(15px); align-items:center; justify-content:center; padding:20px;">
+    <div style="background:linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(14,10,22,0.55) 50%, rgba(225,48,108,0.04) 100%); border:1px solid rgba(225, 48, 108, 0.25); border-top:1px solid rgba(255,255,255,0.2); border-left:1px solid rgba(255,255,255,0.13); border-radius:20px; max-width:480px; width:100%; padding:36px 30px; text-align:center; box-shadow:0 32px 80px rgba(0,0,0,0.6), inset 0 0 60px rgba(225, 48, 108, 0.03), 0 0 30px rgba(225, 48, 108, 0.08); backdrop-filter:blur(40px) saturate(160%); -webkit-backdrop-filter:blur(40px) saturate(160%); animation:bonusPopupIn 0.5s cubic-bezier(0.16,1,0.3,1) both; position:relative; overflow:hidden;">
+      <div style="position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, #fec053, #f47b20, #d62976, #962fbf);"></div>
+      <div style="display:flex; justify-content:center; margin-bottom:18px;">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="url(#ig-grad-popup)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 10px rgba(225,48,108,0.6));">
+          <defs>
+            <linearGradient id="ig-grad-popup" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#fec053" />
+              <stop offset="30%" stop-color="#f47b20" />
+              <stop offset="70%" stop-color="#d62976" />
+              <stop offset="100%" stop-color="#962fbf" />
+            </linearGradient>
+          </defs>
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+      </div>
+      <h2 class="ig-gradient-text" style="font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:0.06em;line-height:1.1;margin-bottom:12px;">BONUS ROUND LIVE!</h2>
+      <p style="font-size:13px;color:#8b8599;font-family:'DM Mono',monospace;line-height:1.6;margin-bottom:24px;" id="popup-description">
+        A new coding challenge is active. Solve it in 10 minutes to score massive points!
+      </p>
+      <div style="display:flex;gap:12px;justify-content:center;">
+        <button onclick="closeBonusPopup()" style="flex:1; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.04); color:#e2dfe6; font-family:'DM Mono',monospace; font-size:12px; cursor:pointer; transition:all 0.2s;">Dismiss</button>
+        <a href="/bonus/" style="flex:1; padding:12px; border-radius:8px; border:none; background:linear-gradient(135deg,#b34bf4,#e1306c,#ff7a00); color:#fff; font-family:'Instrument Sans',system-ui,sans-serif; font-weight:800; font-size:13px; text-decoration:none; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(225,48,108,0.3); transition:all 0.2s;">Join Round →</a>
+      </div>
+    </div>
+  </div>
+
+  <style>
+  .ig-gradient-text {
+    background: linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00, #b34bf4);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+    animation: gradShift 4s linear infinite;
+  }
+  @keyframes gradShift {
+    0%{background-position:0% center}
+    100%{background-position:200% center}
+  }
+  @keyframes bonusPopupIn {
+    from { opacity:0; transform:scale(0.9) translateY(20px); }
+    to { opacity:1; transform:scale(1) translateY(0); }
+  }
+  </style>
+
+  <script>
+    function closeBonusPopup() {
+      document.getElementById('bonus-popup-modal').style.display = 'none';
+    }
+  </script>
+  <script>
+    const endTime = new Date("{{ end_time }}").getTime();
+    function updateTimer() {
+      const distance = endTime - Date.now();
+      if (distance < 0) {
+        document.getElementById("problem-timer").innerHTML = "TIME UP!";
+        const fill = document.getElementById("timer-progress-fill");
+        if (fill) fill.style.width = "0%";
+        return;
+      }
+      const h = Math.floor(distance / 3600000);
+      const m = Math.floor((distance % 3600000) / 60000);
+      const s = Math.floor((distance % 60000) / 1000);
+      document.getElementById("problem-timer").innerHTML =
+        `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+      const totalDuration = 2 * 60 * 60 * 1000;
+      const pct = Math.max(0, Math.min(100, (distance / totalDuration) * 100));
+      const fill = document.getElementById("timer-progress-fill");
+      if (fill) fill.style.width = pct + "%";
+    }
+    setInterval(updateTimer, 1000);
+    updateTimer();
+    setInterval(async () => {
+      try {
+        const res = await fetch('/api/status/');
+        const data = await res.json();
+        if (data.is_finished) window.location.href = '/';
+        else if (!data.is_live) window.location.href = '/';
+      } catch (e) { }
+    }, 5000);
+    function openHowToPlay() { document.getElementById('how-to-overlay').classList.remove('hidden'); }
+    function closeHowToPlay() { document.getElementById('how-to-overlay').classList.add('hidden'); }
+    document.getElementById('how-to-overlay').addEventListener('click', function (e) {
+      if (e.target === this) closeHowToPlay();
+    });
+    let bonusPermanentlyHidden = false;
+    let hasShownPopupThisSession = false;
+    const bonusBtn = document.getElementById('bonus-btn');
+    bonusBtn.addEventListener('click', () => {
+      window.location.href = '/bonus/';
+    });
+    async function loadBonusData() {
+      if (bonusPermanentlyHidden) return;
+      try {
+        const res = await fetch('/api/bonus/status/');
+        const data = await res.json();
+        if (!data.active) {
+          bonusBtn.style.display = 'none';
+          document.getElementById('bonus-popup-modal').style.display = 'none';
+          return;
+        }
+        if (data.expired || data.all_solved) {
+          bonusBtn.style.display = 'none';
+          return;
+        }
+        bonusBtn.style.display = 'flex';
+        if (data.available && !hasShownPopupThisSession) {
+          document.getElementById('bonus-popup-modal').style.display = 'flex';
+          const qCount = data.total_questions || 3;
+          const mins = data.duration_minutes || 10;
+          document.getElementById('popup-description').textContent = qCount + ' bonus questions are live! Solve all ' + qCount + ' in ' + mins + ' minutes — first team to finish wins 100 bonus points!';
+          hasShownPopupThisSession = true;
+        }
+      } catch (e) { }
+    }
+    loadBonusData();
+    setInterval(loadBonusData, 5000);
+    const canvas = document.getElementById('bg-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 1000);
+    camera.position.set(0, 150, 250);
+    camera.lookAt(0, 0, 0);
+    const amountX = 45;
+    const amountY = 45;
+    const spacing = 15;
+    const numParticles = amountX * amountY;
+    const positions = new Float32Array(numParticles * 3);
+    let i = 0;
+    for (let ix = 0; ix < amountX; ix++) {
+      for (let iy = 0; iy < amountY; iy++) {
+        positions[i] = ix * spacing - ((amountX * spacing) / 2);
+        positions[i + 1] = 0;
+        positions[i + 2] = iy * spacing - ((amountY * spacing) / 2);
+        i += 3;
+      }
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const material1 = new THREE.PointsMaterial({
+      color: 0xff7a00,
+      size: 2.2,
+      transparent: true,
+      opacity: 0.6,
+      sizeAttenuation: true
+    });
+    const particles1 = new THREE.Points(geometry, material1);
+    scene.add(particles1);
+    const positions2 = new Float32Array(numParticles * 3);
+    i = 0;
+    for (let ix = 0; ix < amountX; ix++) {
+      for (let iy = 0; iy < amountY; iy++) {
+        positions2[i] = ix * spacing - ((amountX * spacing) / 2);
+        positions2[i + 1] = -12;
+        positions2[i + 2] = iy * spacing - ((amountY * spacing) / 2);
+        i += 3;
+      }
+    }
+    const geometry2 = new THREE.BufferGeometry();
+    geometry2.setAttribute('position', new THREE.BufferAttribute(positions2, 3));
+    const material2 = new THREE.PointsMaterial({
+      color: 0xe1306c,
+      size: 2.2,
+      transparent: true,
+      opacity: 0.45,
+      sizeAttenuation: true
+    });
+    const particles2 = new THREE.Points(geometry2, material2);
+    scene.add(particles2);
+    let mouseX = 0;
+    let mouseY = 0;
+    let targetMouseX = 0;
+    let targetMouseY = 0;
+    document.addEventListener('mousemove', (e) => {
+      targetMouseX = (e.clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+      targetMouseY = (e.clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+    });
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+    let count = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      count += 0.04;
+      mouseX += (targetMouseX - mouseX) * 0.05;
+      mouseY += (targetMouseY - mouseY) * 0.05;
+      camera.position.x = mouseX * 120;
+      camera.position.y = 150 - (mouseY * 60);
+      camera.lookAt(0, 0, 0);
+      const pos1 = particles1.geometry.attributes.position.array;
+      const pos2 = particles2.geometry.attributes.position.array;
+      let idx = 0;
+      for (let ix = 0; ix < amountX; ix++) {
+        for (let iy = 0; iy < amountY; iy++) {
+          const y1 = Math.sin((ix + count) * 0.3) * 16 + Math.sin((iy + count) * 0.5) * 16;
+          const y2 = Math.sin((ix + count + 2) * 0.3) * 16 + Math.sin((iy + count + 2) * 0.5) * 16 - 12;
+          pos1[idx + 1] = y1;
+          pos2[idx + 1] = y2;
+          idx += 3;
+        }
+      }
+      particles1.geometry.attributes.position.needsUpdate = true;
+      particles2.geometry.attributes.position.needsUpdate = true;
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+
+</html>

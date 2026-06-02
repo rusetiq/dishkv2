@@ -763,5 +763,96 @@ function animate() {
 }
 animate();
 </script>
+  <!-- Rank change toast -->
+  <style>
+  #rank-toast {
+    position: fixed;
+    top: 80px;
+    right: 24px;
+    z-index: 99998;
+    min-width: 260px;
+    max-width: 320px;
+    background: linear-gradient(135deg, rgba(14,10,22,0.92) 0%, rgba(22,17,34,0.96) 100%);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-top: 1px solid rgba(255,255,255,0.22);
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.7), inset 0 0 30px rgba(179,75,244,0.04);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(32px) scale(0.95);
+    transition: opacity 0.35s cubic-bezier(0.16,1,0.3,1), transform 0.35s cubic-bezier(0.16,1,0.3,1);
+    overflow: hidden;
+  }
+  #rank-toast.rt-show { opacity: 1; transform: translateX(0) scale(1); pointer-events: all; }
+  #rank-toast.rt-hide { opacity: 0; transform: translateX(32px) scale(0.93); }
+  #rank-toast .rt-bar { position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  #rank-toast .rt-bar.rt-bar-up { background: linear-gradient(90deg, #3cd070, #b34bf4); }
+  #rank-toast .rt-bar.rt-bar-down { background: linear-gradient(90deg, #ff5577, #e1306c); }
+  #rank-toast .rt-icon { width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 1px solid rgba(255,255,255,0.10); }
+  #rank-toast .rt-icon.rt-icon-up { background: rgba(60,208,112,0.12); }
+  #rank-toast .rt-icon.rt-icon-down { background: rgba(255,85,119,0.12); }
+  #rank-toast .rt-body { flex: 1; }
+  #rank-toast .rt-msg { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 600; color: #e2dfe6; margin-bottom: 2px; line-height: 1.4; }
+  #rank-toast .rt-rank { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.04em; line-height: 1; }
+  #rank-toast .rt-rank.rt-rank-up { color: #3cd070; }
+  #rank-toast .rt-rank.rt-rank-down { color: #ff5577; }
+  </style>
+  <div id="rank-toast">
+    <div class="rt-bar" id="rt-bar"></div>
+    <div class="rt-icon" id="rt-icon"></div>
+    <div class="rt-body">
+      <div class="rt-msg" id="rt-msg"></div>
+      <div class="rt-rank" id="rt-rank"></div>
+    </div>
+  </div>
+  <script>
+  (function() {
+    const MY_USERNAME = '{{ request.user.username }}';
+    let lastRank = null, toastTimer = null;
+    const toast = document.getElementById('rank-toast');
+    const bar = document.getElementById('rt-bar');
+    const icon = document.getElementById('rt-icon');
+    const msg = document.getElementById('rt-msg');
+    const rankEl = document.getElementById('rt-rank');
+    function showToast(type, rank) {
+      if (toastTimer) clearTimeout(toastTimer);
+      toast.classList.remove('rt-show', 'rt-hide');
+      bar.className = 'rt-bar ' + (type === 'up' ? 'rt-bar-up' : 'rt-bar-down');
+      icon.className = 'rt-icon ' + (type === 'up' ? 'rt-icon-up' : 'rt-icon-down');
+      icon.textContent = type === 'up' ? '↑' : '↓';
+      msg.textContent = type === 'up' ? "You just overtook a team." : "You've been overtaken!";
+      rankEl.className = 'rt-rank ' + (type === 'up' ? 'rt-rank-up' : 'rt-rank-down');
+      rankEl.textContent = 'Current Rank: #' + rank;
+      void toast.offsetWidth;
+      toast.classList.add('rt-show');
+      toastTimer = setTimeout(function() {
+        toast.classList.remove('rt-show');
+        toast.classList.add('rt-hide');
+      }, 5000);
+    }
+    async function checkRank() {
+      try {
+        const res = await fetch('/api/leaderboard-data/');
+        const data = await res.json();
+        const teams = data.teams || [];
+        let myRank = null;
+        for (let i = 0; i < teams.length; i++) {
+          if (teams[i].username === MY_USERNAME) { myRank = i + 1; break; }
+        }
+        if (myRank === null) return;
+        if (lastRank !== null && myRank !== lastRank) showToast(myRank < lastRank ? 'up' : 'down', myRank);
+        lastRank = myRank;
+      } catch(e) {}
+    }
+    checkRank();
+    setInterval(checkRank, 6000);
+  })();
+  </script>
 </body>
 </html>

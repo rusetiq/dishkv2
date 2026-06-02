@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hackathon IDE - {{ problem.title }}</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/moxer.min.css">
+    
+    <style>
+        /* Color Palette: Black (#0d1117), Deep Gray (#161b22), Teal (#008080 / #20c997) */
+        body { 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            margin: 0; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #0d1117; 
+            color: #e6edf3; 
+        }
+        
+        .nav { 
+            background: #161b22; 
+            padding: 15px 25px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 2px solid #008080; 
+        }
+
+        .container { display: flex; flex: 1; overflow: hidden; }
+        
+        /* Left Side: Problem Description */
+        .problem-desc { 
+            width: 40%; 
+            padding: 30px; 
+            border-right: 1px solid #30363d; 
+            overflow-y: auto; 
+            background: #0d1117; 
+        }
+
+        .score-box { 
+            background: rgba(0, 128, 128, 0.1); 
+            padding: 15px; 
+            border-radius: 6px; 
+            border: 1px solid #008080; 
+            margin-bottom: 25px; 
+            text-align: center;
+        }
+
+        h2 { color: #20c997; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+        
+        /* Right Side: Editor */
+        .editor-container { 
+            width: 60%; 
+            display: flex; 
+            flex-direction: column; 
+            background: #0d1117; 
+        }
+
+        /* Ensure CodeMirror fills the container and matches background */
+        .CodeMirror { 
+            flex: 1; 
+            font-size: 16px; 
+            height: auto; 
+            background: #0d1117 !important; 
+        }
+        
+        /* Buttons & Controls */
+        .controls { 
+            padding: 15px; 
+            background: #161b22; 
+            display: flex; 
+            gap: 15px; 
+            align-items: center; 
+            border-top: 1px solid #30363d; 
+        }
+
+        button { 
+            padding: 10px 20px; 
+            border: 1px solid #008080; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            transition: 0.3s;
+            background: transparent;
+            color: #20c997; 
+        }
+
+        button:hover { 
+            background: #008080; 
+            color: white; 
+        }
+
+        .btn-submit { 
+            background: #008080; 
+            color: white; 
+            margin-left: auto; 
+            border: none;
+            padding: 12px 25px;
+        }
+
+        .btn-submit:hover {
+            background: #20c997;
+            box-shadow: 0 0 15px rgba(32, 201, 151, 0.4);
+        }
+        
+        #status-msg { font-weight: bold; font-size: 0.95rem; }
+        .success { color: #20c997; }
+        .error { color: #ff6b6b; }
+
+        /* Custom Scrollbar for the problem description */
+        .problem-desc::-webkit-scrollbar { width: 8px; }
+        .problem-desc::-webkit-scrollbar-track { background: #0d1117; }
+        .problem-desc::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+        .problem-desc::-webkit-scrollbar-thumb:hover { background: #008080; }
+    </style>
+</head>
+<body>
+
+    <div class="nav">
+        <div style="font-size: 1.2rem; font-weight: bold; color: #20c997;">Problem: {{ problem.title }}</div>
+        <div>Team: <strong style="color: #fff;">{{ request.user.username }}</strong></div>
+    </div>
+
+    <div class="container">
+        <div class="problem-desc">
+            <div class="score-box">
+                Current Points: <span id="points-display" style="color: #20c997; font-size: 1.5rem; font-weight: bold;">{{ progress.total_points }}</span>
+            </div>
+            <h2>Description</h2>
+            <div style="line-height: 1.7; color: #acb1b7;">
+                {{ problem.description|linebreaks }}
+            </div>
+        </div>
+
+        <div class="editor-container">
+            <textarea id="code-editor">{{ progress.current_code }}</textarea>
+
+            <div class="controls">
+                <button class="btn-save" onclick="saveCode()">Save Progress</button>
+                <button class="btn-load" onclick="loadCode()">Sync Teammate's Code</button>
+                <span id="status-msg"></span>
+                <button class="btn-submit" onclick="submitCode()">Run & Submit Code</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+
+    <script>
+        // Initialize the Moxer (Black & Teal/Cyan) editor
+        var editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+            mode: "python",
+            theme: "moxer",
+            lineNumbers: true,
+            indentUnit: 4,
+            autoCloseBrackets: true,
+            lineWrapping: true
+        });
+
+        // DISABLE COPY-PASTE (Safety Measure)
+        editor.on("paste", function(cm, e) {
+            e.preventDefault();
+            alert("Copy-pasting is disabled for this hackathon!");
+        });
+
+        const problemId = "{{ problem.id }}";
+        const statusMsg = document.getElementById('status-msg');
+
+        // SAVE CODE
+        async function saveCode() {
+            let formData = new FormData();
+            formData.append('code', editor.getValue());
+            formData.append('problem_id', problemId);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            try {
+                const res = await fetch('/save-code/', { method: 'POST', body: formData });
+                statusMsg.innerText = "✓ Progress Saved";
+                statusMsg.className = "success";
+                setTimeout(() => { statusMsg.innerText = ""; }, 3000);
+            } catch (err) {
+                statusMsg.innerText = "Error saving progress";
+                statusMsg.className = "error";
+            }
+        }
+
+        // LOAD CODE
+        async function loadCode() {
+            if(confirm("This will replace your current editor with the last saved team version. Continue?")) {
+                try {
+                    const res = await fetch(`/load-code/?problem_id=${problemId}`);
+                    const data = await res.json();
+                    editor.setValue(data.code);
+                    statusMsg.innerText = "✓ Team Code Loaded";
+                    statusMsg.className = "success";
+                } catch (err) {
+                    statusMsg.innerText = "Error loading code";
+                    statusMsg.className = "error";
+                }
+            }
+        }
+
+        // SUBMIT AND RUN
+        async function submitCode() {
+            statusMsg.innerText = "Running test cases...";
+            statusMsg.className = "";
+            
+            let formData = new FormData();
+            formData.append('code', editor.getValue());
+            formData.append('problem_id', problemId);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            try {
+                const res = await fetch('/submit-code/', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (data.status === 'Correct Answer!') {
+                    statusMsg.innerText = "CORRECT! +" + data.points + " pts";
+                    statusMsg.className = "success";
+                    document.getElementById('points-display').innerText = data.points;
+                } else {
+                    statusMsg.innerText = data.status + (data.error ? ": " + data.error : "");
+                    statusMsg.className = "error";
+                }
+            } catch (err) {
+                statusMsg.innerText = "Submission failed";
+                statusMsg.className = "error";
+            }
+        }
+    </script>
+</body>
+</html>

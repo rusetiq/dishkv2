@@ -255,18 +255,6 @@
       background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
     }
 
-    .dither-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 15;
-      pointer-events: none;
-      background-image:
-        radial-gradient(rgba(7, 5, 11, 0.35) 25%, transparent 25%),
-        radial-gradient(rgba(7, 5, 11, 0.35) 25%, transparent 25%);
-      background-size: 4px 4px;
-      background-position: 0 0, 2px 2px;
-    }
-
     nav {
       position: sticky;
       top: 0;
@@ -1332,7 +1320,6 @@
   <div class="orb orb-4"></div>
   <div class="orb orb-5"></div>
   <div class="vignette"></div>
-  <div class="dither-overlay"></div>
   <nav>
     <div class="nav-inner">
       <a href="/home/" class="nav-brand">
@@ -1360,31 +1347,50 @@
         </div>
         <div style="display:flex; gap:32px; border-top:1px solid var(--wire); padding-top:20px; align-items:center;">
           <div>
-            <span style="font-size:10px; text-transform:uppercase; color:var(--fog); display:block; margin-bottom:4px; letter-spacing:0.1em;">Solved</span>
-            <span style="font-size:18px; font-weight:700; color:var(--text);">{{ solved_count }} <span style="font-size:12px; color:var(--fog);">/ 15</span></span>
+            <span
+              style="font-size:10px; text-transform:uppercase; color:var(--fog); display:block; margin-bottom:4px; letter-spacing:0.1em;">Solved</span>
+            <span style="font-size:18px; font-weight:700; color:var(--text);">{{ solved_count }} <span
+                style="font-size:12px; color:var(--fog);">/ 15</span></span>
           </div>
           <div style="flex:1; max-width:240px;">
-            <span style="font-size:10px; text-transform:uppercase; color:var(--fog); display:block; margin-bottom:4px; letter-spacing:0.1em;">Time Left</span>
+            <span
+              style="font-size:10px; text-transform:uppercase; color:var(--fog); display:block; margin-bottom:4px; letter-spacing:0.1em;">Time
+              Left</span>
             <div style="display:flex; align-items:center; gap:12px;">
-              <span id="problem-timer" style="font-size:18px; font-weight:700; color:var(--amber); white-space:nowrap;">00:00:00</span>
-              <div class="progress-track" style="height:4px; background:rgba(255, 255, 255, 0.05); border-radius:999px; overflow:hidden; flex:1;">
-                <div id="timer-progress-fill" style="height:100%; width:100%; background:linear-gradient(90deg, #b34bf4, #e1306c 50%, #ff7a00); border-radius:999px; transition:width 1s linear;"></div>
+              <span id="problem-timer"
+                style="font-size:18px; font-weight:700; color:var(--amber); white-space:nowrap;">00:00:00</span>
+              <div class="progress-track"
+                style="height:4px; background:rgba(255, 255, 255, 0.05); border-radius:999px; overflow:hidden; flex:1;">
+                <div id="timer-progress-fill"
+                  style="height:100%; width:100%; background:linear-gradient(90deg, #b34bf4, #e1306c 50%, #ff7a00); border-radius:999px; transition:width 1s linear;">
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div style="display:flex; flex-direction:column; gap:16px;">
-        <div class="score-card" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; flex:1;">
-          <div class="score-top" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:32px 24px; width:100%;">
-            <div class="score-eyebrow" style="font-size:11px; letter-spacing:0.25em; text-transform:uppercase; color:var(--fog); margin-bottom:8px;">// Your Score</div>
-            <div class="score-num" style="font-size:clamp(48px, 6vw, 64px);">{{ total_score }}<span class="score-unit" style="font-size:14px; margin-left:4px; color:var(--fog); font-family:'DM Mono',monospace;">pts</span></div>
+        <div class="score-card"
+          style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; flex:1;">
+          <div class="score-top"
+            style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:32px 24px; width:100%;">
+            <div class="score-eyebrow"
+              style="font-size:11px; letter-spacing:0.25em; text-transform:uppercase; color:var(--fog); margin-bottom:8px;">
+              // Your Score</div>
+            <div class="score-num" style="font-size:clamp(48px, 6vw, 64px);">{{ total_score }}<span class="score-unit"
+                style="font-size:14px; margin-left:4px; color:var(--fog); font-family:'DM Mono',monospace;">pts</span>
+            </div>
           </div>
         </div>
-        <div class="score-card" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; flex:1;">
-          <div class="score-top" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:32px 24px; width:100%;">
-            <div class="score-eyebrow" style="font-size:11px; letter-spacing:0.25em; text-transform:uppercase; color:var(--fog); margin-bottom:8px;">// Your Rank</div>
-            <div class="score-num" style="font-size:clamp(48px, 6vw, 64px); color:var(--cyber-orange);">#{{ rank }}</div>
+        <div class="score-card"
+          style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; flex:1;">
+          <div class="score-top"
+            style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:32px 24px; width:100%;">
+            <div class="score-eyebrow"
+              style="font-size:11px; letter-spacing:0.25em; text-transform:uppercase; color:var(--fog); margin-bottom:8px;">
+              // Your Rank</div>
+            <div class="score-num" style="font-size:clamp(48px, 6vw, 64px); color:var(--cyber-orange);">#{{ rank }}
+            </div>
           </div>
         </div>
       </div>
@@ -1478,11 +1484,16 @@
   </div>
   <button id="bonus-btn" title="Bonus Round!">⚡</button>
 
-  <div id="bonus-popup-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(7,5,11,0.85); backdrop-filter:blur(15px); align-items:center; justify-content:center; padding:20px;">
-    <div style="background:linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(14,10,22,0.55) 50%, rgba(225,48,108,0.04) 100%); border:1px solid rgba(225, 48, 108, 0.25); border-top:1px solid rgba(255,255,255,0.2); border-left:1px solid rgba(255,255,255,0.13); border-radius:20px; max-width:480px; width:100%; padding:36px 30px; text-align:center; box-shadow:0 32px 80px rgba(0,0,0,0.6), inset 0 0 60px rgba(225, 48, 108, 0.03), 0 0 30px rgba(225, 48, 108, 0.08); backdrop-filter:blur(40px) saturate(160%); -webkit-backdrop-filter:blur(40px) saturate(160%); animation:bonusPopupIn 0.5s cubic-bezier(0.16,1,0.3,1) both; position:relative; overflow:hidden;">
-      <div style="position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, #fec053, #f47b20, #d62976, #962fbf);"></div>
+  <div id="bonus-popup-modal"
+    style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(7,5,11,0.85); backdrop-filter:blur(15px); align-items:center; justify-content:center; padding:20px;">
+    <div
+      style="background:linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(14,10,22,0.55) 50%, rgba(225,48,108,0.04) 100%); border:1px solid rgba(225, 48, 108, 0.25); border-top:1px solid rgba(255,255,255,0.2); border-left:1px solid rgba(255,255,255,0.13); border-radius:20px; max-width:480px; width:100%; padding:36px 30px; text-align:center; box-shadow:0 32px 80px rgba(0,0,0,0.6), inset 0 0 60px rgba(225, 48, 108, 0.03), 0 0 30px rgba(225, 48, 108, 0.08); backdrop-filter:blur(40px) saturate(160%); -webkit-backdrop-filter:blur(40px) saturate(160%); animation:bonusPopupIn 0.5s cubic-bezier(0.16,1,0.3,1) both; position:relative; overflow:hidden;">
+      <div
+        style="position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, #fec053, #f47b20, #d62976, #962fbf);">
+      </div>
       <div style="display:flex; justify-content:center; margin-bottom:18px;">
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="url(#ig-grad-popup)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 10px rgba(225,48,108,0.6));">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="url(#ig-grad-popup)" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 10px rgba(225,48,108,0.6));">
           <defs>
             <linearGradient id="ig-grad-popup" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stop-color="#fec053" />
@@ -1494,34 +1505,54 @@
           <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
         </svg>
       </div>
-      <h2 class="ig-gradient-text" style="font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:0.06em;line-height:1.1;margin-bottom:12px;">BONUS ROUND LIVE!</h2>
-      <p style="font-size:13px;color:#8b8599;font-family:'DM Mono',monospace;line-height:1.6;margin-bottom:24px;" id="popup-description">
+      <h2 class="ig-gradient-text"
+        style="font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:0.06em;line-height:1.1;margin-bottom:12px;">
+        BONUS ROUND LIVE!</h2>
+      <p style="font-size:13px;color:#8b8599;font-family:'DM Mono',monospace;line-height:1.6;margin-bottom:24px;"
+        id="popup-description">
         A new coding challenge is active. Solve it in 10 minutes to score massive points!
       </p>
       <div style="display:flex;gap:12px;justify-content:center;">
-        <button onclick="closeBonusPopup()" style="flex:1; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.04); color:#e2dfe6; font-family:'DM Mono',monospace; font-size:12px; cursor:pointer; transition:all 0.2s;">Dismiss</button>
-        <a href="/bonus/" style="flex:1; padding:12px; border-radius:8px; border:none; background:linear-gradient(135deg,#b34bf4,#e1306c,#ff7a00); color:#fff; font-family:'Instrument Sans',system-ui,sans-serif; font-weight:800; font-size:13px; text-decoration:none; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(225,48,108,0.3); transition:all 0.2s;">Join Round →</a>
+        <button onclick="closeBonusPopup()"
+          style="flex:1; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.04); color:#e2dfe6; font-family:'DM Mono',monospace; font-size:12px; cursor:pointer; transition:all 0.2s;">Dismiss</button>
+        <a href="/bonus/"
+          style="flex:1; padding:12px; border-radius:8px; border:none; background:linear-gradient(135deg,#b34bf4,#e1306c,#ff7a00); color:#fff; font-family:'Instrument Sans',system-ui,sans-serif; font-weight:800; font-size:13px; text-decoration:none; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(225,48,108,0.3); transition:all 0.2s;">Join
+          Round →</a>
       </div>
     </div>
   </div>
 
   <style>
-  .ig-gradient-text {
-    background: linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00, #b34bf4);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    display: inline-block;
-    animation: gradShift 4s linear infinite;
-  }
-  @keyframes gradShift {
-    0%{background-position:0% center}
-    100%{background-position:200% center}
-  }
-  @keyframes bonusPopupIn {
-    from { opacity:0; transform:scale(0.9) translateY(20px); }
-    to { opacity:1; transform:scale(1) translateY(0); }
-  }
+    .ig-gradient-text {
+      background: linear-gradient(90deg, #b34bf4, #e1306c, #ff7a00, #b34bf4);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+      animation: gradShift 4s linear infinite;
+    }
+
+    @keyframes gradShift {
+      0% {
+        background-position: 0% center
+      }
+
+      100% {
+        background-position: 200% center
+      }
+    }
+
+    @keyframes bonusPopupIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
   </style>
 
   <script>
@@ -1690,6 +1721,161 @@
       renderer.render(scene, camera);
     }
     animate();
+  </script>
+  <style>
+    #rank-toast {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      z-index: 99998;
+      min-width: 260px;
+      max-width: 320px;
+      background: linear-gradient(135deg, rgba(14, 10, 22, 0.92) 0%, rgba(22, 17, 34, 0.96) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-top: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 12px;
+      padding: 14px 18px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7), inset 0 0 30px rgba(179, 75, 244, 0.04);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateX(32px) scale(0.95);
+      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+
+    #rank-toast.rt-show {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      pointer-events: all;
+    }
+
+    #rank-toast.rt-hide {
+      opacity: 0;
+      transform: translateX(32px) scale(0.93);
+    }
+
+    #rank-toast .rt-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+    }
+
+    #rank-toast .rt-bar.rt-bar-up {
+      background: linear-gradient(90deg, #3cd070, #b34bf4);
+    }
+
+    #rank-toast .rt-bar.rt-bar-down {
+      background: linear-gradient(90deg, #ff5577, #e1306c);
+    }
+
+    #rank-toast .rt-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.10);
+    }
+
+    #rank-toast .rt-icon.rt-icon-up {
+      background: rgba(60, 208, 112, 0.12);
+    }
+
+    #rank-toast .rt-icon.rt-icon-down {
+      background: rgba(255, 85, 119, 0.12);
+    }
+
+    #rank-toast .rt-body {
+      flex: 1;
+    }
+
+    #rank-toast .rt-msg {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: #e2dfe6;
+      margin-bottom: 2px;
+      line-height: 1.4;
+    }
+
+    #rank-toast .rt-rank {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+
+    #rank-toast .rt-rank.rt-rank-up {
+      color: #3cd070;
+    }
+
+    #rank-toast .rt-rank.rt-rank-down {
+      color: #ff5577;
+    }
+  </style>
+  <div id="rank-toast">
+    <div class="rt-bar" id="rt-bar"></div>
+    <div class="rt-icon" id="rt-icon"></div>
+    <div class="rt-body">
+      <div class="rt-msg" id="rt-msg"></div>
+      <div class="rt-rank" id="rt-rank"></div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const MY_USERNAME = '{{ request.user.username }}';
+      let lastRank = null;
+      let toastTimer = null;
+      const toast = document.getElementById('rank-toast');
+      const bar = document.getElementById('rt-bar');
+      const icon = document.getElementById('rt-icon');
+      const msg = document.getElementById('rt-msg');
+      const rankEl = document.getElementById('rt-rank');
+      function showToast(type, rank) {
+        if (toastTimer) clearTimeout(toastTimer);
+        toast.classList.remove('rt-show', 'rt-hide');
+        bar.className = 'rt-bar ' + (type === 'up' ? 'rt-bar-up' : 'rt-bar-down');
+        icon.className = 'rt-icon ' + (type === 'up' ? 'rt-icon-up' : 'rt-icon-down');
+        icon.textContent = type === 'up' ? '↑' : '↓';
+        msg.textContent = type === 'up' ? "You just overtook a team." : "You've been overtaken!";
+        rankEl.className = 'rt-rank ' + (type === 'up' ? 'rt-rank-up' : 'rt-rank-down');
+        rankEl.textContent = 'Current Rank: #' + rank;
+        void toast.offsetWidth;
+        toast.classList.add('rt-show');
+        toastTimer = setTimeout(function () {
+          toast.classList.remove('rt-show');
+          toast.classList.add('rt-hide');
+        }, 5000);
+      }
+      async function checkRank() {
+        try {
+          const res = await fetch('/api/leaderboard-data/');
+          const data = await res.json();
+          const teams = data.teams || [];
+          let myRank = null;
+          for (let i = 0; i < teams.length; i++) {
+            if (teams[i].username === MY_USERNAME) { myRank = i + 1; break; }
+          }
+          if (myRank === null) return;
+          if (lastRank !== null && myRank !== lastRank) {
+            showToast(myRank < lastRank ? 'up' : 'down', myRank);
+          }
+          lastRank = myRank;
+        } catch (e) { }
+      }
+      checkRank();
+      setInterval(checkRank, 6000);
+    })();
   </script>
 </body>
 

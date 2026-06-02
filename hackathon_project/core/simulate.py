@@ -46,11 +46,11 @@ if not Problem.objects.exists():
 problem = Problem.objects.first()
 problem_id = problem.id
 
-BASE_URL = "http://127.0.0.1"
+BASE_URL = "http://10.10.50.50"
 try:
     urllib.request.urlopen(BASE_URL, timeout=1)
 except Exception:
-    BASE_URL = "http://127.0.0.1:8000"
+    BASE_URL = "http://10.10.50.50"
 
 results_lock = threading.Lock()
 print_lock = threading.Lock()

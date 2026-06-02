@@ -376,7 +376,8 @@ def submit_code(request):
     if not progress.is_solved:
         elapsed = (timezone.now() - state.start_time).total_seconds()
         time_penalty = int(elapsed / 120)
-        final_points = max(20, problem.base_points - time_penalty)
+        min_points = 75 if problem.difficulty == 'Easy' else 20
+        final_points = max(min_points, problem.base_points - time_penalty)
         
         progress.points = final_points
         progress.is_solved = True
@@ -505,7 +506,11 @@ def bonus_submit(request):
     if output is None or output.strip() != bonus.expected_output.strip():
         return JsonResponse({'status': 'Wrong Answer — check your input format.'})
 
-    points_awarded = 70
+    other_submissions_count = BonusSubmission.objects.filter(bonus=bonus, is_correct=True).count()
+    if other_submissions_count < 8:
+        points_awarded = 200 - (15 * other_submissions_count)
+    else:
+        points_awarded = 0
     finish_rank = None
 
     all_questions = BonusQuestion.objects.filter(is_active=True).order_by('order')
@@ -534,20 +539,11 @@ def bonus_submit(request):
                     solved_count=all_questions.count()
                 ).count()
 
-                if finished_teams_count == 0:
-                    points_awarded += 100
-                    finish_rank = 1
+                finish_rank = finished_teams_count + 1
+                if finish_rank == 1:
                     if h_state and not h_state.bonus_first_finisher:
                         h_state.bonus_first_finisher = request.user
                         h_state.save()
-                elif finished_teams_count == 1:
-                    points_awarded += 50
-                    finish_rank = 2
-                elif finished_teams_count == 2:
-                    points_awarded += 25
-                    finish_rank = 3
-                else:
-                    finish_rank = finished_teams_count + 1
 
                 BonusSubmission.objects.create(
                     team=request.user, bonus=bonus,
@@ -584,16 +580,19 @@ def bonus_submit(request):
 
     if all_complete:
         if finish_rank == 1:
-            response_data['status'] = 'Correct! 🏆 You finished first — +100 bonus points!'
+            response_data['status'] = f'Correct! 🏆 You finished first — +{points_awarded} points!'
             response_data['first_finisher'] = True
         elif finish_rank == 2:
-            response_data['status'] = 'Correct! 🥈 You finished second — +50 bonus points!'
+            response_data['status'] = f'Correct! 🥈 You finished second — +{points_awarded} points!'
             response_data['first_finisher'] = False
         elif finish_rank == 3:
-            response_data['status'] = 'Correct! 🥉 You finished third — +25 bonus points!'
+            response_data['status'] = f'Correct! 🥉 You finished third — +{points_awarded} points!'
+            response_data['first_finisher'] = False
+        elif finish_rank <= 8:
+            response_data['status'] = f'Correct! You finished rank {finish_rank} — +{points_awarded} points!'
             response_data['first_finisher'] = False
         else:
-            response_data['status'] = 'Correct! All questions complete — +70 points!'
+            response_data['status'] = f'Correct! All questions complete — +{points_awarded} points!'
             response_data['first_finisher'] = False
         response_data['points_awarded'] = points_awarded
 
@@ -753,15 +752,30 @@ def ai_hint(request):
     current_code = request.POST.get('code', '')
 
     problem = get_object_or_404(Problem, id=problem_id)
+    progress = get_object_or_404(TeamProgress, team=request.user, problem=problem)
+    if progress.hint_text:
+        return JsonResponse({'hint': progress.hint_text})
 
     from django.conf import settings
-    api_key = getattr(settings, 'GROQ_API_KEY', '')
-    if not api_key:
-        return JsonResponse({'hint': 'AI hints are not configured. Ask your admin to set GROQ_API_KEY.'})
-
-    console_output = request.POST.get('console_output', '').strip()
     model_name = (state.ai_model if state and state.ai_model else 'llama-3.3-70b-versatile')
 
+    if model_name.startswith('ollama/'):
+        api_url = getattr(settings, 'OLLAMA_API_BASE', 'http://localhost:11434').rstrip('/') + '/v1/chat/completions'
+        api_key = None
+        payload_model = model_name[7:]
+    elif model_name.startswith('openai/'):
+        api_url = getattr(settings, 'OPENAI_API_BASE', 'https://api.openai.com').rstrip('/') + '/v1/chat/completions'
+        api_key = getattr(settings, 'OPENAI_API_KEY', '') or getattr(settings, 'GROQ_API_KEY', '')
+        payload_model = model_name[7:]
+    else:
+        api_url = 'https://api.groq.com/openai/v1/chat/completions'
+        api_key = getattr(settings, 'GROQ_API_KEY', '')
+        payload_model = model_name
+
+    if not api_key and not model_name.startswith('ollama/'):
+        return JsonResponse({'hint': 'AI hints are not configured. Ask your admin to set API keys.'})
+
+    console_output = request.POST.get('console_output', '').strip()
     code_block = current_code.strip() if current_code.strip() else '(empty — student has not written anything yet)'
 
     console_section = ''
@@ -783,20 +797,23 @@ Be encouraging, concise (2-4 sentences max), and specific to their code and any 
 Focus on the approach/algorithm, not the exact implementation."""
 
     payload = json.dumps({
-        'model': model_name,
+        'model': payload_model,
         'messages': [{'role': 'user', 'content': prompt}],
         'max_tokens': 300,
         'temperature': 0.7,
     }).encode()
 
+    headers = {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0',
+    }
+    if api_key:
+        headers['Authorization'] = f'Bearer {api_key}'
+
     req = urlreq.Request(
-        'https://api.groq.com/openai/v1/chat/completions',
+        api_url,
         data=payload,
-        headers={
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {api_key}',
-            'User-Agent': 'Mozilla/5.0',
-        },
+        headers=headers,
         method='POST'
     )
 
@@ -804,6 +821,8 @@ Focus on the approach/algorithm, not the exact implementation."""
         with urlreq.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode())
             hint_text = data['choices'][0]['message']['content']
+            progress.hint_text = hint_text
+            progress.save()
             return JsonResponse({'hint': hint_text})
     except urllib.error.HTTPError as e:
         body = e.read().decode(errors='ignore')

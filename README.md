@@ -1,6 +1,6 @@
 # dishkv2
 
-A Django-based project for managing user authentication and login status tracking.
+A Django-based project for conducting hackathons with a Python code runner. 
 
 ## Project Overview
 

@@ -1,10 +1,10 @@
-# DishKv2
+# dishkv2
 
 A Django-based project for managing user authentication and login status tracking.
 
 ## Project Overview
 
-DishKv2 is a hackathon project built with Django that handles user login management and status tracking. The project maintains user authentication data and login history in a structured CSV format.
+dishkv2 is a hackathon project built with Django that handles user login management and status tracking. The project maintains user authentication data and login history in a structured CSV format.
 
 ## Technologies
 

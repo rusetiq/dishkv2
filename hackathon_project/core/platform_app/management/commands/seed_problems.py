@@ -13,6 +13,7 @@ class Command(BaseCommand):
                     "difficulty": p["difficulty"],
                     "function_name": p["function_name"],
                     "base_points": p["base_points"],
+                    "points": p["base_points"],
                     "starter_code": p["starter_code"],
                     "description": p["description"],
                     "examples": p["examples"],
